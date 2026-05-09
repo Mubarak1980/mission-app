@@ -1,23 +1,29 @@
 const CACHE_NAME = 'mission-cache-v12';
 
 const ASSETS = [
-  '/mission-app/',
-  '/mission-app/index.html',
-  '/mission-app/styles.css',
-  '/mission-app/main.js',
-  '/mission-app/Study-tracker.js',
-  '/mission-app/Sunnah-tracker.js',
-  '/mission-app/dashboard.js',
-  '/mission-app/weekly-timetable.js',
-  '/mission-app/top-student-mode.js',
-  '/mission-app/manifest.json',
-  '/mission-app/icon-192.png'
+  './',
+  './index.html',
+  './styles.css',
+  './main.js',
+  './Study-tracker.js',
+  './Sunnah-tracker.js',
+  './dashboard.js',
+  './weekly-timetable.js',
+  './top-student-mode.js',
+  './manifest.json',
+  './icon-192.png'
 ];
 
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then(cache =>
+      Promise.all(
+        ASSETS.map(url =>
+          cache.add(url).catch(() => null)
+        )
+      )
+    )
   );
 });
 
@@ -34,7 +40,7 @@ self.addEventListener('fetch', event => {
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(() =>
-        caches.match('/mission-app/index.html')
+        caches.match('./index.html')
       )
     );
     return;
