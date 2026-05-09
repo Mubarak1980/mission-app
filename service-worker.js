@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mission-cache-v12';
+const CACHE_NAME = 'mission-cache-v13';
 
 const ASSETS = [
   './',
@@ -14,6 +14,7 @@ const ASSETS = [
   './icon-192.png'
 ];
 
+// INSTALL
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
@@ -27,16 +28,26 @@ self.addEventListener('install', event => {
   );
 });
 
+// ACTIVATE
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.map(k => k !== CACHE_NAME && caches.delete(k)))
+      Promise.all(
+        keys.map(key => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      )
     )
   );
   self.clients.claim();
 });
 
+// FETCH
 self.addEventListener('fetch', event => {
+
+  // Handle page navigation
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(() =>
@@ -46,9 +57,10 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  // Handle other files
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      return cached || fetch(event.request);
+    caches.match(event.request).then(response => {
+      return response || fetch(event.request);
     })
   );
 });
