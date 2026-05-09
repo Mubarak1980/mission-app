@@ -19,7 +19,6 @@
 <body>
     <h1>TIME</h1>
 
-    <!-- SECTION BUTTONS -->
     <div class="section-buttons">
         <button onclick="loadSunnahTracker()">Sunnah Tracker</button>
         <button onclick="loadSection('study', currentGrade)">Study Tracker</button>
@@ -28,21 +27,15 @@
         <button onclick="loadTopStudentMode()">🎓 Top Student Mode</button>
     </div>
 
-    <!-- PROGRESS -->
     <div id="grade-progress-bar"></div>
-
-    <!-- MAIN CONTENT -->
     <div id="main-content"></div>
 
-    <!-- NAVIGATION -->
     <div class="nav-buttons" id="grade-nav">
         <button onclick="previousGrade()" id="prev-btn">Previous</button>
         <button onclick="nextGrade()" id="next-btn">Next</button>
     </div>
 
-    <!-- =========================
-         JS FILES (IMPORTANT ORDER)
-    ========================== -->
+    <!-- JS FILES -->
     <script src="./Sunnah-tracker.js"></script>
     <script src="./Study-tracker.js"></script>
     <script src="./weekly-timetable.js"></script>
@@ -50,19 +43,13 @@
     <script src="./top-student-mode.js"></script>
     <script src="./main.js"></script>
 
-    <!-- =========================
-         SERVICE WORKER (FIXED)
-    ========================== -->
+    <!-- SERVICE WORKER -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./service-worker.js')
-                    .then(reg => {
-                        console.log('SW registered:', reg.scope);
-                    })
-                    .catch(err => {
-                        console.log('SW failed:', err);
-                    });
+                    .then(() => console.log('Service Worker Registered'))
+                    .catch(err => console.log('SW Error:', err));
             });
         }
     </script>
