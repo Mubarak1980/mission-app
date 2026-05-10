@@ -1,5 +1,5 @@
 // ===============================  
-// main.js (FIXED & ROBUST)  
+// main.js
 // ===============================  
 
 let currentGrade = 9;
@@ -40,21 +40,32 @@ function loadSection(type, grade) {
   syncGlobalState();
   updateNavButtons();
 
-  requestAnimationFrame(() => {
-
-    if (type === "study") {
-      window.loadStudySection?.(grade);
+  // safe rendering without race conditions
+  const render = () => {
+    if (type === "study" && typeof window.loadStudySection === "function") {
+      window.loadStudySection(grade);
     }
 
-    if (type === "timetable") {
-      window.loadWeeklyTimetable?.();
+    if (type === "timetable" && typeof window.loadWeeklyTimetable === "function") {
+      window.loadWeeklyTimetable();
     }
 
-    if (type === "dashboard") {
-      window.loadDashboard?.();
+    if (type === "dashboard" && typeof window.loadDashboard === "function") {
+      window.loadDashboard();
     }
+  };
 
-  });
+  // wait until everything is available
+  if (window.maxPagesByGrade && window.loadStudySection) {
+    render();
+  } else {
+    const check = setInterval(() => {
+      if (window.maxPagesByGrade && window.loadStudySection) {
+        clearInterval(check);
+        render();
+      }
+    }, 30);
+  }
 }
 
 // ===============================  
@@ -77,7 +88,7 @@ function previousGrade() {
 }
 
 // ===============================  
-// INIT (FIXED SAFE BOOTSTRAP)  
+// INIT  
 // ===============================  
 window.addEventListener("load", () => {
 
@@ -85,28 +96,11 @@ window.addEventListener("load", () => {
   prevBtn = document.getElementById("prev-btn");
   nextBtn = document.getElementById("next-btn");
 
-  // 🔥 FIX: wait until data exists (prevents false crash)
-  const waitForData = setInterval(() => {
+  syncGlobalState();
+  updateNavButtons();
 
-    if (window.maxPagesByGrade) {
-
-      clearInterval(waitForData);
-
-      syncGlobalState();
-      updateNavButtons();
-
-      loadSection("study", currentGrade);
-    }
-
-  }, 50);
-
-  // 🔥 safety timeout fallback (debug help)
-  setTimeout(() => {
-    if (!window.maxPagesByGrade) {
-      console.error("❌ STILL NO maxPagesByGrade — check settings.js load order!");
-    }
-  }, 2000);
-
+  // safe boot (no crash if modules load late)
+  loadSection("study", currentGrade);
 });
 
 // ===============================  
