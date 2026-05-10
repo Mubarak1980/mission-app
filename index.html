@@ -1,52 +1,70 @@
-<!DOCTYPE html>  <html lang="en">  
-<head>  
-    <meta charset="UTF-8" />  
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />  
-    <title>Mission App</title>  <!-- CSS -->  
-<link rel="stylesheet" href="./styles.css" />  
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mission App</title>
 
-<!-- PWA -->  
-<link rel="manifest" href="./manifest.json" />  
-<meta name="theme-color" content="#2d89ef" />  
+    <!-- CSS -->
+    <link rel="stylesheet" href="./styles.css" />
 
-<!-- Icons -->  
-<link rel="apple-touch-icon" href="./icon-192.png">
+    <!-- PWA -->
+    <link rel="manifest" href="./manifest.json" />
+    <meta name="theme-color" content="#2d89ef" />
 
-</head>  <body>  
-    <h1>TIME</h1>  <div class="section-buttons">  
-    <button onclick="loadSunnahTracker()">Sunnah Tracker</button>  
-    <button onclick="loadSection('study', currentGrade)">Study Tracker</button>  
-    <button onclick="loadWeeklyTimetable()">📅 Weekly Timetable</button>  
-    <button onclick="loadDashboard()">📊 Dashboard</button>  
-    <button onclick="loadTopStudentMode()">🎓 Top Student Mode</button>  
-</div>  
+    <!-- Icons -->
+    <link rel="apple-touch-icon" href="./icon-192.png">
+</head>
 
-<div id="grade-progress-bar"></div>  
-<div id="main-content"></div>  
+<body>
+    <h1>TIME</h1>
 
-<div class="nav-buttons" id="grade-nav">  
-    <button onclick="previousGrade()" id="prev-btn">Previous</button>  
-    <button onclick="nextGrade()" id="next-btn">Next</button>  
-</div>  
+    <div class="section-buttons">
+        <button onclick="loadSunnahTracker()">Sunnah Tracker</button>
+        <button onclick="loadSection('study', currentGrade)">Study Tracker</button>
 
-<!-- JS FILES -->  
-<script src="./Sunnah-tracker.js"></script>  
-<script src="./Study-tracker.js"></script>  
-<script src="./weekly-timetable.js"></script>  
-<script src="./dashboard.js"></script>  
-<script src="./top-student-mode.js"></script>  
-<script src="./main.js"></script>  
+        <!-- ✅ FIXED: unified navigation system -->
+        <button onclick="loadSection('timetable', currentGrade)">📅 Weekly Timetable</button>
 
-<!-- SERVICE WORKER -->  
-<script>  
-    if ('serviceWorker' in navigator) {  
-        window.addEventListener('load', () => {  
-            navigator.serviceWorker.register('./service-worker.js')  
-                .then(() => console.log('Service Worker Registered'))  
-                .catch(err => console.log('SW Error:', err));  
-        });  
-    }  
-</script>
+        <button onclick="loadDashboard()">📊 Dashboard</button>
+        <button onclick="loadTopStudentMode()">🎓 Top Student Mode</button>
+    </div>
 
-</body>  
+    <div id="grade-progress-bar"></div>
+    <div id="main-content"></div>
+
+    <div class="nav-buttons" id="grade-nav">
+        <button onclick="previousGrade()" id="prev-btn">Previous</button>
+        <button onclick="nextGrade()" id="next-btn">Next</button>
+    </div>
+
+    <!-- JS FILES -->
+    <script src="./Sunnah-tracker.js"></script>
+    <script src="./Study-tracker.js"></script>
+    <script src="./weekly-timetable.js"></script>
+    <script src="./dashboard.js"></script>
+    <script src="./top-student-mode.js"></script>
+    <script src="./main.js"></script>
+
+    <!-- SERVICE WORKER -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(() => console.log('Service Worker Registered'))
+                    .catch(err => console.log('SW Error:', err));
+            });
+        }
+    </script>
+
+    <!-- ✅ SAFE STARTUP FIX -->
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            if (typeof loadSection === 'function') {
+                loadSection('study', window.currentGrade || 9);
+            }
+        });
+    </script>
+
+</body>
 </html>
