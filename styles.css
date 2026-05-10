@@ -67,14 +67,10 @@ h1 {
 }
 
 /* ===============================
-   MAIN CONTENT (✔ FIXED HERE)
+   MAIN CONTENT
 =============================== */
 #main-content {
   overflow-x: auto;
-  overflow-y: auto;
-  min-height: 100vh;
-  padding-bottom: 80px;
-  box-sizing: border-box;
 }
 
 /* ===============================
@@ -124,7 +120,7 @@ h1 {
 }
 
 /* ===============================
-   PROGRESS BAR
+   PROGRESS BAR (GLOBAL)
 =============================== */
 progress {
   width: 100%;
@@ -229,7 +225,7 @@ tr:nth-child(even) {
 }
 
 /* ===============================
-   DASHBOARD
+   DASHBOARD (BEAUTIFUL UPGRADE)
 =============================== */
 .dashboard-container {
   display: grid;
@@ -296,12 +292,4 @@ tr:nth-child(even) {
   .dashboard-container {
     grid-template-columns: 1fr;
   }
-}
-
-/* ===============================
-   HTML/BODY SAFETY FIX
-=============================== */
-html, body {
-  height: 100%;
-  overflow-x: hidden;
 }
