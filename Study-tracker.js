@@ -1,5 +1,5 @@
 // ===============================  
-// 📘 Study Tracker (FIXED FOR YOUR HTML SYSTEM)  
+// 📘 Study Tracker  
 // ===============================  
 
 (function () {
