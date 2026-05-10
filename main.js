@@ -1,7 +1,6 @@
 // ===============================
-// 📌 MAIN.JS
+// 📌 MAIN.JS (CLEAN + SAFE)
 // ===============================
-
 
 let currentGrade = 9;
 let currentSection = "study";
@@ -14,14 +13,14 @@ window.currentGrade = currentGrade;
 let nav, prevBtn, nextBtn;
 
 // -------------------------------
-// SYNC FUNCTION (IMPORTANT)
+// SYNC STATE
 // -------------------------------
 function syncGlobalState() {
   window.currentGrade = currentGrade;
 }
 
 // -------------------------------
-// NAV BUTTON CONTROL
+// NAV BUTTON UPDATE
 // -------------------------------
 function updateNavButtons() {
   if (!nav || !prevBtn || !nextBtn) return;
@@ -33,7 +32,7 @@ function updateNavButtons() {
 }
 
 // -------------------------------
-// SECTION LOADER (ROUTER)
+// ROUTER
 // -------------------------------
 function loadSection(type, grade) {
   currentSection = type;
@@ -46,21 +45,21 @@ function loadSection(type, grade) {
     if (typeof window.loadStudySection === "function") {
       window.loadStudySection(grade);
     } else {
-      console.warn("⚠️ loadStudySection not loaded yet");
+      console.warn("⚠️ loadStudySection not loaded");
     }
   }
 
   if (type === "timetable") {
     if (typeof window.loadWeeklyTimetable === "function") {
-      window.loadWeeklyTimetable();
+      window.loadWeeklyTimetable(grade); // ✅ FIXED (pass grade)
     } else {
-      console.warn("⚠️ loadWeeklyTimetable not loaded yet");
+      console.warn("⚠️ loadWeeklyTimetable not loaded");
     }
   }
 }
 
 // -------------------------------
-// GRADE NAVIGATION
+// NAVIGATION
 // -------------------------------
 function nextGrade() {
   if (currentGrade < 12) {
@@ -79,22 +78,26 @@ function previousGrade() {
 }
 
 // -------------------------------
-// INIT SYSTEM
+// INIT
 // -------------------------------
 window.addEventListener("load", () => {
   nav = document.getElementById("grade-nav");
   prevBtn = document.getElementById("prev-btn");
   nextBtn = document.getElementById("next-btn");
 
+  if (!nav || !prevBtn || !nextBtn) {
+    console.warn("⚠️ Navigation buttons missing in HTML");
+    return;
+  }
+
   syncGlobalState();
   updateNavButtons();
 
-  // default start
   loadSection("study", currentGrade);
 });
 
 // -------------------------------
-// GLOBAL EXPORTS
+// EXPORTS
 // -------------------------------
 window.nextGrade = nextGrade;
 window.previousGrade = previousGrade;
