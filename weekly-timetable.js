@@ -9,10 +9,11 @@ function loadWeeklyTimetable() {
     12: 24
   };
 
-  // ===============================
-  // 🧠 SMART SYSTEM
-  // ===============================
+  const BASE_TARGET = 64;
 
+  // ===============================
+  // 🧠 STORAGE SYSTEM
+  // ===============================
   const today = new Date();
   const todayStr = today.toISOString().split("T")[0];
 
@@ -22,36 +23,71 @@ function loadWeeklyTimetable() {
     state.startDate = todayStr;
     state.lastVisit = todayStr;
     state.missedDays = 0;
+    state.history = {}; // daily tracking
   }
 
-  function daysBetween(a, b) {
-    return Math.floor((new Date(b) - new Date(a)) / (1000 * 60 * 60 * 24));
+  // ===============================
+  // 🧠 SAFE MISS DETECTION
+  // ===============================
+  function dayDiff(a, b) {
+    const ms = 1000 * 60 * 60 * 24;
+    return Math.floor((new Date(b) - new Date(a)) / ms);
   }
 
-  const missed = daysBetween(state.lastVisit, todayStr);
+  const gap = dayDiff(state.lastVisit, todayStr);
 
-  if (missed > 1) {
-    state.missedDays += (missed - 1);
+  // Only count missed if gap > 1 day
+  if (gap > 1) {
+    state.missedDays += (gap - 1);
   }
 
   state.lastVisit = todayStr;
-  localStorage.setItem("studyState", JSON.stringify(state));
-
-  // 🔥 ADAPTIVE DAILY TARGET
-  const BASE_TARGET = 64;
-  const DAILY_TARGET = BASE_TARGET + (state.missedDays * 8);
 
   // ===============================
-  // UI CONTAINER
+  // 📊 DAILY COMPLETION LOGIC
+  // ===============================
+  if (!state.history[todayStr]) {
+    state.history[todayStr] = {
+      completed: 0
+    };
+  }
+
+  // ===============================
+  // 🔥 SMART TARGET SYSTEM
+  // ===============================
+  const DAILY_TARGET = BASE_TARGET + (state.missedDays * 6);
+
+  // Completion percentage (for future upgrade)
+  const completedToday = state.history[todayStr].completed || 0;
+  const progressPercent = Math.min(
+    Math.round((completedToday / DAILY_TARGET) * 100),
+    100
+  );
+
+  // ===============================
+  // ⏳ FINISH DATE PREDICTION
+  // ===============================
+  const remainingPages =
+    Object.values(pages[12] || {}).reduce((a, b) => a + b, 0);
+
+  const estimatedDaysLeft = Math.ceil(
+    remainingPages / DAILY_TARGET
+  );
+
+  const finishDate = new Date();
+  finishDate.setDate(finishDate.getDate() + estimatedDaysLeft);
+
+  // Save state
+  localStorage.setItem("studyState", JSON.stringify(state));
+
+  // ===============================
+  // UI
   // ===============================
   const container = document.getElementById("main-content");
   if (!container) return;
 
-  // ===============================
-  // HEADER INFO (SMART PANEL)
-  // ===============================
   let html = `
-    <h2>📊 Smart 90-Day Study Plan</h2>
+    <h2>📊 Smart Weekly Tracker</h2>
 
     <div style="
       background: var(--card);
@@ -60,9 +96,19 @@ function loadWeeklyTimetable() {
       border: 1px solid var(--border);
       margin-bottom: 12px;
     ">
+
       <p>📅 Today: ${today.toDateString()}</p>
+
       <p>🔥 Catch-up Level: ${state.missedDays}</p>
+
       <p>📈 Daily Target: ${DAILY_TARGET} pages</p>
+
+      <p>✅ Today Progress: ${completedToday} / ${DAILY_TARGET}</p>
+
+      <p>📊 Completion: ${progressPercent}%</p>
+
+      <p>⏳ Estimated Finish: ${finishDate.toDateString()}</p>
+
     </div>
 
     <table class="weekly-table">
@@ -83,14 +129,12 @@ function loadWeeklyTimetable() {
   `;
 
   // ===============================
-  // TABLE LOGIC (UNCHANGED CORE)
+  // TABLE LOGIC
   // ===============================
   [9, 10, 11, 12].forEach(g => {
 
     const d = pages[g];
     if (!d) return;
-
-    const days = gradeDays[g];
 
     const total =
       d.Math +
@@ -110,7 +154,7 @@ function loadWeeklyTimetable() {
     html += `
       <tr>
         <td><b>${g}</b></td>
-        <td>${days}</td>
+        <td>${gradeDays[g]}</td>
         <td>${math}</td>
         <td>${physics}</td>
         <td>${chemistry}</td>
