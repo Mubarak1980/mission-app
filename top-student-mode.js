@@ -17,7 +17,7 @@ function loadTopStudentMode() {
 
   mainContent.innerHTML = `
     <div class="top-student-container">
-      <h2>🎓 Top Student Mode - Grade ${grade}</h2>
+      <h2>🎓 Top Student Mode</h2>
 
       <p class="top-student-intro">
         Academic excellence is built through neuroscience, habit systems, and disciplined execution.
