@@ -43,7 +43,7 @@ function loadWeeklyTimetable() {
   const DAILY_TARGET = BASE_TARGET + (state.missedDays * 8);
 
   // ===============================
-  // 🔗 CONNECTION LAYER (NEW)
+  // 🔗 CONNECTION LAYER (IMPROVED)
   // ===============================
   const currentGrade = window.currentGrade || 9;
 
@@ -52,24 +52,41 @@ function loadWeeklyTimetable() {
     progress = JSON.parse(
       localStorage.getItem(`grade_${currentGrade}_progress`) || "{}"
     );
-  } catch (e) {
+  } catch {
     progress = {};
   }
 
   const SUBJECTS = ["Math", "Physics", "Chemistry", "Biology", "English"];
 
-  const backlog = {};
-
   const gradeData = pages[currentGrade] || {};
+
+  const backlog = {};
+  let totalBacklog = 0;
 
   SUBJECTS.forEach(sub => {
     const done = progress[sub] || 0;
     const total = gradeData[sub] || 0;
-    backlog[sub] = Math.max(total - done, 0);
+
+    const remaining = Math.max(total - done, 0);
+    backlog[sub] = remaining;
+    totalBacklog += remaining;
   });
 
-  // (future AI hook)
   window.studyBacklog = backlog;
+
+  // ===============================
+  // 🎯 WEIGHT ADJUSTMENT ENGINE (NEW CORE)
+  // ===============================
+  function weight(subject, baseValue) {
+    const remaining = backlog[subject] || 0;
+
+    if (totalBacklog === 0) return baseValue;
+
+    const pressure = remaining / totalBacklog;
+
+    // boost weak subjects slightly
+    return baseValue + Math.round(pressure * DAILY_TARGET * 0.25);
+  }
 
   // ===============================
   // UI START
@@ -102,7 +119,7 @@ function loadWeeklyTimetable() {
   `;
 
   // ===============================
-  // TABLE LOGIC (UNCHANGED CORE)
+  // TABLE LOGIC (NOW ADAPTIVE)
   // ===============================
   [9, 10, 11, 12].forEach(g => {
 
@@ -114,13 +131,23 @@ function loadWeeklyTimetable() {
     const total =
       d.Math + d.Physics + d.Chemistry + d.Biology + d.English;
 
-    const math = Math.round((d.Math / total) * DAILY_TARGET);
-    const physics = Math.round((d.Physics / total) * DAILY_TARGET);
-    const chemistry = Math.round((d.Chemistry / total) * DAILY_TARGET);
-    const biology = Math.round((d.Biology / total) * DAILY_TARGET);
+    let math = Math.round((d.Math / total) * DAILY_TARGET);
+    let physics = Math.round((d.Physics / total) * DAILY_TARGET);
+    let chemistry = Math.round((d.Chemistry / total) * DAILY_TARGET);
+    let biology = Math.round((d.Biology / total) * DAILY_TARGET);
+    let english = Math.round((d.English / total) * DAILY_TARGET);
 
-    const english =
-      DAILY_TARGET - (math + physics + chemistry + biology);
+    // 🔥 APPLY WEIGHT BOOST (ONLY FOR CURRENT GRADE FOCUS)
+    if (g === currentGrade) {
+      math = weight("Math", math);
+      physics = weight("Physics", physics);
+      chemistry = weight("Chemistry", chemistry);
+      biology = weight("Biology", biology);
+      english = weight("English", english);
+    }
+
+    const adjustedTotal =
+      math + physics + chemistry + biology + english;
 
     html += `
       <tr>
@@ -131,7 +158,7 @@ function loadWeeklyTimetable() {
         <td>${chemistry}</td>
         <td>${biology}</td>
         <td>${english}</td>
-        <td><b>${DAILY_TARGET}</b></td>
+        <td><b>${adjustedTotal}</b></td>
         <td><b>${total}</b></td>
       </tr>
     `;
