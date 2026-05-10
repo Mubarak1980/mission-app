@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mission-cache-v17';
+const CACHE_NAME = 'mission-cache-v18';
 
 const ASSETS = [
   './',
