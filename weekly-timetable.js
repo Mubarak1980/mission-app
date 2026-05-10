@@ -2,7 +2,7 @@
 // 📊 WEEKLY TIMETABLE (FIXED STABLE VERSION)
 // ===============================
 
-function loadWeeklyTimetable() {
+function loadWeeklyTimetable(grade) {
 
   const pages = window.maxPagesByGrade;
 
@@ -23,16 +23,23 @@ function loadWeeklyTimetable() {
     12: 24
   };
 
-  const today = new Date();
-
-  let state = JSON.parse(localStorage.getItem("studyState") || "{}");
+  // ===============================
+  // STATE (SAFE)
+  // ===============================
+  let state;
+  try {
+    state = JSON.parse(localStorage.getItem("studyState") || "{}");
+  } catch {
+    state = {};
+  }
 
   if (!state.missedDays) state.missedDays = 0;
 
   const BASE_TARGET = 64;
   const DAILY_TARGET = BASE_TARGET + state.missedDays * 8;
 
-  const current = window.currentGrade || 9;
+  // ✅ FIX: use passed grade (not only global)
+  const current = grade || window.currentGrade || 9;
 
   const gradeData = pages[current];
 
@@ -41,10 +48,21 @@ function loadWeeklyTimetable() {
     return;
   }
 
-  const progress = JSON.parse(
-    localStorage.getItem(`grade_${current}_progress`) || "{}"
-  );
+  // ===============================
+  // LOAD PROGRESS (SAFE)
+  // ===============================
+  let progress;
+  try {
+    progress = JSON.parse(
+      localStorage.getItem(`grade_${current}_progress`) || "{}"
+    );
+  } catch {
+    progress = {};
+  }
 
+  // ===============================
+  // BACKLOG CALCULATION
+  // ===============================
   const backlog = {};
   let totalBacklog = 0;
 
@@ -54,15 +72,23 @@ function loadWeeklyTimetable() {
     totalBacklog += remaining;
   });
 
+  // ===============================
+  // SMART WEIGHT FUNCTION (FIXED)
+  // ===============================
   function weight(subject, base) {
     if (totalBacklog === 0) return base;
 
     const pressure = backlog[subject] / totalBacklog;
-    return Math.round(base + pressure * DAILY_TARGET * 0.2);
+
+    // ✅ FIX: smoother scaling (no sudden jumps)
+    return Math.max(0, Math.round(base + pressure * DAILY_TARGET * 0.3));
   }
 
+  // ===============================
+  // BUILD TABLE
+  // ===============================
   let html = `
-    <h2>📊 Smart Weekly Plan</h2>
+    <h2>📊 Smart Weekly Plan (Grade ${current})</h2>
     <table class="weekly-table">
       <thead>
         <tr>
@@ -92,14 +118,25 @@ function loadWeeklyTimetable() {
       totalPages ? Math.round((d[s] / totalPages) * DAILY_TARGET) : 0
     );
 
+    // ✅ APPLY SMART WEIGHT ONLY TO CURRENT GRADE
     if (g === current) {
       vals = SUBJECTS.map((s, i) => weight(s, vals[i]));
     }
 
-    const sum = vals.reduce((a, b) => a + b, 0);
+    // ===============================
+    // FIX TOTAL CONSISTENCY
+    // ===============================
+    let sum = vals.reduce((a, b) => a + b, 0);
+
+    // normalize to DAILY_TARGET
+    if (sum > 0) {
+      const factor = DAILY_TARGET / sum;
+      vals = vals.map(v => Math.round(v * factor));
+      sum = vals.reduce((a, b) => a + b, 0);
+    }
 
     html += `
-      <tr>
+      <tr ${g === current ? 'style="background:#e8f5e9;"' : ''}>
         <td>${g}</td>
         <td>${days}</td>
         <td>${vals[0]}</td>
@@ -117,4 +154,7 @@ function loadWeeklyTimetable() {
   container.innerHTML = html;
 }
 
+// ===============================
+// EXPORT
+// ===============================
 window.loadWeeklyTimetable = loadWeeklyTimetable;
