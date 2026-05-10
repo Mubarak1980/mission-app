@@ -1,6 +1,3 @@
-// ===============================
-// REAL MAX PAGES (SOURCE OF TRUTH)
-// ===============================
 window.maxPagesByGrade = {
   9: { Math: 363, Physics: 174, Chemistry: 175, Biology: 164, English: 223 },
   10: { Math: 385, Physics: 249, Chemistry: 298, Biology: 174, English: 316 },
@@ -16,8 +13,10 @@ let currentSection = "study";
 
 let nav, prevBtn, nextBtn;
 
-// 🔥 IMPORTANT: expose global grade for other modules
-window.currentGrade = currentGrade;
+// 🔥 SINGLE SOURCE OF TRUTH
+function syncGlobalState() {
+  window.currentGrade = currentGrade;
+}
 
 // ===============================
 // NAV BUTTONS
@@ -37,17 +36,23 @@ function loadSection(type, grade) {
   currentSection = type;
   currentGrade = grade;
 
-  // 🔥 sync global state
-  window.currentGrade = currentGrade;
-
+  syncGlobalState();
   updateNavButtons();
 
   if (type === "study") {
-    loadStudySection(grade);
+    if (typeof loadStudySection === "function") {
+      loadStudySection(grade);
+    } else {
+      console.warn("loadStudySection is missing");
+    }
   }
 
   if (type === "timetable") {
-    loadWeeklyTimetable(grade);
+    if (typeof loadWeeklyTimetable === "function") {
+      loadWeeklyTimetable(grade);
+    } else {
+      console.warn("loadWeeklyTimetable is missing");
+    }
   }
 }
 
@@ -57,7 +62,7 @@ function loadSection(type, grade) {
 function nextGrade() {
   if (currentGrade < 12) {
     currentGrade++;
-    window.currentGrade = currentGrade;
+    syncGlobalState();
     loadSection("study", currentGrade);
   }
 }
@@ -65,7 +70,7 @@ function nextGrade() {
 function previousGrade() {
   if (currentGrade > 9) {
     currentGrade--;
-    window.currentGrade = currentGrade;
+    syncGlobalState();
     loadSection("study", currentGrade);
   }
 }
@@ -78,7 +83,9 @@ window.addEventListener("load", () => {
   prevBtn = document.getElementById("prev-btn");
   nextBtn = document.getElementById("next-btn");
 
+  syncGlobalState();
   updateNavButtons();
+
   loadSection("study", currentGrade);
 });
 
