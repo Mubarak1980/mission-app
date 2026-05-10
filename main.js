@@ -16,6 +16,9 @@ let currentSection = "study";
 
 let nav, prevBtn, nextBtn;
 
+// 🔥 IMPORTANT: expose global grade for other modules
+window.currentGrade = currentGrade;
+
 // ===============================
 // NAV BUTTONS
 // ===============================
@@ -34,6 +37,9 @@ function loadSection(type, grade) {
   currentSection = type;
   currentGrade = grade;
 
+  // 🔥 sync global state
+  window.currentGrade = currentGrade;
+
   updateNavButtons();
 
   if (type === "study") {
@@ -41,7 +47,6 @@ function loadSection(type, grade) {
   }
 
   if (type === "timetable") {
-    // SAFE: grade passed for future smart logic
     loadWeeklyTimetable(grade);
   }
 }
@@ -52,6 +57,7 @@ function loadSection(type, grade) {
 function nextGrade() {
   if (currentGrade < 12) {
     currentGrade++;
+    window.currentGrade = currentGrade;
     loadSection("study", currentGrade);
   }
 }
@@ -59,6 +65,7 @@ function nextGrade() {
 function previousGrade() {
   if (currentGrade > 9) {
     currentGrade--;
+    window.currentGrade = currentGrade;
     loadSection("study", currentGrade);
   }
 }
