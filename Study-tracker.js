@@ -1,12 +1,9 @@
 // ===============================  
-// 📘 Study Tracker  
+// 📘 Study Tracker 
 // ===============================  
 
 (function () {
 
-  // ===============================  
-  // 📊 GLOBAL GRADE DATA  
-  // ===============================  
   const SUBJECTS = ["Math", "Physics", "Chemistry", "Biology", "English"];
 
   // ===============================  
@@ -39,8 +36,8 @@
   // CREATE SUBJECT CARD  
   // ===============================  
   function createSubject(name, maxPages, savedPages) {
-    const safeMax = maxPages || 0;
-    const safeSaved = savedPages || 0;
+    const safeMax = Number(maxPages) || 0;
+    const safeSaved = Number(savedPages) || 0;
 
     const percent =
       safeMax > 0 ? Math.round((safeSaved / safeMax) * 100) : 0;
@@ -90,7 +87,7 @@
   }
 
   // ===============================  
-  // LOAD STUDY SECTION (MAIN FIX HERE)  
+  // LOAD STUDY SECTION (FIXED SAFE VERSION)  
   // ===============================  
   function loadStudySection(grade) {
 
@@ -101,16 +98,21 @@
       return;
     }
 
-    // 🔥 IMPORTANT: wait for global data safely
+    // 🔥 SAFE WAIT CHECK (prevents race condition crash)
     const pages = window.maxPagesByGrade;
 
-    if (!pages || !pages[grade]) {
-      container.innerHTML = `<p style="color:red;">⚠️ Grade data not loaded</p>`;
-      console.error("❌ maxPagesByGrade missing or grade invalid");
+    if (!pages || typeof pages !== "object") {
+      container.innerHTML = `<p style="color:red;">⚠️ Loading grade data...</p>`;
       return;
     }
 
     const data = pages[grade];
+
+    if (!data) {
+      container.innerHTML = `<p style="color:red;">⚠️ Grade ${grade} data missing</p>`;
+      return;
+    }
+
     const saved = loadProgress(grade);
 
     let html = `
@@ -126,7 +128,6 @@
 
     container.innerHTML = html;
 
-    // attach listeners AFTER render
     document.querySelectorAll(".subject-progress").forEach(input => {
       updateSubjectProgressUI(input);
 
@@ -175,12 +176,12 @@
   }
 
   // ===============================  
-  // 🔥 GLOBAL EXPORT (CRITICAL FIX)  
+  // EXPORTS  
   // ===============================  
   window.loadStudySection = loadStudySection;
   window.saveStudyProgress = saveStudyProgress;
   window.updateGradeSummary = updateGradeSummary;
 
-  console.log("✅ Study Tracker loaded");
+  console.log("✅ Study Tracker loaded successfully");
 
 })();
