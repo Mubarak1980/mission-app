@@ -1,10 +1,9 @@
 // ===============================  
-// 📊 WEEKLY TIMETABLE ENGINE (FIXED SAFE VERSION)  
+// 📊 WEEKLY TIMETABLE 
 // ===============================  
 
 function loadWeeklyTimetable() {
 
-  // 🔥 SAFE GLOBAL ACCESS
   const pages = window.maxPagesByGrade;
 
   // ===============================  
@@ -13,7 +12,7 @@ function loadWeeklyTimetable() {
   if (!pages || typeof pages !== "object") {
     const el = document.getElementById("main-content");
     if (el) {
-      el.innerHTML = `<p style="color:red;">⚠️ Grade data not loaded (check settings.js)</p>`;
+      el.innerHTML = `<p style="color:red;">⚠️ Grade data not loaded (settings.js missing or late load)</p>`;
     }
     console.error("❌ maxPagesByGrade missing or invalid");
     return;
@@ -32,12 +31,18 @@ function loadWeeklyTimetable() {
   if (!container) return;
 
   // ===============================  
-  // 🧠 SMART STREAK SYSTEM  
+  // 🧠 SAFE STREAK SYSTEM  
   // ===============================  
   const today = new Date();
   const todayStr = today.toISOString().split("T")[0];
 
-  let state = JSON.parse(localStorage.getItem("studyState") || "{}");
+  let state = {};
+
+  try {
+    state = JSON.parse(localStorage.getItem("studyState") || "{}");
+  } catch {
+    state = {};
+  }
 
   if (!state.startDate) {
     state.startDate = todayStr;
@@ -50,22 +55,32 @@ function loadWeeklyTimetable() {
 
   const missed = daysBetween(state.lastVisit, todayStr);
 
-  if (missed > 1) state.missedDays += (missed - 1);
+  if (missed > 1) {
+    state.missedDays = (state.missedDays || 0) + (missed - 1);
+  }
 
   state.lastVisit = todayStr;
   localStorage.setItem("studyState", JSON.stringify(state));
 
   const BASE_TARGET = 64;
-  const DAILY_TARGET = BASE_TARGET + state.missedDays * 8;
+  const DAILY_TARGET = BASE_TARGET + (state.missedDays || 0) * 8;
 
-  // 🔥 SAFE CURRENT GRADE
-  const current = window.currentGrade || 9;
+  // ===============================  
+  // STRICT GRADE CHECK (IMPORTANT FIX)  
+  // ===============================  
+  const current = window.currentGrade;
+
+  if (!current || !pages[current]) {
+    container.innerHTML = `<p style="color:red;">⚠️ Invalid or missing current grade</p>`;
+    console.error("❌ currentGrade invalid or missing data");
+    return;
+  }
 
   const progress = JSON.parse(
     localStorage.getItem(`grade_${current}_progress`) || "{}"
   );
 
-  const gradeData = pages[current] || {};
+  const gradeData = pages[current];
 
   // ===============================  
   // 📊 BACKLOG ENGINE  
@@ -103,7 +118,7 @@ function loadWeeklyTimetable() {
 
     <div class="weekly-info">
       <p>📅 Today: ${today.toDateString()}</p>
-      <p>🔥 Catch-up Level: ${state.missedDays}</p>
+      <p>🔥 Catch-up Level: ${state.missedDays || 0}</p>
       <p>📈 Daily Target: ${DAILY_TARGET}</p>
     </div>
 
@@ -139,13 +154,11 @@ function loadWeeklyTimetable() {
       0
     );
 
-    // base distribution
     let vals = SUBJECTS.map(s => {
       if (totalPages === 0) return 0;
       return Math.round((d[s] / totalPages) * DAILY_TARGET);
     });
 
-    // apply smart weighting only for current grade
     if (g === current) {
       vals = SUBJECTS.map((s, i) => weight(s, vals[i]));
     }
