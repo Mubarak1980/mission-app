@@ -1,42 +1,46 @@
-// Study-tracker.js
+// ===============================
+// SUBJECT STANDARD (IMPORTANT)
+// ===============================
+const SUBJECTS = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
 
 // ===============================
 // LOAD SAVED PROGRESS
 // ===============================
 function loadProgress(grade) {
-  const saved = localStorage.getItem(`grade_${grade}_progress`);
-  return saved ? JSON.parse(saved) : {};
+  try {
+    return JSON.parse(localStorage.getItem(`grade_${grade}_progress`) || "{}");
+  } catch (e) {
+    return {};
+  }
 }
 
 // ===============================
 // SAVE PROGRESS
 // ===============================
 function saveStudyProgress(grade) {
-  const subjectInputs = document.querySelectorAll('.subject-progress');
+  const inputs = document.querySelectorAll('.subject-progress');
   const saved = {};
 
-  subjectInputs.forEach(input => {
+  inputs.forEach(input => {
     const subject = input.dataset.subject;
-    const value = Number(input.value) || 0;
+    const value = Math.max(0, Number(input.value) || 0);
     saved[subject] = value;
   });
 
   localStorage.setItem(`grade_${grade}_progress`, JSON.stringify(saved));
-
   updateGradeSummary(grade);
 }
 
 // ===============================
-// CREATE SUBJECT BLOCK
+// SUBJECT UI
 // ===============================
 function createSubject(name, maxPages, savedPages) {
-  const progressPercent =
-    maxPages > 0 ? Math.round((savedPages / maxPages) * 100) : 0;
-
-  const completeClass = progressPercent === 100 ? 'complete' : '';
+  const percent = maxPages > 0
+    ? Math.round((savedPages / maxPages) * 100)
+    : 0;
 
   return `
-    <div class="subject ${completeClass}">
+    <div class="subject ${percent === 100 ? 'complete' : ''}">
       <h3>${name}</h3>
 
       <input 
@@ -51,71 +55,59 @@ function createSubject(name, maxPages, savedPages) {
 
       <progress value="${savedPages}" max="${maxPages}"></progress>
 
-      <p>${progressPercent}% complete</p>
+      <p>${percent}% complete</p>
     </div>
   `;
 }
 
 // ===============================
-// UPDATE SINGLE INPUT UI
+// UPDATE UI LIVE
 // ===============================
 function updateSubjectProgressUI(input) {
-  let pages = Number(input.value) || 0;
-  const maxPages = Number(input.dataset.maxpages);
+  let value = Math.max(0, Number(input.value) || 0);
+  const max = Number(input.dataset.maxpages);
 
-  if (pages > maxPages) pages = maxPages;
-  if (pages < 0) pages = 0;
+  if (value > max) value = max;
+  input.value = value;
 
-  input.value = pages;
-
-  const percent =
-    maxPages > 0 ? Math.round((pages / maxPages) * 100) : 0;
+  const percent = max ? Math.round((value / max) * 100) : 0;
 
   const container = input.closest('.subject');
+  if (!container) return;
 
-  if (container) {
-    const progress = container.querySelector('progress');
-    const text = container.querySelector('p');
+  container.querySelector('progress').value = value;
+  container.querySelector('p').textContent = `${percent}% complete`;
 
-    if (progress) progress.value = pages;
-    if (text) text.textContent = `${percent}% complete`;
-
-    if (percent === 100) {
-      container.classList.add('complete');
-    } else {
-      container.classList.remove('complete');
-    }
-  }
+  container.classList.toggle('complete', percent === 100);
 }
 
 // ===============================
 // LOAD STUDY SECTION
 // ===============================
 function loadStudySection(grade) {
-  const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
-
-  if (!window.maxPagesByGrade || !window.maxPagesByGrade[grade]) {
+  if (!window.maxPagesByGrade?.[grade]) {
     document.getElementById('main-content').innerHTML =
-      `<p>Error: missing data for Grade ${grade}</p>`;
+      `<p>Missing data for Grade ${grade}</p>`;
     return;
   }
 
-  const savedProgress = loadProgress(grade);
+  const saved = loadProgress(grade);
 
-  let content =
-    `<h2>📘 Grade ${grade} Study Tracker</h2>
-     <div class="subjects-container">`;
+  let html = `
+    <h2>📘 Grade ${grade} Study Tracker</h2>
+    <div class="subjects-container">
+  `;
 
-  subjects.forEach(subject => {
-    const maxPages = window.maxPagesByGrade[grade][subject] || 0;
-    const savedPages = savedProgress[subject] || 0;
+  SUBJECTS.forEach(subject => {
+    const max = window.maxPagesByGrade[grade][subject] || 0;
+    const done = saved[subject] || 0;
 
-    content += createSubject(subject, maxPages, savedPages);
+    html += createSubject(subject, max, done);
   });
 
-  content += `</div>`;
+  html += `</div>`;
 
-  document.getElementById('main-content').innerHTML = content;
+  document.getElementById('main-content').innerHTML = html;
 
   document.querySelectorAll('.subject-progress').forEach(input => {
     updateSubjectProgressUI(input);
@@ -130,42 +122,41 @@ function loadStudySection(grade) {
 }
 
 // ===============================
-// SUMMARY BAR
+// WEIGHTED SUMMARY (FIXED LOGIC)
 // ===============================
 function updateGradeSummary(grade) {
-  const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
-
   const saved = loadProgress(grade);
+  const data = window.maxPagesByGrade?.[grade];
 
-  let totalPercent = 0;
-  let count = 0;
+  if (!data) return;
 
-  if (!window.maxPagesByGrade || !window.maxPagesByGrade[grade]) return;
+  let totalDone = 0;
+  let totalPages = 0;
 
-  subjects.forEach(subject => {
-    const maxPages = window.maxPagesByGrade[grade][subject] || 0;
-    const pages = saved[subject] || 0;
+  SUBJECTS.forEach(subject => {
+    const max = data[subject] || 0;
+    const done = saved[subject] || 0;
 
-    if (maxPages > 0) {
-      totalPercent += (pages / maxPages) * 100;
-      count++;
-    }
+    totalDone += Math.min(done, max);
+    totalPages += max;
   });
 
-  const avg = count ? Math.round(totalPercent / count) : 0;
+  const percent = totalPages
+    ? Math.round((totalDone / totalPages) * 100)
+    : 0;
 
   const el = document.getElementById('grade-progress-bar');
 
   if (el) {
     el.innerHTML = `
-      <label>📘 Overall Progress for Grade ${grade}: ${avg}%</label>
-      <progress value="${avg}" max="100"></progress>
+      <label>📘 Overall Progress (Grade ${grade}): ${percent}%</label>
+      <progress value="${percent}" max="100"></progress>
     `;
   }
 }
 
 // ===============================
-// GLOBAL EXPORT
+// EXPORT
 // ===============================
 window.loadStudySection = loadStudySection;
 window.saveStudyProgress = saveStudyProgress;
