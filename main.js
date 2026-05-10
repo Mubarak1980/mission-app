@@ -1,39 +1,37 @@
 // ===============================
-// 📌 MAIN.JS (CLEAN + SAFE)
+// 📌 GLOBAL STATE (SINGLE SOURCE)
 // ===============================
-
 let currentGrade = 9;
 let currentSection = "study";
 
 window.currentGrade = currentGrade;
 
-// -------------------------------
-// UI ELEMENTS
-// -------------------------------
+// ===============================
+// 📌 NAV ELEMENTS
+// ===============================
 let nav, prevBtn, nextBtn;
 
-// -------------------------------
-// SYNC STATE
-// -------------------------------
+// ===============================
+// 📌 SYNC STATE
+// ===============================
 function syncGlobalState() {
   window.currentGrade = currentGrade;
 }
 
-// -------------------------------
-// NAV BUTTON UPDATE
-// -------------------------------
+// ===============================
+// 📌 NAV UPDATE
+// ===============================
 function updateNavButtons() {
   if (!nav || !prevBtn || !nextBtn) return;
 
   nav.style.display = "flex";
-
   prevBtn.disabled = currentGrade <= 9;
   nextBtn.disabled = currentGrade >= 12;
 }
 
-// -------------------------------
-// ROUTER
-// -------------------------------
+// ===============================
+// 📌 SECTION ROUTER (FIXED)
+// ===============================
 function loadSection(type, grade) {
   currentSection = type;
   currentGrade = grade;
@@ -41,26 +39,31 @@ function loadSection(type, grade) {
   syncGlobalState();
   updateNavButtons();
 
-  if (type === "study") {
-    if (typeof window.loadStudySection === "function") {
-      window.loadStudySection(grade);
-    } else {
-      console.warn("⚠️ loadStudySection not loaded");
+  // IMPORTANT: delay ensures data is loaded
+  setTimeout(() => {
+    if (type === "study") {
+      if (typeof window.loadStudySection === "function") {
+        window.loadStudySection(grade);
+      }
     }
-  }
 
-  if (type === "timetable") {
-    if (typeof window.loadWeeklyTimetable === "function") {
-      window.loadWeeklyTimetable(grade); // ✅ FIXED (pass grade)
-    } else {
-      console.warn("⚠️ loadWeeklyTimetable not loaded");
+    if (type === "timetable") {
+      if (typeof window.loadWeeklyTimetable === "function") {
+        window.loadWeeklyTimetable();
+      }
     }
-  }
+
+    if (type === "dashboard") {
+      if (typeof window.loadDashboard === "function") {
+        window.loadDashboard();
+      }
+    }
+  }, 10);
 }
 
-// -------------------------------
-// NAVIGATION
-// -------------------------------
+// ===============================
+// 📌 GRADE NAVIGATION
+// ===============================
 function nextGrade() {
   if (currentGrade < 12) {
     currentGrade++;
@@ -77,16 +80,16 @@ function previousGrade() {
   }
 }
 
-// -------------------------------
-// INIT
-// -------------------------------
+// ===============================
+// 📌 INIT (SAFE LOAD)
+// ===============================
 window.addEventListener("load", () => {
   nav = document.getElementById("grade-nav");
   prevBtn = document.getElementById("prev-btn");
   nextBtn = document.getElementById("next-btn");
 
-  if (!nav || !prevBtn || !nextBtn) {
-    console.warn("⚠️ Navigation buttons missing in HTML");
+  if (!window.maxPagesByGrade) {
+    console.error("❌ maxPagesByGrade not loaded!");
     return;
   }
 
@@ -96,9 +99,9 @@ window.addEventListener("load", () => {
   loadSection("study", currentGrade);
 });
 
-// -------------------------------
-// EXPORTS
-// -------------------------------
+// ===============================
+// 📌 EXPORTS
+// ===============================
 window.nextGrade = nextGrade;
 window.previousGrade = previousGrade;
 window.loadSection = loadSection;
