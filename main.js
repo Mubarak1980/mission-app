@@ -40,30 +40,42 @@ function loadSection(type, grade) {
   syncGlobalState();
   updateNavButtons();
 
-  // safe rendering without race conditions
   const render = () => {
     if (type === "study" && typeof window.loadStudySection === "function") {
       window.loadStudySection(grade);
     }
 
     if (type === "timetable" && typeof window.loadWeeklyTimetable === "function") {
-      window.loadWeeklyTimetable();
+      window.loadWeeklyTimetable(grade); // ✅ FIX: pass grade
     }
 
     if (type === "dashboard" && typeof window.loadDashboard === "function") {
-      window.loadDashboard();
+      window.loadDashboard(grade); // ✅ FIX: pass grade
     }
   };
 
-  // wait until everything is available
+  // ===============================
+  // SAFER LOADING (NO INFINITE LOOP)
+  // ===============================
+  let attempts = 0;
+  const maxAttempts = 100; // ~3 seconds
+
   if (window.maxPagesByGrade && window.loadStudySection) {
     render();
   } else {
     const check = setInterval(() => {
+      attempts++;
+
       if (window.maxPagesByGrade && window.loadStudySection) {
         clearInterval(check);
         render();
       }
+
+      if (attempts > maxAttempts) {
+        clearInterval(check);
+        console.error("❌ Failed to load dependencies");
+      }
+
     }, 30);
   }
 }
@@ -74,16 +86,14 @@ function loadSection(type, grade) {
 function nextGrade() {
   if (currentGrade < 12) {
     currentGrade++;
-    syncGlobalState();
-    loadSection("study", currentGrade);
+    loadSection(currentSection, currentGrade); // ✅ FIX: keep same section
   }
 }
 
 function previousGrade() {
   if (currentGrade > 9) {
     currentGrade--;
-    syncGlobalState();
-    loadSection("study", currentGrade);
+    loadSection(currentSection, currentGrade); // ✅ FIX: keep same section
   }
 }
 
@@ -99,7 +109,6 @@ window.addEventListener("load", () => {
   syncGlobalState();
   updateNavButtons();
 
-  // safe boot (no crash if modules load late)
   loadSection("study", currentGrade);
 });
 
