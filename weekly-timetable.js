@@ -9,13 +9,61 @@ function loadWeeklyTimetable() {
     12: 24
   };
 
-  const DAILY_TARGET = 64;
+  // ===============================
+  // 🧠 SMART SYSTEM
+  // ===============================
 
+  const today = new Date();
+  const todayStr = today.toISOString().split("T")[0];
+
+  let state = JSON.parse(localStorage.getItem("studyState") || "{}");
+
+  if (!state.startDate) {
+    state.startDate = todayStr;
+    state.lastVisit = todayStr;
+    state.missedDays = 0;
+  }
+
+  function daysBetween(a, b) {
+    return Math.floor((new Date(b) - new Date(a)) / (1000 * 60 * 60 * 24));
+  }
+
+  const missed = daysBetween(state.lastVisit, todayStr);
+
+  if (missed > 1) {
+    state.missedDays += (missed - 1);
+  }
+
+  state.lastVisit = todayStr;
+  localStorage.setItem("studyState", JSON.stringify(state));
+
+  // 🔥 ADAPTIVE DAILY TARGET
+  const BASE_TARGET = 64;
+  const DAILY_TARGET = BASE_TARGET + (state.missedDays * 8);
+
+  // ===============================
+  // UI CONTAINER
+  // ===============================
   const container = document.getElementById("main-content");
   if (!container) return;
 
+  // ===============================
+  // HEADER INFO (SMART PANEL)
+  // ===============================
   let html = `
-    <h2>📊 90-Day Study Plan (Exact Daily Targets)</h2>
+    <h2>📊 Smart 90-Day Study Plan</h2>
+
+    <div style="
+      background: var(--card);
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin-bottom: 12px;
+    ">
+      <p>📅 Today: ${today.toDateString()}</p>
+      <p>🔥 Catch-up Level: ${state.missedDays}</p>
+      <p>📈 Daily Target: ${DAILY_TARGET} pages</p>
+    </div>
 
     <table class="weekly-table">
       <thead>
@@ -34,6 +82,9 @@ function loadWeeklyTimetable() {
       <tbody>
   `;
 
+  // ===============================
+  // TABLE LOGIC (UNCHANGED CORE)
+  // ===============================
   [9, 10, 11, 12].forEach(g => {
 
     const d = pages[g];
@@ -41,7 +92,6 @@ function loadWeeklyTimetable() {
 
     const days = gradeDays[g];
 
-    // TOTAL PAGES IN THIS GRADE
     const total =
       d.Math +
       d.Physics +
@@ -49,13 +99,11 @@ function loadWeeklyTimetable() {
       d.Biology +
       d.English;
 
-    // PROPORTIONAL DISTRIBUTION
     const math = Math.round((d.Math / total) * DAILY_TARGET);
     const physics = Math.round((d.Physics / total) * DAILY_TARGET);
     const chemistry = Math.round((d.Chemistry / total) * DAILY_TARGET);
     const biology = Math.round((d.Biology / total) * DAILY_TARGET);
 
-    // Fix rounding drift → English absorbs difference
     const english =
       DAILY_TARGET - (math + physics + chemistry + biology);
 
