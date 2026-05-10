@@ -1,47 +1,57 @@
 function loadWeeklyTimetable() {
-  const tableData = {
-    '9':  { days: 18, math: 18, physics: 18, chemistry: 10, biology: 10, english: 10, total: 64, score: 1152 },
-    '10': { days: 22, math: 22, physics: 17, chemistry: 9, biology: 11, english: 9, total: 64, score: 1408 },
-    '11': { days: 28, math: 28, physics: 19, chemistry: 11, biology: 11, english: 10, total: 64, score: 1792 },
-    '12': { days: 22, math: 22, physics: 18, chemistry: 9, biology: 12, english: 11, total: 64, score: 1408 }
-  };
+
+  const pages = window.maxPagesByGrade;
 
   const container = document.getElementById("main-content");
   if (!container) return;
 
+  const grades = [9, 10, 11, 12];
+
   let html = `
-    <h2>📊 Weekly Timetable</h2>
+    <h2>📊 Weekly Study Distribution (Real Pages System)</h2>
 
     <table class="weekly-table">
       <thead>
         <tr>
           <th>Grade</th>
-          <th>Days</th>
+          <th>Total Pages</th>
           <th>Math</th>
           <th>Physics</th>
           <th>Chemistry</th>
           <th>Biology</th>
           <th>English</th>
-          <th>Total / Day</th>
-          <th>Total Pages</th>
+          <th>Avg Pages / Day (90 days)</th>
         </tr>
       </thead>
 
       <tbody>
   `;
 
-  Object.entries(tableData).forEach(([grade, r]) => {
+  grades.forEach(g => {
+
+    const data = pages[g];
+
+    if (!data) return;
+
+    const total =
+      data.Math +
+      data.Physics +
+      data.Chemistry +
+      data.Biology +
+      data.English;
+
+    const perDay = Math.round(total / 90);
+
     html += `
       <tr>
-        <td><b>${grade}</b></td>
-        <td>${r.days}</td>
-        <td>${r.math}</td>
-        <td>${r.physics}</td>
-        <td>${r.chemistry}</td>
-        <td>${r.biology}</td>
-        <td>${r.english}</td>
-        <td><b>${r.total}</b></td>
-        <td><b>${r.score}</b></td>
+        <td><b>${g}</b></td>
+        <td><b>${total}</b></td>
+        <td>${data.Math}</td>
+        <td>${data.Physics}</td>
+        <td>${data.Chemistry}</td>
+        <td>${data.Biology}</td>
+        <td>${data.English}</td>
+        <td><b>${perDay}</b></td>
       </tr>
     `;
   });
