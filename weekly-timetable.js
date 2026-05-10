@@ -1,15 +1,17 @@
-// ===============================
-// 📊 WEEKLY TIMETABLE (CLEAN VERSION)
-// ===============================
+// ===============================  
+// 📊 WEEKLY TIMETABLE ENGINE  
+// ===============================  
 
 function loadWeeklyTimetable() {
 
   const pages = window.maxPagesByGrade;
 
-  // 🔥 safety check (FIXES YOUR ERROR)
+  // 🔥 safety check
   if (!pages) {
-    document.getElementById("main-content").innerHTML =
-      `<p style="color:red;">⚠️ Grade data not loaded</p>`;
+    const el = document.getElementById("main-content");
+    if (el) {
+      el.innerHTML = `<p style="color:red;">⚠️ Grade data not loaded</p>`;
+    }
     return;
   }
 
@@ -25,9 +27,9 @@ function loadWeeklyTimetable() {
   const container = document.getElementById("main-content");
   if (!container) return;
 
-  // ===============================
-  // 🧠 SMART STREAK SYSTEM
-  // ===============================
+  // ===============================  
+  // 🧠 SMART STREAK SYSTEM  
+  // ===============================  
   const today = new Date();
   const todayStr = today.toISOString().split("T")[0];
 
@@ -60,9 +62,9 @@ function loadWeeklyTimetable() {
 
   const gradeData = pages[current] || {};
 
-  // ===============================
-  // 📊 BACKLOG ENGINE
-  // ===============================
+  // ===============================  
+  // 📊 BACKLOG ENGINE  
+  // ===============================  
   const backlog = {};
   let totalBacklog = 0;
 
@@ -78,9 +80,9 @@ function loadWeeklyTimetable() {
 
   window.studyBacklog = backlog;
 
-  // ===============================
-  // 🎯 WEIGHT SYSTEM
-  // ===============================
+  // ===============================  
+  // 🎯 WEIGHT SYSTEM  
+  // ===============================  
   function weight(subject, base) {
     if (totalBacklog === 0) return base;
 
@@ -88,9 +90,9 @@ function loadWeeklyTimetable() {
     return Math.round(base + pressure * DAILY_TARGET * 0.2);
   }
 
-  // ===============================
-  // UI HEADER
-  // ===============================
+  // ===============================  
+  // UI HEADER  
+  // ===============================  
   let html = `
     <h2>📊 Smart 90-Day Study Plan</h2>
 
@@ -117,9 +119,9 @@ function loadWeeklyTimetable() {
       <tbody>
   `;
 
-  // ===============================
-  // TABLE LOGIC (SAFE)
-  // ===============================
+  // ===============================  
+  // TABLE LOGIC  
+  // ===============================  
   [9, 10, 11, 12].forEach(g => {
 
     const d = pages[g];
@@ -132,13 +134,13 @@ function loadWeeklyTimetable() {
       0
     );
 
-    // 🔥 prevent divide-by-zero crash
+    // base distribution
     let vals = SUBJECTS.map(s => {
       if (totalPages === 0) return 0;
       return Math.round((d[s] / totalPages) * DAILY_TARGET);
     });
 
-    // apply intelligence only to current grade
+    // apply smart weighting only for current grade
     if (g === current) {
       vals = SUBJECTS.map((s, i) => weight(s, vals[i]));
     }
@@ -160,12 +162,15 @@ function loadWeeklyTimetable() {
     `;
   });
 
-  html += `</tbody></table>`;
+  html += `
+      </tbody>
+    </table>
+  `;
 
   container.innerHTML = html;
 }
 
-// ===============================
-// EXPORT
-// ===============================
+// ===============================  
+// EXPORT  
+// ===============================  
 window.loadWeeklyTimetable = loadWeeklyTimetable;
