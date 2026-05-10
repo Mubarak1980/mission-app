@@ -1,5 +1,5 @@
 // ===============================
-// 📘 SUBJECT STANDARD (FIXED)
+// 📘 SUBJECT STANDARD
 // ===============================
 const SUBJECTS = ["Math", "Physics", "Chemistry", "Biology", "English"];
 
@@ -33,8 +33,11 @@ function saveStudyProgress(grade) {
 // CREATE SUBJECT CARD
 // ===============================
 function createSubject(name, maxPages, savedPages) {
-  const percent = maxPages
-    ? Math.round((savedPages / maxPages) * 100)
+  const safeMax = maxPages || 0;
+  const safeSaved = savedPages || 0;
+
+  const percent = safeMax > 0
+    ? Math.round((safeSaved / safeMax) * 100)
     : 0;
 
   return `
@@ -44,12 +47,13 @@ function createSubject(name, maxPages, savedPages) {
       <input class="subject-progress"
         type="number"
         min="0"
-        max="${maxPages}"
-        value="${savedPages}"
+        max="${safeMax}"
+        value="${safeSaved}"
         data-subject="${name}"
-        data-maxpages="${maxPages}" />
+        data-maxpages="${safeMax}" />
 
-      <progress value="${savedPages}" max="${maxPages}"></progress>
+      <progress value="${safeSaved}" max="${safeMax}"></progress>
+
       <p>${percent}% complete</p>
     </div>
   `;
@@ -60,24 +64,29 @@ function createSubject(name, maxPages, savedPages) {
 // ===============================
 function updateSubjectProgressUI(input) {
   let value = Math.max(0, Number(input.value) || 0);
-  const max = Number(input.dataset.maxpages);
+  const max = Number(input.dataset.maxpages) || 0;
 
   if (value > max) value = max;
   input.value = value;
 
-  const percent = max ? Math.round((value / max) * 100) : 0;
+  const percent = max > 0
+    ? Math.round((value / max) * 100)
+    : 0;
 
   const container = input.closest(".subject");
   if (!container) return;
 
-  container.querySelector("progress").value = value;
-  container.querySelector("p").textContent = `${percent}% complete`;
+  const progress = container.querySelector("progress");
+  const text = container.querySelector("p");
+
+  if (progress) progress.value = value;
+  if (text) text.textContent = `${percent}% complete`;
 
   container.classList.toggle("complete", percent === 100);
 }
 
 // ===============================
-// LOAD STUDY SECTION (SAFE)
+// LOAD STUDY SECTION
 // ===============================
 function loadStudySection(grade) {
   const container = document.getElementById("main-content");
@@ -90,7 +99,8 @@ function loadStudySection(grade) {
   const data = window.maxPagesByGrade?.[grade];
 
   if (!data) {
-    container.innerHTML = `<p style="color:red;">⚠️ Grade data not loaded</p>`;
+    container.innerHTML =
+      `<p style="color:red;">⚠️ Grade data not loaded</p>`;
     return;
   }
 
@@ -134,11 +144,16 @@ function updateGradeSummary(grade) {
   let total = 0;
 
   SUBJECTS.forEach(s => {
-    done += Math.min(saved[s] || 0, data[s]);
-    total += data[s];
+    const max = data[s] || 0;
+    const val = saved[s] || 0;
+
+    done += Math.min(val, max);
+    total += max;
   });
 
-  const percent = total ? Math.round((done / total) * 100) : 0;
+  const percent = total > 0
+    ? Math.round((done / total) * 100)
+    : 0;
 
   const el = document.getElementById("grade-progress-bar");
 
