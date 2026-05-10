@@ -167,6 +167,54 @@ function updateGradeSummary(grade) {
 }
 
 // ===============================
+// 🔗 CONNECTION LAYER (NEW)
+// ===============================
+function getStudyState(grade) {
+
+  const saved = loadProgress(grade);
+  const data = window.maxPagesByGrade?.[grade];
+
+  if (!data) return null;
+
+  const state = {
+    subjects: {},
+    weakSubjects: [],
+    totalDone: 0,
+    totalPages: 0
+  };
+
+  SUBJECTS.forEach(subject => {
+    const done = saved[subject] || 0;
+    const total = data[subject] || 0;
+
+    const percent = total > 0 ? done / total : 0;
+
+    state.subjects[subject] = {
+      done,
+      total,
+      percent
+    };
+
+    state.totalDone += Math.min(done, total);
+    state.totalPages += total;
+
+    // weak subject rule (v1)
+    if (percent < 0.5) {
+      state.weakSubjects.push(subject);
+    }
+  });
+
+  state.overallPercent = state.totalPages
+    ? state.totalDone / state.totalPages
+    : 0;
+
+  return state;
+}
+
+// expose to weekly timetable
+window.getStudyState = getStudyState;
+
+// ===============================
 // EXPORTS
 // ===============================
 window.loadStudySection = loadStudySection;
