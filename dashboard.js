@@ -1,295 +1,74 @@
-/* ===============================
-   ROOT (DESIGN SYSTEM)
-=============================== */
-:root {
-  --bg: #0b0f14;
-  --card: #121821;
-  --border: #1f2a36;
-  --primary: #00d4ff;
-  --primary-soft: rgba(0, 212, 255, 0.15);
-  --text: #e6edf3;
-  --muted: #8b949e;
+// dashboard.js
+
+function loadDashboard() {
+currentSection = 'dashboard';
+
+if (typeof updateNavButtons === 'function') {
+updateNavButtons();
 }
 
-/* ===============================
-   GLOBAL
-=============================== */
-body {
-  font-family: 'Segoe UI', Roboto, sans-serif;
-  margin: 0;
-  padding: 12px;
-  background: var(--bg);
-  color: var(--text);
-  -webkit-tap-highlight-color: transparent;
+// Hide grade navigation on dashboard
+if (typeof nav !== 'undefined' && nav) {
+nav.style.display = 'none';
 }
 
-/* ===============================
-   TITLE
-=============================== */
-h1 {
-  text-align: center;
-  font-size: 22px;
-  margin-bottom: 16px;
-  color: var(--primary);
-  letter-spacing: 1px;
+const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
+const grades = [9, 10, 11, 12];
+
+// safety check (VERY IMPORTANT for offline)
+if (!window.maxPagesByGrade) {
+document.getElementById('main-content').innerHTML =
+<p>Error: grade data not loaded</p>;
+return;
 }
 
-/* ===============================
-   SECTION BUTTONS
-=============================== */
-.section-buttons {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 18px;
+let dashboardContent =
+<h2>📊 Dashboard: Overall Subject Progress</h2>   <div class="dashboard-container">;
+
+subjects.forEach(subject => {
+let totalPercent = 0;
+let count = 0;
+
+grades.forEach(grade => {  
+  const saved = (typeof loadProgress === 'function')  
+    ? loadProgress(grade)  
+    : {};  
+
+  const pagesRead = saved?.[subject] || 0;  
+  const maxPages = window.maxPagesByGrade?.[grade]?.[subject] || 0;  
+
+  if (maxPages > 0) {  
+    totalPercent += (pagesRead / maxPages) * 100;  
+    count++;  
+  }  
+});  
+
+const avgPercent = count ? Math.round(totalPercent / count) : 0;  
+
+dashboardContent += `  
+  <div class="dashboard-subject">  
+    <h3>${subject}</h3>  
+
+    <progress value="${avgPercent}" max="100"></progress>  
+
+    <p>${avgPercent}% progress in ${subject} (Grades 9–12)</p>  
+  </div>  
+`;
+
+});
+
+dashboardContent += </div>;
+
+const main = document.getElementById('main-content');
+if (main) {
+main.innerHTML = dashboardContent;
 }
 
-.section-buttons button {
-  flex: 1;
-  min-width: 110px;
-  padding: 12px;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  color: var(--text);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
+const progressContainer = document.getElementById('grade-progress-bar');
+if (progressContainer) {
+progressContainer.innerHTML = '';
+}
 }
 
-.section-buttons button:hover {
-  background: var(--primary-soft);
-  border-color: var(--primary);
-}
-
-.section-buttons button:active {
-  transform: scale(0.96);
-}
-
-/* ===============================
-   MAIN CONTENT
-=============================== */
-#main-content {
-  overflow-x: auto;
-}
-
-/* ===============================
-   SUBJECT CARDS
-=============================== */
-.subjects-container {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.subject {
-  background: var(--card);
-  border-radius: 16px;
-  padding: 14px;
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
-}
-
-/* ===============================
-   SUBJECT TITLE
-=============================== */
-.subject h3 {
-  margin-bottom: 10px;
-  color: var(--primary);
-  font-size: 17px;
-}
-
-/* ===============================
-   INPUT
-=============================== */
-.subject input {
-  width: 100%;
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: #0b0f14;
-  color: var(--text);
-  margin-bottom: 10px;
-  outline: none;
-  transition: border 0.2s ease, box-shadow 0.2s ease;
-}
-
-.subject input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px var(--primary-soft);
-}
-
-/* ===============================
-   PROGRESS BAR (GLOBAL)
-=============================== */
-progress {
-  width: 100%;
-  height: 12px;
-  border-radius: 10px;
-  overflow: hidden;
-  border: none;
-}
-
-progress::-webkit-progress-bar {
-  background: #0b0f14;
-}
-
-progress::-webkit-progress-value {
-  background: linear-gradient(90deg, #00d4ff, #00ffa6);
-}
-
-progress::-moz-progress-bar {
-  background: linear-gradient(90deg, #00d4ff, #00ffa6);
-}
-
-/* ===============================
-   SUBJECT TEXT
-=============================== */
-.subject p {
-  margin-top: 6px;
-  font-size: 12px;
-  color: var(--muted);
-  text-align: right;
-}
-
-/* ===============================
-   NAV BUTTONS
-=============================== */
-.nav-buttons {
-  display: flex;
-  gap: 10px;
-  margin-top: 18px;
-}
-
-.nav-buttons button {
-  flex: 1;
-  padding: 12px;
-  border-radius: 14px;
-  border: none;
-  background: linear-gradient(135deg, #007acc, #00d4ff);
-  color: white;
-  font-weight: bold;
-  transition: all 0.2s ease;
-}
-
-.nav-buttons button:active {
-  transform: scale(0.96);
-}
-
-/* ===============================
-   SUMMARY BAR
-=============================== */
-#grade-progress-bar {
-  margin-bottom: 14px;
-  text-align: center;
-}
-
-#grade-progress-bar label {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 13px;
-  color: var(--muted);
-}
-
-/* ===============================
-   TABLE
-=============================== */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--card);
-  border-radius: 12px;
-  overflow: hidden;
-  font-size: 13px;
-  min-width: 650px;
-}
-
-thead {
-  background: #007acc;
-}
-
-th {
-  padding: 10px;
-  color: white;
-  font-weight: 600;
-}
-
-td {
-  padding: 8px;
-  border-top: 1px solid var(--border);
-  color: var(--text);
-}
-
-tr:nth-child(even) {
-  background: rgba(255, 255, 255, 0.02);
-}
-
-/* ===============================
-   DASHBOARD (BEAUTIFUL UPGRADE)
-=============================== */
-.dashboard-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
-  margin-top: 18px;
-  padding: 4px;
-}
-
-.dashboard-subject {
-  background: linear-gradient(145deg, var(--card), #0e141c);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 16px;
-
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
-  transition: all 0.25s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.dashboard-subject:hover {
-  transform: translateY(-4px);
-  border-color: var(--primary);
-  box-shadow: 0 10px 26px rgba(0, 212, 255, 0.15);
-}
-
-.dashboard-subject::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 3px;
-  width: 100%;
-  background: linear-gradient(90deg, var(--primary), #00ffa6);
-}
-
-.dashboard-subject h3 {
-  margin: 0 0 12px 0;
-  font-size: 17px;
-  color: var(--primary);
-}
-
-.dashboard-subject p {
-  margin: 0;
-  font-size: 12px;
-  color: var(--muted);
-  text-align: right;
-}
-
-/* ===============================
-   MOBILE
-=============================== */
-@media (max-width: 500px) {
-  h1 {
-    font-size: 18px;
-  }
-
-  th, td {
-    font-size: 11px;
-    padding: 6px;
-  }
-
-  .dashboard-container {
-    grid-template-columns: 1fr;
-  }
-}
+// Expose globally
+window.loadDashboard = loadDashboard;
