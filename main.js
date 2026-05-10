@@ -1,26 +1,26 @@
-// ===============================
-// 📌 GLOBAL STATE (SINGLE SOURCE)
-// ===============================
+// ===============================  
+// main.js  
+// ===============================  
 let currentGrade = 9;
 let currentSection = "study";
 
 window.currentGrade = currentGrade;
 
-// ===============================
-// 📌 NAV ELEMENTS
-// ===============================
+// ===============================  
+// 📌 NAV ELEMENTS  
+// ===============================  
 let nav, prevBtn, nextBtn;
 
-// ===============================
-// 📌 SYNC STATE
-// ===============================
+// ===============================  
+// 📌 SYNC STATE  
+// ===============================  
 function syncGlobalState() {
   window.currentGrade = currentGrade;
 }
 
-// ===============================
-// 📌 NAV UPDATE
-// ===============================
+// ===============================  
+// 📌 NAV UPDATE  
+// ===============================  
 function updateNavButtons() {
   if (!nav || !prevBtn || !nextBtn) return;
 
@@ -29,9 +29,9 @@ function updateNavButtons() {
   nextBtn.disabled = currentGrade >= 12;
 }
 
-// ===============================
-// 📌 SECTION ROUTER (FIXED)
-// ===============================
+// ===============================  
+// 📌 SECTION ROUTER  
+// ===============================  
 function loadSection(type, grade) {
   currentSection = type;
   currentGrade = grade;
@@ -39,8 +39,9 @@ function loadSection(type, grade) {
   syncGlobalState();
   updateNavButtons();
 
-  // IMPORTANT: delay ensures data is loaded
-  setTimeout(() => {
+  // safer than arbitrary timeout
+  requestAnimationFrame(() => {
+
     if (type === "study") {
       if (typeof window.loadStudySection === "function") {
         window.loadStudySection(grade);
@@ -58,12 +59,13 @@ function loadSection(type, grade) {
         window.loadDashboard();
       }
     }
-  }, 10);
+
+  });
 }
 
-// ===============================
-// 📌 GRADE NAVIGATION
-// ===============================
+// ===============================  
+// 📌 GRADE NAVIGATION  
+// ===============================  
 function nextGrade() {
   if (currentGrade < 12) {
     currentGrade++;
@@ -80,9 +82,9 @@ function previousGrade() {
   }
 }
 
-// ===============================
-// 📌 INIT (SAFE LOAD)
-// ===============================
+// ===============================  
+// 📌 INIT (SAFE LOAD)  
+// ===============================  
 window.addEventListener("load", () => {
   nav = document.getElementById("grade-nav");
   prevBtn = document.getElementById("prev-btn");
@@ -99,9 +101,9 @@ window.addEventListener("load", () => {
   loadSection("study", currentGrade);
 });
 
-// ===============================
-// 📌 EXPORTS
-// ===============================
+// ===============================  
+// 📌 EXPORTS  
+// ===============================  
 window.nextGrade = nextGrade;
 window.previousGrade = previousGrade;
 window.loadSection = loadSection;
