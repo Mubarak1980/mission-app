@@ -13,7 +13,7 @@ function loadWeeklyTimetable() {
   if (!container) return;
 
   // ===============================
-  // 🧠 SMART SYSTEM (SAFE)
+  // 🧠 SMART STATE SYSTEM
   // ===============================
   const today = new Date();
   const todayStr = today.toISOString().split("T")[0];
@@ -43,23 +43,21 @@ function loadWeeklyTimetable() {
   const DAILY_TARGET = BASE_TARGET + (state.missedDays * 8);
 
   // ===============================
-  // 🔗 CONNECTION LAYER (IMPROVED)
+  // 🔗 CONNECTED STUDY DATA
   // ===============================
   const currentGrade = window.currentGrade || 9;
 
-  let progress = {};
-  try {
-    progress = JSON.parse(
-      localStorage.getItem(`grade_${currentGrade}_progress`) || "{}"
-    );
-  } catch {
-    progress = {};
-  }
+  const progress = JSON.parse(
+    localStorage.getItem(`grade_${currentGrade}_progress`) || "{}"
+  );
 
   const SUBJECTS = ["Math", "Physics", "Chemistry", "Biology", "English"];
 
   const gradeData = pages[currentGrade] || {};
 
+  // ===============================
+  // 📊 BACKLOG ENGINE (CLEAN)
+  // ===============================
   const backlog = {};
   let totalBacklog = 0;
 
@@ -68,6 +66,7 @@ function loadWeeklyTimetable() {
     const total = gradeData[sub] || 0;
 
     const remaining = Math.max(total - done, 0);
+
     backlog[sub] = remaining;
     totalBacklog += remaining;
   });
@@ -75,21 +74,21 @@ function loadWeeklyTimetable() {
   window.studyBacklog = backlog;
 
   // ===============================
-  // 🎯 WEIGHT ADJUSTMENT ENGINE (NEW CORE)
+  // 🎯 WEIGHT SYSTEM (SAFE + BALANCED)
   // ===============================
-  function weight(subject, baseValue) {
+  function weight(subject, base) {
     const remaining = backlog[subject] || 0;
 
-    if (totalBacklog === 0) return baseValue;
+    if (totalBacklog === 0) return base;
 
     const pressure = remaining / totalBacklog;
 
-    // boost weak subjects slightly
-    return baseValue + Math.round(pressure * DAILY_TARGET * 0.25);
+    // controlled boost (prevents overloading)
+    return Math.round(base + pressure * DAILY_TARGET * 0.2);
   }
 
   // ===============================
-  // UI START
+  // UI HEADER
   // ===============================
   let html = `
     <h2>📊 Smart 90-Day Study Plan</h2>
@@ -119,7 +118,7 @@ function loadWeeklyTimetable() {
   `;
 
   // ===============================
-  // TABLE LOGIC (NOW ADAPTIVE)
+  // TABLE LOGIC (FIXED + STABLE)
   // ===============================
   [9, 10, 11, 12].forEach(g => {
 
@@ -131,13 +130,14 @@ function loadWeeklyTimetable() {
     const total =
       d.Math + d.Physics + d.Chemistry + d.Biology + d.English;
 
+    // base distribution
     let math = Math.round((d.Math / total) * DAILY_TARGET);
     let physics = Math.round((d.Physics / total) * DAILY_TARGET);
     let chemistry = Math.round((d.Chemistry / total) * DAILY_TARGET);
     let biology = Math.round((d.Biology / total) * DAILY_TARGET);
     let english = Math.round((d.English / total) * DAILY_TARGET);
 
-    // 🔥 APPLY WEIGHT BOOST (ONLY FOR CURRENT GRADE FOCUS)
+    // ONLY apply intelligence to current grade
     if (g === currentGrade) {
       math = weight("Math", math);
       physics = weight("Physics", physics);
