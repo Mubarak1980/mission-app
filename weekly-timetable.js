@@ -1,20 +1,6 @@
-// ===============================
-// 📊 WEEKLY TIMETABLE (FIXED STABLE VERSION)
-// ===============================
-
-function loadWeeklyTimetable(grade) {
+function loadWeeklyTimetable() {
 
   const pages = window.maxPagesByGrade;
-
-  const container = document.getElementById("main-content");
-  if (!container) return;
-
-  if (!pages) {
-    container.innerHTML = `<p style="color:red;">⚠️ Grade data not loaded</p>`;
-    return;
-  }
-
-  const SUBJECTS = ["Math", "Physics", "Chemistry", "Biology", "English"];
 
   const gradeDays = {
     9: 17,
@@ -23,138 +9,109 @@ function loadWeeklyTimetable(grade) {
     12: 24
   };
 
+  const container = document.getElementById("main-content");
+  if (!container) return;
+
   // ===============================
-  // STATE (SAFE)
+  // 🧠 SMART SYSTEM (SAFE)
   // ===============================
-  let state;
-  try {
-    state = JSON.parse(localStorage.getItem("studyState") || "{}");
-  } catch {
-    state = {};
+  const today = new Date();
+  const todayStr = today.toISOString().split("T")[0];
+
+  let state = JSON.parse(localStorage.getItem("studyState") || "{}");
+
+  if (!state.startDate) {
+    state.startDate = todayStr;
+    state.lastVisit = todayStr;
+    state.missedDays = 0;
   }
 
-  if (!state.missedDays) state.missedDays = 0;
+  function daysBetween(a, b) {
+    return Math.floor((new Date(b) - new Date(a)) / (1000 * 60 * 60 * 24));
+  }
+
+  const missed = daysBetween(state.lastVisit, todayStr);
+
+  if (missed > 1) {
+    state.missedDays += (missed - 1);
+  }
+
+  state.lastVisit = todayStr;
+  localStorage.setItem("studyState", JSON.stringify(state));
 
   const BASE_TARGET = 64;
-  const DAILY_TARGET = BASE_TARGET + state.missedDays * 8;
-
-  // ✅ FIX: use passed grade (not only global)
-  const current = grade || window.currentGrade || 9;
-
-  const gradeData = pages[current];
-
-  if (!gradeData) {
-    container.innerHTML = `<p style="color:red;">⚠️ Invalid grade</p>`;
-    return;
-  }
+  const DAILY_TARGET = BASE_TARGET + (state.missedDays * 8);
 
   // ===============================
-  // LOAD PROGRESS (SAFE)
-  // ===============================
-  let progress;
-  try {
-    progress = JSON.parse(
-      localStorage.getItem(`grade_${current}_progress`) || "{}"
-    );
-  } catch {
-    progress = {};
-  }
-
-  // ===============================
-  // BACKLOG CALCULATION
-  // ===============================
-  const backlog = {};
-  let totalBacklog = 0;
-
-  SUBJECTS.forEach(s => {
-    const remaining = Math.max((gradeData[s] || 0) - (progress[s] || 0), 0);
-    backlog[s] = remaining;
-    totalBacklog += remaining;
-  });
-
-  // ===============================
-  // SMART WEIGHT FUNCTION (FIXED)
-  // ===============================
-  function weight(subject, base) {
-    if (totalBacklog === 0) return base;
-
-    const pressure = backlog[subject] / totalBacklog;
-
-    // ✅ FIX: smoother scaling (no sudden jumps)
-    return Math.max(0, Math.round(base + pressure * DAILY_TARGET * 0.3));
-  }
-
-  // ===============================
-  // BUILD TABLE
+  // UI START
   // ===============================
   let html = `
-    <h2>📊 Smart Weekly Plan (Grade ${current})</h2>
-    <table class="weekly-table">
-      <thead>
-        <tr>
-          <th>Grade</th>
-          <th>Days</th>
-          <th>Math</th>
-          <th>Physics</th>
-          <th>Chemistry</th>
-          <th>Biology</th>
-          <th>English</th>
-          <th>Total</th>
-        </tr>
-      </thead>
-      <tbody>
+    <h2>📊 Smart 90-Day Study Plan</h2>
+
+    <div class="weekly-info">
+      <p>📅 Today: ${today.toDateString()}</p>
+      <p>🔥 Catch-up Level: ${state.missedDays}</p>
+      <p>📈 Daily Target: ${DAILY_TARGET} pages</p>
+    </div>
+
+    <div class="weekly-table-wrapper">
+      <table class="weekly-table">
+        <thead>
+          <tr>
+            <th>Grade</th>
+            <th>Days</th>
+            <th>Math</th>
+            <th>Physics</th>
+            <th>Chemistry</th>
+            <th>Biology</th>
+            <th>English</th>
+            <th>Total/Day</th>
+            <th>Total Pages</th>
+          </tr>
+        </thead>
+        <tbody>
   `;
 
+  // ===============================
+  // TABLE LOGIC (UNCHANGED CORE)
+  // ===============================
   [9, 10, 11, 12].forEach(g => {
 
     const d = pages[g];
     if (!d) return;
 
-    const days = gradeDays[g] || 0;
+    const days = gradeDays[g];
 
-    const totalPages = SUBJECTS.reduce((a, s) => a + (d[s] || 0), 0);
+    const total =
+      d.Math + d.Physics + d.Chemistry + d.Biology + d.English;
 
-    let vals = SUBJECTS.map(s =>
-      totalPages ? Math.round((d[s] / totalPages) * DAILY_TARGET) : 0
-    );
+    const math = Math.round((d.Math / total) * DAILY_TARGET);
+    const physics = Math.round((d.Physics / total) * DAILY_TARGET);
+    const chemistry = Math.round((d.Chemistry / total) * DAILY_TARGET);
+    const biology = Math.round((d.Biology / total) * DAILY_TARGET);
 
-    // ✅ APPLY SMART WEIGHT ONLY TO CURRENT GRADE
-    if (g === current) {
-      vals = SUBJECTS.map((s, i) => weight(s, vals[i]));
-    }
-
-    // ===============================
-    // FIX TOTAL CONSISTENCY
-    // ===============================
-    let sum = vals.reduce((a, b) => a + b, 0);
-
-    // normalize to DAILY_TARGET
-    if (sum > 0) {
-      const factor = DAILY_TARGET / sum;
-      vals = vals.map(v => Math.round(v * factor));
-      sum = vals.reduce((a, b) => a + b, 0);
-    }
+    const english = DAILY_TARGET - (math + physics + chemistry + biology);
 
     html += `
-      <tr ${g === current ? 'style="background:#e8f5e9;"' : ''}>
-        <td>${g}</td>
+      <tr>
+        <td><b>${g}</b></td>
         <td>${days}</td>
-        <td>${vals[0]}</td>
-        <td>${vals[1]}</td>
-        <td>${vals[2]}</td>
-        <td>${vals[3]}</td>
-        <td>${vals[4]}</td>
-        <td><b>${sum}</b></td>
+        <td>${math}</td>
+        <td>${physics}</td>
+        <td>${chemistry}</td>
+        <td>${biology}</td>
+        <td>${english}</td>
+        <td><b>${DAILY_TARGET}</b></td>
+        <td><b>${total}</b></td>
       </tr>
     `;
   });
 
-  html += `</tbody></table>`;
+  html += `
+        </tbody>
+      </table>
+    </div>
+  `;
 
   container.innerHTML = html;
 }
-
-// ===============================
-// EXPORT
-// ===============================
-window.loadWeeklyTimetable = loadWeeklyTimetable;
