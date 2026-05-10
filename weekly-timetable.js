@@ -1,17 +1,21 @@
 // ===============================  
-// 📊 WEEKLY TIMETABLE ENGINE  
+// 📊 WEEKLY TIMETABLE ENGINE (FIXED SAFE VERSION)  
 // ===============================  
 
 function loadWeeklyTimetable() {
 
+  // 🔥 SAFE GLOBAL ACCESS
   const pages = window.maxPagesByGrade;
 
-  // 🔥 safety check
-  if (!pages) {
+  // ===============================  
+  // ⚠️ HARD SAFETY CHECK  
+  // ===============================  
+  if (!pages || typeof pages !== "object") {
     const el = document.getElementById("main-content");
     if (el) {
-      el.innerHTML = `<p style="color:red;">⚠️ Grade data not loaded</p>`;
+      el.innerHTML = `<p style="color:red;">⚠️ Grade data not loaded (check settings.js)</p>`;
     }
+    console.error("❌ maxPagesByGrade missing or invalid");
     return;
   }
 
@@ -54,6 +58,7 @@ function loadWeeklyTimetable() {
   const BASE_TARGET = 64;
   const DAILY_TARGET = BASE_TARGET + state.missedDays * 8;
 
+  // 🔥 SAFE CURRENT GRADE
   const current = window.currentGrade || 9;
 
   const progress = JSON.parse(
@@ -127,7 +132,7 @@ function loadWeeklyTimetable() {
     const d = pages[g];
     if (!d) return;
 
-    const days = gradeDays[g];
+    const days = gradeDays[g] || 0;
 
     const totalPages = SUBJECTS.reduce(
       (a, s) => a + (d[s] || 0),
