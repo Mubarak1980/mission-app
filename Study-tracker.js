@@ -15,7 +15,7 @@ function loadProgress(grade) {
 }
 
 // ===============================
-// SAVE PROGRESS
+// SAVE PROGRESS (CONNECTED VERSION)
 // ===============================
 function saveStudyProgress(grade) {
   const inputs = document.querySelectorAll('.subject-progress');
@@ -27,8 +27,21 @@ function saveStudyProgress(grade) {
     saved[subject] = value;
   });
 
+  // Save study progress
   localStorage.setItem(`grade_${grade}_progress`, JSON.stringify(saved));
+
+  // Update summary UI
   updateGradeSummary(grade);
+
+  // ===============================
+  // 🔥 SYNC SIGNAL FOR WEEKLY TABLE
+  // ===============================
+  localStorage.setItem("study_last_update", Date.now());
+
+  // Optional immediate refresh if function exists
+  if (typeof loadWeeklyTimetable === "function") {
+    loadWeeklyTimetable();
+  }
 }
 
 // ===============================
@@ -61,7 +74,7 @@ function createSubject(name, maxPages, savedPages) {
 }
 
 // ===============================
-// UPDATE UI LIVE
+// LIVE UI UPDATE
 // ===============================
 function updateSubjectProgressUI(input) {
   let value = Math.max(0, Number(input.value) || 0);
@@ -122,7 +135,7 @@ function loadStudySection(grade) {
 }
 
 // ===============================
-// WEIGHTED SUMMARY (FIXED LOGIC)
+// WEIGHTED SUMMARY
 // ===============================
 function updateGradeSummary(grade) {
   const saved = loadProgress(grade);
@@ -156,7 +169,7 @@ function updateGradeSummary(grade) {
 }
 
 // ===============================
-// EXPORT
+// EXPORTS
 // ===============================
 window.loadStudySection = loadStudySection;
 window.saveStudyProgress = saveStudyProgress;
