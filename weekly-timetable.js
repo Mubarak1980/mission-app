@@ -43,6 +43,35 @@ function loadWeeklyTimetable() {
   const DAILY_TARGET = BASE_TARGET + (state.missedDays * 8);
 
   // ===============================
+  // 🔗 CONNECTION LAYER (NEW)
+  // ===============================
+  const currentGrade = window.currentGrade || 9;
+
+  let progress = {};
+  try {
+    progress = JSON.parse(
+      localStorage.getItem(`grade_${currentGrade}_progress`) || "{}"
+    );
+  } catch (e) {
+    progress = {};
+  }
+
+  const SUBJECTS = ["Math", "Physics", "Chemistry", "Biology", "English"];
+
+  const backlog = {};
+
+  const gradeData = pages[currentGrade] || {};
+
+  SUBJECTS.forEach(sub => {
+    const done = progress[sub] || 0;
+    const total = gradeData[sub] || 0;
+    backlog[sub] = Math.max(total - done, 0);
+  });
+
+  // (future AI hook)
+  window.studyBacklog = backlog;
+
+  // ===============================
   // UI START
   // ===============================
   let html = `
@@ -90,7 +119,8 @@ function loadWeeklyTimetable() {
     const chemistry = Math.round((d.Chemistry / total) * DAILY_TARGET);
     const biology = Math.round((d.Biology / total) * DAILY_TARGET);
 
-    const english = DAILY_TARGET - (math + physics + chemistry + biology);
+    const english =
+      DAILY_TARGET - (math + physics + chemistry + biology);
 
     html += `
       <tr>
