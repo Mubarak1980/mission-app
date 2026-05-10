@@ -1,20 +1,16 @@
-// ===============================  
-// 📊 WEEKLY TIMETABLE 
-// ===============================  
+// ===============================
+// 📊 WEEKLY TIMETABLE (FIXED STABLE VERSION)
+// ===============================
 
 function loadWeeklyTimetable() {
 
   const pages = window.maxPagesByGrade;
 
-  // ===============================  
-  // ⚠️ HARD SAFETY CHECK  
-  // ===============================  
-  if (!pages || typeof pages !== "object") {
-    const el = document.getElementById("main-content");
-    if (el) {
-      el.innerHTML = `<p style="color:red;">⚠️ Grade data not loaded (settings.js missing or late load)</p>`;
-    }
-    console.error("❌ maxPagesByGrade missing or invalid");
+  const container = document.getElementById("main-content");
+  if (!container) return;
+
+  if (!pages) {
+    container.innerHTML = `<p style="color:red;">⚠️ Grade data not loaded</p>`;
     return;
   }
 
@@ -27,52 +23,21 @@ function loadWeeklyTimetable() {
     12: 24
   };
 
-  const container = document.getElementById("main-content");
-  if (!container) return;
-
-  // ===============================  
-  // 🧠 SAFE STREAK SYSTEM  
-  // ===============================  
   const today = new Date();
-  const todayStr = today.toISOString().split("T")[0];
 
-  let state = {};
+  let state = JSON.parse(localStorage.getItem("studyState") || "{}");
 
-  try {
-    state = JSON.parse(localStorage.getItem("studyState") || "{}");
-  } catch {
-    state = {};
-  }
-
-  if (!state.startDate) {
-    state.startDate = todayStr;
-    state.lastVisit = todayStr;
-    state.missedDays = 0;
-  }
-
-  const daysBetween = (a, b) =>
-    Math.floor((new Date(b) - new Date(a)) / 86400000);
-
-  const missed = daysBetween(state.lastVisit, todayStr);
-
-  if (missed > 1) {
-    state.missedDays = (state.missedDays || 0) + (missed - 1);
-  }
-
-  state.lastVisit = todayStr;
-  localStorage.setItem("studyState", JSON.stringify(state));
+  if (!state.missedDays) state.missedDays = 0;
 
   const BASE_TARGET = 64;
-  const DAILY_TARGET = BASE_TARGET + (state.missedDays || 0) * 8;
+  const DAILY_TARGET = BASE_TARGET + state.missedDays * 8;
 
-  // ===============================  
-  // STRICT GRADE CHECK (IMPORTANT FIX)  
-  // ===============================  
-  const current = window.currentGrade;
+  const current = window.currentGrade || 9;
 
-  if (!current || !pages[current]) {
-    container.innerHTML = `<p style="color:red;">⚠️ Invalid or missing current grade</p>`;
-    console.error("❌ currentGrade invalid or missing data");
+  const gradeData = pages[current];
+
+  if (!gradeData) {
+    container.innerHTML = `<p style="color:red;">⚠️ Invalid grade</p>`;
     return;
   }
 
@@ -80,29 +45,15 @@ function loadWeeklyTimetable() {
     localStorage.getItem(`grade_${current}_progress`) || "{}"
   );
 
-  const gradeData = pages[current];
-
-  // ===============================  
-  // 📊 BACKLOG ENGINE  
-  // ===============================  
   const backlog = {};
   let totalBacklog = 0;
 
   SUBJECTS.forEach(s => {
-    const total = gradeData[s] || 0;
-    const done = progress[s] || 0;
-
-    const remaining = Math.max(total - done, 0);
-
+    const remaining = Math.max((gradeData[s] || 0) - (progress[s] || 0), 0);
     backlog[s] = remaining;
     totalBacklog += remaining;
   });
 
-  window.studyBacklog = backlog;
-
-  // ===============================  
-  // 🎯 WEIGHT SYSTEM  
-  // ===============================  
   function weight(subject, base) {
     if (totalBacklog === 0) return base;
 
@@ -110,18 +61,8 @@ function loadWeeklyTimetable() {
     return Math.round(base + pressure * DAILY_TARGET * 0.2);
   }
 
-  // ===============================  
-  // UI HEADER  
-  // ===============================  
   let html = `
-    <h2>📊 Smart 90-Day Study Plan</h2>
-
-    <div class="weekly-info">
-      <p>📅 Today: ${today.toDateString()}</p>
-      <p>🔥 Catch-up Level: ${state.missedDays || 0}</p>
-      <p>📈 Daily Target: ${DAILY_TARGET}</p>
-    </div>
-
+    <h2>📊 Smart Weekly Plan</h2>
     <table class="weekly-table">
       <thead>
         <tr>
@@ -132,16 +73,12 @@ function loadWeeklyTimetable() {
           <th>Chemistry</th>
           <th>Biology</th>
           <th>English</th>
-          <th>Total/Day</th>
-          <th>Total Pages</th>
+          <th>Total</th>
         </tr>
       </thead>
       <tbody>
   `;
 
-  // ===============================  
-  // TABLE LOGIC  
-  // ===============================  
   [9, 10, 11, 12].forEach(g => {
 
     const d = pages[g];
@@ -149,15 +86,11 @@ function loadWeeklyTimetable() {
 
     const days = gradeDays[g] || 0;
 
-    const totalPages = SUBJECTS.reduce(
-      (a, s) => a + (d[s] || 0),
-      0
-    );
+    const totalPages = SUBJECTS.reduce((a, s) => a + (d[s] || 0), 0);
 
-    let vals = SUBJECTS.map(s => {
-      if (totalPages === 0) return 0;
-      return Math.round((d[s] / totalPages) * DAILY_TARGET);
-    });
+    let vals = SUBJECTS.map(s =>
+      totalPages ? Math.round((d[s] / totalPages) * DAILY_TARGET) : 0
+    );
 
     if (g === current) {
       vals = SUBJECTS.map((s, i) => weight(s, vals[i]));
@@ -175,20 +108,13 @@ function loadWeeklyTimetable() {
         <td>${vals[3]}</td>
         <td>${vals[4]}</td>
         <td><b>${sum}</b></td>
-        <td><b>${totalPages}</b></td>
       </tr>
     `;
   });
 
-  html += `
-      </tbody>
-    </table>
-  `;
+  html += `</tbody></table>`;
 
   container.innerHTML = html;
 }
 
-// ===============================  
-// EXPORT  
-// ===============================  
 window.loadWeeklyTimetable = loadWeeklyTimetable;
