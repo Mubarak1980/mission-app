@@ -17,21 +17,16 @@
 </head>
 
 <body>
-
     <h1>TIME</h1>
 
     <div class="section-buttons">
         <button onclick="loadSunnahTracker()">Sunnah Tracker</button>
+        <button onclick="loadSection('study', currentGrade)">Study Tracker</button>
 
-        <!-- ✅ FIX: always use global grade -->
-        <button onclick="loadSection('study', window.currentGrade)">Study Tracker</button>
+        <!-- ✅ FIXED: unified navigation system -->
+        <button onclick="loadSection('timetable', currentGrade)">📅 Weekly Timetable</button>
 
-        <button onclick="loadSection('timetable', window.currentGrade)">📅 Weekly Timetable</button>
-
-        <!-- ✅ FIX: unified router -->
-        <button onclick="loadSection('dashboard', window.currentGrade)">📊 Dashboard</button>
-
-        <!-- ⚠️ only keep if function exists -->
+        <button onclick="loadDashboard()">📊 Dashboard</button>
         <button onclick="loadTopStudentMode()">🎓 Top Student Mode</button>
     </div>
 
@@ -43,25 +38,15 @@
         <button onclick="nextGrade()" id="next-btn">Next</button>
     </div>
 
-    <!-- ===============================
-         JS FILES (ORDER MATTERS ⚠️)
-         =============================== -->
-
-    <!-- ✅ MUST LOAD FIRST (data source) -->
+    <!-- JS FILES -->
+    <script src="./Sunnah-tracker.js"></script>
     <script src="./Study-tracker.js"></script>
-
-    <!-- ✅ DEPENDENT MODULES -->
     <script src="./weekly-timetable.js"></script>
     <script src="./dashboard.js"></script>
     <script src="./top-student-mode.js"></script>
-    <script src="./Sunnah-tracker.js"></script>
-
-    <!-- ✅ MAIN CONTROLLER LAST -->
     <script src="./main.js"></script>
 
-    <!-- ===============================
-         SERVICE WORKER
-         =============================== -->
+    <!-- SERVICE WORKER -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -72,19 +57,11 @@
         }
     </script>
 
-    <!-- ===============================
-         SAFE STARTUP (NO DOUBLE LOAD)
-         =============================== -->
+    <!-- ✅ SAFE STARTUP FIX -->
     <script>
         window.addEventListener('DOMContentLoaded', () => {
-
-            // ✅ only run if main.js hasn't already initialized
-            if (!window.__appStarted) {
-                window.__appStarted = true;
-
-                if (typeof loadSection === 'function') {
-                    loadSection('study', window.currentGrade || 9);
-                }
+            if (typeof loadSection === 'function') {
+                loadSection('study', window.currentGrade || 9);
             }
         });
     </script>
