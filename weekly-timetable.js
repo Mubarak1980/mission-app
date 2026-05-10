@@ -2,56 +2,66 @@ function loadWeeklyTimetable() {
 
   const pages = window.maxPagesByGrade;
 
+  const gradeDays = {
+    9: 22,
+    10: 22,
+    11: 23,
+    12: 23
+  };
+
   const container = document.getElementById("main-content");
   if (!container) return;
 
-  const grades = [9, 10, 11, 12];
-
   let html = `
-    <h2>📊 Weekly Study Distribution (Real Pages System)</h2>
+    <h2>📊 90-Day Study Plan (Exact Daily Targets)</h2>
 
     <table class="weekly-table">
       <thead>
         <tr>
           <th>Grade</th>
-          <th>Total Pages</th>
+          <th>Days</th>
           <th>Math</th>
           <th>Physics</th>
           <th>Chemistry</th>
           <th>Biology</th>
           <th>English</th>
-          <th>Avg Pages / Day (90 days)</th>
+          <th>Total Pages</th>
         </tr>
       </thead>
-
       <tbody>
   `;
 
-  grades.forEach(g => {
+  [9, 10, 11, 12].forEach(g => {
 
-    const data = pages[g];
+    const d = pages[g];
+    if (!d) return;
 
-    if (!data) return;
+    const days = gradeDays[g];
+
+    // DAILY per subject
+    const math = Math.ceil(d.Math / days);
+    const physics = Math.ceil(d.Physics / days);
+    const chemistry = Math.ceil(d.Chemistry / days);
+    const biology = Math.ceil(d.Biology / days);
+    const english = Math.ceil(d.English / days);
 
     const total =
-      data.Math +
-      data.Physics +
-      data.Chemistry +
-      data.Biology +
-      data.English;
-
-    const perDay = Math.round(total / 90);
+      d.Math +
+      d.Physics +
+      d.Chemistry +
+      d.Biology +
+      d.English;
 
     html += `
       <tr>
         <td><b>${g}</b></td>
+        <td>${days}</td>
+        <td>${math}</td>
+        <td>${physics}</td>
+        <td>${chemistry}</td>
+        <td>${biology}</td>
+        <td>${english}</td>
         <td><b>${total}</b></td>
-        <td>${data.Math}</td>
-        <td>${data.Physics}</td>
-        <td>${data.Chemistry}</td>
-        <td>${data.Biology}</td>
-        <td>${data.English}</td>
-        <td><b>${perDay}</b></td>
       </tr>
     `;
   });
