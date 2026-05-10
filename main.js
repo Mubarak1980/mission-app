@@ -55,7 +55,7 @@ function updateNavButtons() {
 }
 
 // ===============================
-// SECTION CONTROLLER (ONLY ROLE OF MAIN.JS)
+// SECTION CONTROLLER
 // ===============================
 function loadSection(type, grade) {
   currentSection = type;
@@ -103,8 +103,48 @@ window.addEventListener('load', () => {
 });
 
 // ===============================
-// EXPORTS (FOR OTHER FILES)
+// EXPORTS
 // ===============================
 window.nextGrade = nextGrade;
 window.previousGrade = previousGrade;
 window.loadSection = loadSection;
+
+
+// =======================================================
+// 🔥 SAFE SYNC SYSTEM (ADDED - NO CONFLICT WITH ENGINE)
+// Study ↔ Weekly Timetable Bridge
+// =======================================================
+
+(function initSmartSync() {
+
+  function sync() {
+    const lastUpdate = localStorage.getItem("study_last_update");
+    if (!lastUpdate) return;
+
+    // prevent repeated sync loops
+    if (window.__syncLock === lastUpdate) return;
+    window.__syncLock = lastUpdate;
+
+    // If weekly timetable is open → refresh it
+    if (currentSection === "timetable" && typeof loadWeeklyTimetable === "function") {
+      loadWeeklyTimetable();
+    }
+
+    // If study section is open → refresh summary
+    if (currentSection === "study" && typeof updateGradeSummary === "function") {
+      updateGradeSummary(currentGrade);
+    }
+  }
+
+  // When user returns to tab
+  window.addEventListener("focus", sync);
+
+  // When tab becomes visible again
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) sync();
+  });
+
+  // Safety interval sync
+  setInterval(sync, 5000);
+
+})();
