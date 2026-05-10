@@ -27,22 +27,16 @@ function saveStudyProgress(grade) {
     saved[subject] = value;
   });
 
-  localStorage.setItem(
-    `grade_${grade}_progress`,
-    JSON.stringify(saved)
-  );
-
+  localStorage.setItem(`grade_${grade}_progress`, JSON.stringify(saved));
   updateGradeSummary(grade);
 }
 
 // ===============================
-// CREATE SUBJECT CARD
+// UI CREATION
 // ===============================
 function createSubject(name, maxPages, savedPages) {
   const percent =
-    maxPages > 0
-      ? Math.round((savedPages / maxPages) * 100)
-      : 0;
+    maxPages > 0 ? Math.round((savedPages / maxPages) * 100) : 0;
 
   return `
     <div class="subject ${percent === 100 ? "complete" : ""}">
@@ -59,14 +53,13 @@ function createSubject(name, maxPages, savedPages) {
       />
 
       <progress value="${savedPages}" max="${maxPages}"></progress>
-
       <p>${percent}% complete</p>
     </div>
   `;
 }
 
 // ===============================
-// LIVE UPDATE UI
+// LIVE UPDATE
 // ===============================
 function updateSubjectProgressUI(input) {
   let value = Math.max(0, Number(input.value) || 0);
@@ -80,11 +73,8 @@ function updateSubjectProgressUI(input) {
   const container = input.closest(".subject");
   if (!container) return;
 
-  const progress = container.querySelector("progress");
-  const text = container.querySelector("p");
-
-  if (progress) progress.value = value;
-  if (text) text.textContent = `${percent}% complete`;
+  container.querySelector("progress").value = value;
+  container.querySelector("p").textContent = `${percent}% complete`;
 
   container.classList.toggle("complete", percent === 100);
 }
@@ -94,31 +84,20 @@ function updateSubjectProgressUI(input) {
 // ===============================
 function loadStudySection(grade) {
   const data = window.maxPagesByGrade?.[grade];
-
-  if (!data) {
-    document.getElementById("main-content").innerHTML =
-      `<p>Missing data for Grade ${grade}</p>`;
-    return;
-  }
+  if (!data) return;
 
   const saved = loadProgress(grade);
 
-  let html = `
-    <h2>📘 Grade ${grade} Study Tracker</h2>
-    <div class="subjects-container">
-  `;
+  let html = `<h2>📘 Grade ${grade} Study Tracker</h2>
+  <div class="subjects-container">`;
 
   SUBJECTS.forEach((subject) => {
-    const max = data[subject] || 0;
-    const done = saved[subject] || 0;
-
-    html += createSubject(subject, max, done);
+    html += createSubject(subject, data[subject], saved[subject] || 0);
   });
 
   html += `</div>`;
 
-  const container = document.getElementById("main-content");
-  container.innerHTML = html;
+  document.getElementById("main-content").innerHTML = html;
 
   document.querySelectorAll(".subject-progress").forEach((input) => {
     updateSubjectProgressUI(input);
@@ -133,31 +112,24 @@ function loadStudySection(grade) {
 }
 
 // ===============================
-// SUMMARY SYSTEM
+// SUMMARY
 // ===============================
 function updateGradeSummary(grade) {
   const saved = loadProgress(grade);
   const data = window.maxPagesByGrade?.[grade];
-
   if (!data) return;
 
   let totalDone = 0;
   let totalPages = 0;
 
-  SUBJECTS.forEach((subject) => {
-    const max = data[subject] || 0;
-    const done = saved[subject] || 0;
-
-    totalDone += Math.min(done, max);
-    totalPages += max;
+  SUBJECTS.forEach((s) => {
+    totalDone += Math.min(saved[s] || 0, data[s]);
+    totalPages += data[s];
   });
 
-  const percent = totalPages
-    ? Math.round((totalDone / totalPages) * 100)
-    : 0;
+  const percent = Math.round((totalDone / totalPages) * 100);
 
   const el = document.getElementById("grade-progress-bar");
-
   if (el) {
     el.innerHTML = `
       <label>📘 Overall Progress (Grade ${grade}): ${percent}%</label>
@@ -167,56 +139,44 @@ function updateGradeSummary(grade) {
 }
 
 // ===============================
-// 🔗 CONNECTION LAYER (NEW)
+// 🔗 CONNECTION API (IMPORTANT)
 // ===============================
 function getStudyState(grade) {
-
   const saved = loadProgress(grade);
   const data = window.maxPagesByGrade?.[grade];
-
   if (!data) return null;
 
-  const state = {
-    subjects: {},
-    weakSubjects: [],
-    totalDone: 0,
-    totalPages: 0
-  };
+  let weak = [];
+  let totalDone = 0;
+  let totalPages = 0;
 
-  SUBJECTS.forEach(subject => {
-    const done = saved[subject] || 0;
-    const total = data[subject] || 0;
+  const subjects = {};
 
-    const percent = total > 0 ? done / total : 0;
+  SUBJECTS.forEach((s) => {
+    const done = saved[s] || 0;
+    const total = data[s];
 
-    state.subjects[subject] = {
-      done,
-      total,
-      percent
-    };
+    const ratio = total ? done / total : 0;
 
-    state.totalDone += Math.min(done, total);
-    state.totalPages += total;
+    subjects[s] = { done, total, ratio };
 
-    // weak subject rule (v1)
-    if (percent < 0.5) {
-      state.weakSubjects.push(subject);
-    }
+    totalDone += Math.min(done, total);
+    totalPages += total;
+
+    if (ratio < 0.5) weak.push(s);
   });
 
-  state.overallPercent = state.totalPages
-    ? state.totalDone / state.totalPages
-    : 0;
-
-  return state;
+  return {
+    subjects,
+    weakSubjects: weak,
+    overallPercent: totalPages ? totalDone / totalPages : 0
+  };
 }
 
-// expose to weekly timetable
+// expose
 window.getStudyState = getStudyState;
 
-// ===============================
-// EXPORTS
-// ===============================
+// exports
 window.loadStudySection = loadStudySection;
 window.saveStudyProgress = saveStudyProgress;
 window.updateGradeSummary = updateGradeSummary;
