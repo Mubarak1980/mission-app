@@ -3,11 +3,13 @@ function loadWeeklyTimetable() {
   const pages = window.maxPagesByGrade;
 
   const gradeDays = {
-    9: 22,
+    9: 17,
     10: 22,
-    11: 23,
-    12: 23
+    11: 27,
+    12: 24
   };
+
+  const DAILY_TARGET = 64;
 
   const container = document.getElementById("main-content");
   if (!container) return;
@@ -25,6 +27,7 @@ function loadWeeklyTimetable() {
           <th>Chemistry</th>
           <th>Biology</th>
           <th>English</th>
+          <th>Total/Day</th>
           <th>Total Pages</th>
         </tr>
       </thead>
@@ -38,19 +41,23 @@ function loadWeeklyTimetable() {
 
     const days = gradeDays[g];
 
-    // DAILY per subject
-    const math = Math.ceil(d.Math / days);
-    const physics = Math.ceil(d.Physics / days);
-    const chemistry = Math.ceil(d.Chemistry / days);
-    const biology = Math.ceil(d.Biology / days);
-    const english = Math.ceil(d.English / days);
-
+    // TOTAL PAGES IN THIS GRADE
     const total =
       d.Math +
       d.Physics +
       d.Chemistry +
       d.Biology +
       d.English;
+
+    // PROPORTIONAL DISTRIBUTION
+    const math = Math.round((d.Math / total) * DAILY_TARGET);
+    const physics = Math.round((d.Physics / total) * DAILY_TARGET);
+    const chemistry = Math.round((d.Chemistry / total) * DAILY_TARGET);
+    const biology = Math.round((d.Biology / total) * DAILY_TARGET);
+
+    // Fix rounding drift → English absorbs difference
+    const english =
+      DAILY_TARGET - (math + physics + chemistry + biology);
 
     html += `
       <tr>
@@ -61,6 +68,7 @@ function loadWeeklyTimetable() {
         <td>${chemistry}</td>
         <td>${biology}</td>
         <td>${english}</td>
+        <td><b>${DAILY_TARGET}</b></td>
         <td><b>${total}</b></td>
       </tr>
     `;
