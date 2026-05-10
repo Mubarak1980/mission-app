@@ -1,25 +1,26 @@
 // ===============================  
-// main.js  
+// main.js (FIXED & ROBUST)  
 // ===============================  
+
 let currentGrade = 9;
 let currentSection = "study";
 
 window.currentGrade = currentGrade;
 
 // ===============================  
-// 📌 NAV ELEMENTS  
+// NAV ELEMENTS  
 // ===============================  
 let nav, prevBtn, nextBtn;
 
 // ===============================  
-// 📌 SYNC STATE  
+// SYNC STATE  
 // ===============================  
 function syncGlobalState() {
   window.currentGrade = currentGrade;
 }
 
 // ===============================  
-// 📌 NAV UPDATE  
+// NAV UPDATE  
 // ===============================  
 function updateNavButtons() {
   if (!nav || !prevBtn || !nextBtn) return;
@@ -30,7 +31,7 @@ function updateNavButtons() {
 }
 
 // ===============================  
-// 📌 SECTION ROUTER  
+// SECTION ROUTER  
 // ===============================  
 function loadSection(type, grade) {
   currentSection = type;
@@ -39,32 +40,25 @@ function loadSection(type, grade) {
   syncGlobalState();
   updateNavButtons();
 
-  // safer than arbitrary timeout
   requestAnimationFrame(() => {
 
     if (type === "study") {
-      if (typeof window.loadStudySection === "function") {
-        window.loadStudySection(grade);
-      }
+      window.loadStudySection?.(grade);
     }
 
     if (type === "timetable") {
-      if (typeof window.loadWeeklyTimetable === "function") {
-        window.loadWeeklyTimetable();
-      }
+      window.loadWeeklyTimetable?.();
     }
 
     if (type === "dashboard") {
-      if (typeof window.loadDashboard === "function") {
-        window.loadDashboard();
-      }
+      window.loadDashboard?.();
     }
 
   });
 }
 
 // ===============================  
-// 📌 GRADE NAVIGATION  
+// GRADE NAVIGATION  
 // ===============================  
 function nextGrade() {
   if (currentGrade < 12) {
@@ -83,26 +77,40 @@ function previousGrade() {
 }
 
 // ===============================  
-// 📌 INIT (SAFE LOAD)  
+// INIT (FIXED SAFE BOOTSTRAP)  
 // ===============================  
 window.addEventListener("load", () => {
+
   nav = document.getElementById("grade-nav");
   prevBtn = document.getElementById("prev-btn");
   nextBtn = document.getElementById("next-btn");
 
-  if (!window.maxPagesByGrade) {
-    console.error("❌ maxPagesByGrade not loaded!");
-    return;
-  }
+  // 🔥 FIX: wait until data exists (prevents false crash)
+  const waitForData = setInterval(() => {
 
-  syncGlobalState();
-  updateNavButtons();
+    if (window.maxPagesByGrade) {
 
-  loadSection("study", currentGrade);
+      clearInterval(waitForData);
+
+      syncGlobalState();
+      updateNavButtons();
+
+      loadSection("study", currentGrade);
+    }
+
+  }, 50);
+
+  // 🔥 safety timeout fallback (debug help)
+  setTimeout(() => {
+    if (!window.maxPagesByGrade) {
+      console.error("❌ STILL NO maxPagesByGrade — check settings.js load order!");
+    }
+  }, 2000);
+
 });
 
 // ===============================  
-// 📌 EXPORTS  
+// EXPORTS  
 // ===============================  
 window.nextGrade = nextGrade;
 window.previousGrade = previousGrade;
