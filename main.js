@@ -2,47 +2,22 @@
 // Main.js
 // ===============================
 
+
+
 // ===============================
-// MAX PAGES DATA
+// MAX PAGES DATA (STATIC CONFIG)
 // ===============================
 window.maxPagesByGrade = {
-  9: {
-    Math: 363,
-    Physics: 174,
-    Chemistry: 175,
-    Biology: 164,
-    English: 223
-  },
-
-  10: {
-    Math: 385,
-    Physics: 249,
-    Chemistry: 298,
-    Biology: 174,
-    English: 316
-  },
-
-  11: {
-    Math: 479,
-    Physics: 329,
-    Chemistry: 330,
-    Biology: 284,
-    English: 283
-  },
-
-  12: {
-    Math: 416,
-    Physics: 177,
-    Chemistry: 287,
-    Biology: 354,
-    English: 263
-  }
+  9: { Math: 363, Physics: 174, Chemistry: 175, Biology: 164, English: 223 },
+  10: { Math: 385, Physics: 249, Chemistry: 298, Biology: 174, English: 316 },
+  11: { Math: 479, Physics: 329, Chemistry: 330, Biology: 284, English: 283 },
+  12: { Math: 416, Physics: 177, Chemistry: 287, Biology: 354, English: 263 }
 };
 
 
 
 // ===============================
-// 🧠 90-DAY CYCLE ENGINE (ADDED)
+// 🧠 90-DAY CYCLE ENGINE (CORE SYSTEM)
 // ===============================
 const TOTAL_DAYS = 90;
 const TOTAL_PAGES = 5705;
@@ -53,7 +28,6 @@ function getCycleState() {
   const today = new Date();
   const todayStr = today.toISOString().split("T")[0];
 
-  // initialize once only
   if (!state.startDate) {
     state.startDate = todayStr;
   }
@@ -72,7 +46,7 @@ function getCycleState() {
 
 
 // ===============================
-// GLOBAL STATE
+// GLOBAL STATE (UI CONTROLLER)
 // ===============================
 let currentGrade = 9;
 let currentSection = 'study';
@@ -82,7 +56,7 @@ let nav, prevBtn, nextBtn;
 
 
 // ===============================
-// NAV BUTTONS
+// NAV BUTTONS (UI LOGIC)
 // ===============================
 function updateNavButtons() {
   if (!nav || !prevBtn || !nextBtn) return;
@@ -95,7 +69,7 @@ function updateNavButtons() {
 
 
 // ===============================
-// SECTION CONTROLLER
+// SECTION CONTROLLER (ROUTER)
 // ===============================
 function loadSection(type, grade) {
   currentSection = type;
@@ -134,7 +108,7 @@ function previousGrade() {
 
 
 // ===============================
-// INIT
+// INIT (APP START)
 // ===============================
 window.addEventListener('load', () => {
   nav = document.getElementById('grade-nav');
@@ -143,7 +117,7 @@ window.addEventListener('load', () => {
 
   updateNavButtons();
 
-  // initialize cycle engine early
+  // IMPORTANT: initialize cycle engine first
   getCycleState();
 
   loadSection('study', currentGrade);
@@ -152,7 +126,7 @@ window.addEventListener('load', () => {
 
 
 // ===============================
-// EXPORTS
+// EXPORTS (GLOBAL ACCESS)
 // ===============================
 window.nextGrade = nextGrade;
 window.previousGrade = previousGrade;
