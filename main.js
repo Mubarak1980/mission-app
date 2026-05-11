@@ -14,14 +14,14 @@ window.maxPagesByGrade = {
   12: { Math: 416, Physics: 177, Chemistry: 287, Biology: 354, English: 263 }
 };
 
-
-
-// ===============================
-// 🧠 90-DAY CYCLE ENGINE (CORE SYSTEM)
-// ===============================
 const TOTAL_DAYS = 90;
 const TOTAL_PAGES = 5705;
 
+
+
+// ===============================
+// 🧠 CYCLE ENGINE
+// ===============================
 function getCycleState() {
   let state = JSON.parse(localStorage.getItem("cycleState") || "{}");
 
@@ -46,10 +46,54 @@ function getCycleState() {
 
 
 // ===============================
-// 🔴 STEP 3: DELAY DETECTION ENGINE
+// 📅 STEP 5A: DAILY PLAN ENGINE
 // ===============================
+function getTodayKey() {
+  return new Date().toISOString().split("T")[0];
+}
 
-// expected progress
+function getTodayPlan() {
+  const today = getTodayKey();
+  const plan = JSON.parse(localStorage.getItem("todayPlan") || "{}");
+  return plan[today] || [];
+}
+
+function saveTodayPlan(planData) {
+  const today = getTodayKey();
+  const plan = JSON.parse(localStorage.getItem("todayPlan") || "{}");
+
+  plan[today] = planData;
+  localStorage.setItem("todayPlan", JSON.stringify(plan));
+}
+
+
+
+// ===============================
+// 📊 STEP 5B: DAILY LOG ENGINE
+// ===============================
+function getTodayLog() {
+  const today = getTodayKey();
+  const logs = JSON.parse(localStorage.getItem("dailyStudyLog") || "{}");
+  return logs[today] || {};
+}
+
+function saveTodayLog(grade, subject, pages) {
+  const today = getTodayKey();
+  const logs = JSON.parse(localStorage.getItem("dailyStudyLog") || "{}");
+
+  if (!logs[today]) logs[today] = {};
+  if (!logs[today][grade]) logs[today][grade] = {};
+
+  logs[today][grade][subject] = pages;
+
+  localStorage.setItem("dailyStudyLog", JSON.stringify(logs));
+}
+
+
+
+// ===============================
+// EXPECTED PROGRESS
+// ===============================
 function getExpectedProgress() {
   const cycle = getCycleState();
 
@@ -65,7 +109,9 @@ function getExpectedProgress() {
 
 
 
-// actual progress
+// ===============================
+// ACTUAL PROGRESS
+// ===============================
 function getActualProgress() {
   const grades = [9, 10, 11, 12];
   const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
@@ -82,29 +128,24 @@ function getActualProgress() {
     });
   });
 
-  return {
-    actualPages: total
-  };
+  return { actualPages: total };
 }
 
 
 
-// delay status engine (FIXED STRUCTURE)
+// ===============================
+// DELAY STATUS ENGINE
+// ===============================
 function getDelayStatus() {
   const expected = getExpectedProgress();
   const actual = getActualProgress();
 
   const gap = actual.actualPages - expected.expectedPages;
 
-  let status;
+  let status = "🟢 AHEAD / ON TRACK";
 
-  if (gap >= 0) {
-    status = "🟢 AHEAD / ON TRACK";
-  } else if (gap > -200) {
-    status = "🟡 SLIGHTLY BEHIND";
-  } else {
-    status = "🔴 SERIOUSLY BEHIND";
-  }
+  if (gap < 0) status = "🟡 SLIGHTLY BEHIND";
+  if (gap < -200) status = "🔴 SERIOUSLY BEHIND";
 
   return {
     cycleDay: expected.cycleDay,
@@ -118,7 +159,56 @@ function getDelayStatus() {
 
 
 // ===============================
-// GLOBAL STATE (UI CONTROLLER)
+// ⚖️ STEP 5C: PLAN VS ACTUAL
+// ===============================
+function getPlannedVsActual() {
+  const plan = getTodayPlan();
+  const todayLog = getTodayLog();
+
+  let delays = [];
+
+  plan.forEach(p => {
+    const grade = p.grade;
+    const subjectsPlan = p.subjects || {};
+    const actual = todayLog[grade] || {};
+
+    Object.keys(subjectsPlan).forEach(subject => {
+      const planned = Number(subjectsPlan[subject]) || 0;
+      const done = Number(actual[subject]) || 0;
+
+      if (done < planned) {
+        delays.push({
+          grade,
+          subject,
+          missing: planned - done
+        });
+      }
+    });
+  });
+
+  return delays;
+}
+
+
+
+// ===============================
+// 🧠 SYSTEM BRAIN
+// ===============================
+function getSystemStatus() {
+  const cycle = getDelayStatus();
+  const dailyDelays = getPlannedVsActual();
+
+  return {
+    cycle,
+    dailyDelays,
+    isOnTrack: cycle.gap >= 0 && dailyDelays.length === 0
+  };
+}
+
+
+
+// ===============================
+// GLOBAL STATE
 // ===============================
 let currentGrade = 9;
 let currentSection = 'study';
@@ -128,7 +218,7 @@ let nav, prevBtn, nextBtn;
 
 
 // ===============================
-// NAV BUTTONS (UI LOGIC)
+// NAV BUTTONS
 // ===============================
 function updateNavButtons() {
   if (!nav || !prevBtn || !nextBtn) return;
@@ -141,7 +231,7 @@ function updateNavButtons() {
 
 
 // ===============================
-// SECTION CONTROLLER (ROUTER)
+// SECTION CONTROLLER
 // ===============================
 function loadSection(type, grade) {
   currentSection = type;
@@ -180,7 +270,7 @@ function previousGrade() {
 
 
 // ===============================
-// INIT (APP START)
+// INIT
 // ===============================
 window.addEventListener('load', () => {
   nav = document.getElementById('grade-nav');
@@ -189,9 +279,7 @@ window.addEventListener('load', () => {
 
   updateNavButtons();
 
-  // initialize cycle engine
   getCycleState();
-
   loadSection('study', currentGrade);
 });
 
@@ -206,9 +294,9 @@ window.loadSection = loadSection;
 
 
 
-// =======================================================
-// 🔥 SAFE SYNC SYSTEM
-// =======================================================
+// ===============================
+// SYNC SYSTEM
+// ===============================
 (function initSmartSync() {
 
   function sync() {
@@ -228,7 +316,6 @@ window.loadSection = loadSection;
   }
 
   window.addEventListener("focus", sync);
-
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) sync();
   });
