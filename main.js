@@ -44,6 +44,77 @@ function getCycleState() {
 }
 
 
+// ===============================
+// 🔴 STEP 3: DELAY DETECTION ENGINE
+// ===============================
+
+// total system pages (already defined conceptually)
+const TOTAL_PAGES = 5705;
+
+// expected progress (from cycle)
+function getExpectedProgress() {
+  const cycle = getCycleState();
+
+  const expectedPages =
+    (cycle.cycleDay / 90) * TOTAL_PAGES;
+
+  return {
+    cycleDay: cycle.cycleDay,
+    remainingDays: cycle.remainingDays,
+    expectedPages: Math.round(expectedPages)
+  };
+}
+
+
+// actual progress (from study tracker localStorage)
+function getActualProgress() {
+  const grades = [9, 10, 11, 12];
+  const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
+
+  let total = 0;
+
+  grades.forEach(grade => {
+    const saved = JSON.parse(
+      localStorage.getItem(`grade_${grade}_progress`) || "{}"
+    );
+
+    subjects.forEach(subject => {
+      total += Number(saved[subject]) || 0;
+    });
+  });
+
+  return {
+    actualPages: total
+  };
+}
+
+
+// main comparison engine
+function getDelayStatus() {
+  const expected = getExpectedProgress();
+  const actual = getActualProgress();
+
+  const gap = actual.actualPages - expected.expectedPages;
+
+  let status = "";
+
+  if (gap >= 0) {
+    status = "🟢 AHEAD / ON TRACK";
+  } else if (gap > -200) {
+    status = "🟡 SLIGHTLY BEHIND";
+  } else {
+    status = "🔴 SERIOUSLY BEHIND";
+  }
+
+  return {
+    cycleDay: expected.cycleDay,
+    expectedPages: expected.expectedPages,
+    actualPages: actual.actualPages,
+    gap: gap,
+    status: status
+  };
+    }
+  
 
 // ===============================
 // GLOBAL STATE (UI CONTROLLER)
