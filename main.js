@@ -1,6 +1,10 @@
 // ===============================
 // Main.js
 // ===============================
+
+// ===============================
+// MAX PAGES DATA
+// ===============================
 window.maxPagesByGrade = {
   9: {
     Math: 363,
@@ -35,6 +39,38 @@ window.maxPagesByGrade = {
   }
 };
 
+
+
+// ===============================
+// 🧠 90-DAY CYCLE ENGINE (ADDED)
+// ===============================
+const TOTAL_DAYS = 90;
+const TOTAL_PAGES = 5705;
+
+function getCycleState() {
+  let state = JSON.parse(localStorage.getItem("cycleState") || "{}");
+
+  const today = new Date();
+  const todayStr = today.toISOString().split("T")[0];
+
+  // initialize once only
+  if (!state.startDate) {
+    state.startDate = todayStr;
+  }
+
+  const start = new Date(state.startDate);
+  const diff = Math.floor((today - start) / (1000 * 60 * 60 * 24));
+
+  state.cycleDay = Math.min(diff + 1, TOTAL_DAYS);
+  state.remainingDays = TOTAL_DAYS - state.cycleDay;
+
+  localStorage.setItem("cycleState", JSON.stringify(state));
+
+  return state;
+}
+
+
+
 // ===============================
 // GLOBAL STATE
 // ===============================
@@ -42,6 +78,8 @@ let currentGrade = 9;
 let currentSection = 'study';
 
 let nav, prevBtn, nextBtn;
+
+
 
 // ===============================
 // NAV BUTTONS
@@ -53,6 +91,8 @@ function updateNavButtons() {
   prevBtn.disabled = currentGrade === 9;
   nextBtn.disabled = currentGrade === 12;
 }
+
+
 
 // ===============================
 // SECTION CONTROLLER
@@ -72,6 +112,8 @@ function loadSection(type, grade) {
   }
 }
 
+
+
 // ===============================
 // NAVIGATION
 // ===============================
@@ -89,6 +131,8 @@ function previousGrade() {
   }
 }
 
+
+
 // ===============================
 // INIT
 // ===============================
@@ -99,8 +143,13 @@ window.addEventListener('load', () => {
 
   updateNavButtons();
 
+  // initialize cycle engine early
+  getCycleState();
+
   loadSection('study', currentGrade);
 });
+
+
 
 // ===============================
 // EXPORTS
@@ -110,41 +159,35 @@ window.previousGrade = previousGrade;
 window.loadSection = loadSection;
 
 
+
 // =======================================================
-// 🔥 SAFE SYNC SYSTEM (ADDED - NO CONFLICT WITH ENGINE)
+// 🔥 SAFE SYNC SYSTEM (UNCHANGED)
 // Study ↔ Weekly Timetable Bridge
 // =======================================================
-
 (function initSmartSync() {
 
   function sync() {
     const lastUpdate = localStorage.getItem("study_last_update");
     if (!lastUpdate) return;
 
-    // prevent repeated sync loops
     if (window.__syncLock === lastUpdate) return;
     window.__syncLock = lastUpdate;
 
-    // If weekly timetable is open → refresh it
     if (currentSection === "timetable" && typeof loadWeeklyTimetable === "function") {
       loadWeeklyTimetable();
     }
 
-    // If study section is open → refresh summary
     if (currentSection === "study" && typeof updateGradeSummary === "function") {
       updateGradeSummary(currentGrade);
     }
   }
 
-  // When user returns to tab
   window.addEventListener("focus", sync);
 
-  // When tab becomes visible again
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) sync();
   });
 
-  // Safety interval sync
   setInterval(sync, 5000);
 
 })();
