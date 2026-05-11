@@ -1,5 +1,5 @@
 // ===============================
-// Main.js (CLEAN SYSTEM CORE FIXED)
+// Main.js (FINAL STABLE BUILD)
 // ===============================
 
 
@@ -43,7 +43,7 @@ function getCycleState() {
 
 
 // ===============================
-// 📅 DAILY PLAN ENGINE
+// 📅 DAILY SYSTEM
 // ===============================
 function getTodayKey() {
   return new Date().toISOString().split("T")[0];
@@ -55,33 +55,10 @@ function getTodayPlan() {
   return plan[today] || [];
 }
 
-function saveTodayPlan(planData) {
-  const today = getTodayKey();
-  const plan = JSON.parse(localStorage.getItem("todayPlan") || "{}");
-  plan[today] = planData;
-  localStorage.setItem("todayPlan", JSON.stringify(plan));
-}
-
-
-
-// ===============================
-// 📊 DAILY LOG ENGINE
-// ===============================
 function getTodayLog() {
   const today = getTodayKey();
   const logs = JSON.parse(localStorage.getItem("dailyStudyLog") || "{}");
   return logs[today] || {};
-}
-
-function saveTodayLog(grade, subject, pages) {
-  const today = getTodayKey();
-  const logs = JSON.parse(localStorage.getItem("dailyStudyLog") || "{}");
-
-  if (!logs[today]) logs[today] = {};
-  if (!logs[today][grade]) logs[today][grade] = {};
-
-  logs[today][grade][subject] = pages;
-  localStorage.setItem("dailyStudyLog", JSON.stringify(logs));
 }
 
 
@@ -113,9 +90,7 @@ function getActualProgress() {
   let total = 0;
 
   grades.forEach(grade => {
-    const saved = JSON.parse(
-      localStorage.getItem(`grade_${grade}_progress`) || "{}"
-    );
+    const saved = JSON.parse(localStorage.getItem(`grade_${grade}_progress`) || "{}");
 
     subjects.forEach(subject => {
       total += Number(saved[subject]) || 0;
@@ -188,7 +163,7 @@ function getPlannedVsActual() {
 
 
 // ===============================
-// 🧠 SYSTEM BRAIN
+// 🧠 SYSTEM STATUS
 // ===============================
 function getSystemStatus() {
   const cycle = getDelayStatus();
@@ -204,27 +179,28 @@ function getSystemStatus() {
 
 
 // ===============================
-// 🧠 SYSTEM SNAPSHOT (FIXED)
+// 🧠 SYSTEM SNAPSHOT (FIXED + CONSISTENT)
 // ===============================
 function getSystemSnapshot() {
-  const system = getSystemStatus();
+  const status = getSystemStatus();
+  const cycle = status.cycle;
 
   return {
     time: {
-      cycleDay: system.cycle.cycleDay,
-      remainingDays: TOTAL_DAYS - system.cycle.cycleDay
+      cycleDay: cycle.cycleDay,
+      remainingDays: TOTAL_DAYS - cycle.cycleDay
     },
 
     progress: {
-      actual: system.cycle.actualPages,
-      expected: system.cycle.expectedPages,
-      gap: system.cycle.gap
+      actual: cycle.actualPages,
+      expected: cycle.expectedPages,
+      gap: cycle.gap
     },
 
     alerts: {
-      isOnTrack: system.isOnTrack,
-      hasDailyIssues: system.dailyDelays.length > 0,
-      delayCount: system.dailyDelays.length
+      isOnTrack: status.isOnTrack,
+      hasDailyIssues: status.dailyDelays.length > 0,
+      delayCount: status.dailyDelays.length
     }
   };
 }
@@ -235,7 +211,7 @@ function getSystemSnapshot() {
 // UI STATE
 // ===============================
 let currentGrade = 9;
-let currentSection = 'study';
+let currentSection = "study";
 
 let nav, prevBtn, nextBtn;
 
@@ -247,7 +223,7 @@ let nav, prevBtn, nextBtn;
 function updateNavButtons() {
   if (!nav || !prevBtn || !nextBtn) return;
 
-  nav.style.display = 'flex';
+  nav.style.display = "flex";
   prevBtn.disabled = currentGrade === 9;
   nextBtn.disabled = currentGrade === 12;
 }
@@ -255,7 +231,7 @@ function updateNavButtons() {
 
 
 // ===============================
-// ROUTER (SINGLE SOURCE OF TRUTH)
+// ROUTER (SAFE SINGLE ENTRY)
 // ===============================
 function loadSection(type, grade) {
   currentSection = type;
@@ -263,9 +239,9 @@ function loadSection(type, grade) {
 
   updateNavButtons();
 
-  if (type === "study") loadStudySection(grade);
-  else if (type === "timetable") loadWeeklyTimetable();
-  else if (type === "dashboard") loadDashboard();
+  if (type === "study") loadStudySection?.(grade);
+  else if (type === "timetable") loadWeeklyTimetable?.();
+  else if (type === "dashboard") loadDashboard?.();
 }
 
 
@@ -314,14 +290,14 @@ window.loadSection = loadSection;
 
 
 // ===============================
-// STEP 7 (FIXED - NO RELOAD LOOP)
+// STEP 7 (SAFE UI CONNECTOR)
 // ===============================
 function getUIState() {
   return {
     mode: currentSection,
     grade: currentGrade,
-    system: getSystemSnapshot?.() || null,
-    status: getSystemStatus?.() || null,
+    system: getSystemSnapshot(),
+    status: getSystemStatus(),
     isDashboard: currentSection === "dashboard",
     isStudy: currentSection === "study",
     isTimetable: currentSection === "timetable"
@@ -335,7 +311,7 @@ function refreshUI() {
     updateGradeSummary(state.grade);
   }
 
-  // IMPORTANT: NO dashboard/timetable auto reloads
+  // IMPORTANT: dashboard is NOT auto-refreshed to avoid loops
 }
 
 
@@ -352,13 +328,8 @@ function refreshUI() {
     if (window.__syncLock === lastUpdate) return;
     window.__syncLock = lastUpdate;
 
-    if (currentSection === "timetable" && typeof loadWeeklyTimetable === "function") {
-      loadWeeklyTimetable();
-    }
-
-    if (currentSection === "study" && typeof updateGradeSummary === "function") {
-      updateGradeSummary(currentGrade);
-    }
+    if (currentSection === "study") updateGradeSummary?.(currentGrade);
+    if (currentSection === "timetable") loadWeeklyTimetable?.();
   }
 
   window.addEventListener("focus", sync);
@@ -367,5 +338,4 @@ function refreshUI() {
   });
 
   setInterval(sync, 5000);
-
 })();
