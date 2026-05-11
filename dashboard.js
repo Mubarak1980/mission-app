@@ -23,15 +23,15 @@ function loadDashboard() {
     <div class="dashboard-container">
   `;
 
+  // ===============================
+  // 📊 SUBJECT PERFORMANCE ENGINE
+  // ===============================
   subjects.forEach(subject => {
     let totalPercent = 0;
     let count = 0;
 
     grades.forEach(grade => {
-      const saved = (typeof loadProgress === 'function')
-        ? loadProgress(grade)
-        : {};
-
+      const saved = loadProgress?.(grade) || {};
       const pagesRead = saved?.[subject] || 0;
       const maxPages = window.maxPagesByGrade?.[grade]?.[subject] || 0;
 
@@ -47,7 +47,7 @@ function loadDashboard() {
       <div class="dashboard-subject">
         <h3>${subject}</h3>
         <progress value="${avgPercent}" max="100"></progress>
-        <p>${avgPercent}% progress in ${subject} (Grades 9–12)</p>
+        <p>${avgPercent}% progress in ${subject}</p>
       </div>
     `;
   });
@@ -60,15 +60,13 @@ function loadDashboard() {
   const progressContainer = document.getElementById('grade-progress-bar');
   if (progressContainer) progressContainer.innerHTML = '';
 
-
-
   // =====================================================
-  // ⏱️ STEP 4 FIXED: DELAY SYSTEM (HYBRID SAFE VERSION)
+  // ⏱️ STEP 4 — HYBRID DELAY ENGINE (FIXED + STABLE)
   // =====================================================
 
   const today = new Date().toISOString().split("T")[0];
 
-  const plan = JSON.parse(localStorage.getItem("todayPlan") || "null");
+  const plan = JSON.parse(localStorage.getItem("todayPlan") || "[]");
   const logs = JSON.parse(localStorage.getItem("dailyStudyLog") || "{}");
   const todayLog = logs[today] || {};
 
@@ -77,25 +75,25 @@ function loadDashboard() {
       <h2>⏱️ Delay Report</h2>
   `;
 
-  // -------------------------------
-  // CASE 1: PLAN SYSTEM EXISTS
-  // -------------------------------
+  // ===============================
+  // CASE 1: DAILY PLAN SYSTEM
+  // ===============================
   if (Array.isArray(plan) && plan.length > 0) {
 
     let delays = [];
 
     plan.forEach(p => {
-      const grade = p.grade;
-      const subjectsPlan = p.subjects;
-      const actual = todayLog[grade] || {};
+      if (!p.grade || !p.subjects) return;
 
-      Object.keys(subjectsPlan).forEach(subject => {
-        const planned = subjectsPlan[subject] || 0;
-        const done = actual[subject] || 0;
+      const actual = todayLog[p.grade] || {};
+
+      Object.keys(p.subjects).forEach(subject => {
+        const planned = Number(p.subjects[subject]) || 0;
+        const done = Number(actual[subject]) || 0;
 
         if (done < planned) {
           delays.push({
-            grade,
+            grade: p.grade,
             subject,
             missing: planned - done
           });
@@ -114,24 +112,29 @@ function loadDashboard() {
       });
     }
 
-  } 
-  // -------------------------------
-  // CASE 2: FALLBACK (CYCLE ENGINE)
-  // -------------------------------
+  }
+
+  // ===============================
+  // CASE 2: FALLBACK (90-DAY ENGINE)
+  // ===============================
   else if (typeof getDelayStatus === "function") {
 
     const cycle = getDelayStatus();
 
     delayHTML += `
       <p>📅 Cycle Day: ${cycle.cycleDay}/90</p>
-      <p>📊 Expected: ${cycle.expectedPages}</p>
-      <p>📚 Actual: ${cycle.actualPages}</p>
+      <p>📊 Expected Pages: ${cycle.expectedPages}</p>
+      <p>📚 Actual Pages: ${cycle.actualPages}</p>
       <p>⚖️ Gap: ${cycle.gap}</p>
       <p><b>🚦 Status: ${cycle.status}</b></p>
     `;
+  }
 
-  } else {
-    delayHTML += `<p>⚠️ No delay system available</p>`;
+  // ===============================
+  // CASE 3: NO DATA
+  // ===============================
+  else {
+    delayHTML += `<p>⚠️ No tracking data available</p>`;
   }
 
   delayHTML += `</div>`;
