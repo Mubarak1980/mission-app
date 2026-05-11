@@ -1,5 +1,5 @@
 // ===============================
-// Main.js
+// Main.js (CLEAN SYSTEM CORE)
 // ===============================
 
 
@@ -20,7 +20,7 @@ const TOTAL_PAGES = 5705;
 
 
 // ===============================
-// 🧠 CYCLE ENGINE
+// 🧠 CYCLE ENGINE (LONG TERM SYSTEM)
 // ===============================
 function getCycleState() {
   let state = JSON.parse(localStorage.getItem("cycleState") || "{}");
@@ -39,14 +39,13 @@ function getCycleState() {
   state.remainingDays = TOTAL_DAYS - state.cycleDay;
 
   localStorage.setItem("cycleState", JSON.stringify(state));
-
   return state;
 }
 
 
 
 // ===============================
-// 📅 STEP 5A: DAILY PLAN ENGINE
+// 📅 DAILY PLAN ENGINE
 // ===============================
 function getTodayKey() {
   return new Date().toISOString().split("T")[0];
@@ -69,7 +68,7 @@ function saveTodayPlan(planData) {
 
 
 // ===============================
-// 📊 STEP 5B: DAILY LOG ENGINE
+// 📊 DAILY LOG ENGINE
 // ===============================
 function getTodayLog() {
   const today = getTodayKey();
@@ -85,14 +84,13 @@ function saveTodayLog(grade, subject, pages) {
   if (!logs[today][grade]) logs[today][grade] = {};
 
   logs[today][grade][subject] = pages;
-
   localStorage.setItem("dailyStudyLog", JSON.stringify(logs));
 }
 
 
 
 // ===============================
-// EXPECTED PROGRESS
+// 📈 EXPECTED PROGRESS (90-DAY MODEL)
 // ===============================
 function getExpectedProgress() {
   const cycle = getCycleState();
@@ -110,7 +108,7 @@ function getExpectedProgress() {
 
 
 // ===============================
-// ACTUAL PROGRESS
+// 📊 ACTUAL PROGRESS (STUDY TRACKER)
 // ===============================
 function getActualProgress() {
   const grades = [9, 10, 11, 12];
@@ -134,7 +132,7 @@ function getActualProgress() {
 
 
 // ===============================
-// DELAY STATUS ENGINE
+// ⚖️ DELAY ENGINE (CORE LOGIC)
 // ===============================
 function getDelayStatus() {
   const expected = getExpectedProgress();
@@ -159,7 +157,7 @@ function getDelayStatus() {
 
 
 // ===============================
-// ⚖️ STEP 5C: PLAN VS ACTUAL
+// ⚖️ DAILY PLAN vs ACTUAL (SAFE)
 // ===============================
 function getPlannedVsActual() {
   const plan = getTodayPlan();
@@ -167,18 +165,20 @@ function getPlannedVsActual() {
 
   let delays = [];
 
-  plan.forEach(p => {
-    const grade = p.grade;
-    const subjectsPlan = p.subjects || {};
-    const actual = todayLog[grade] || {};
+  if (!Array.isArray(plan)) return delays;
 
-    Object.keys(subjectsPlan).forEach(subject => {
-      const planned = Number(subjectsPlan[subject]) || 0;
+  plan.forEach(p => {
+    if (!p?.grade || !p?.subjects) return;
+
+    const actual = todayLog[p.grade] || {};
+
+    Object.keys(p.subjects).forEach(subject => {
+      const planned = Number(p.subjects[subject]) || 0;
       const done = Number(actual[subject]) || 0;
 
       if (done < planned) {
         delays.push({
-          grade,
+          grade: p.grade,
           subject,
           missing: planned - done
         });
@@ -192,7 +192,7 @@ function getPlannedVsActual() {
 
 
 // ===============================
-// 🧠 SYSTEM BRAIN
+// 🧠 SYSTEM BRAIN (UNIFIED STATE)
 // ===============================
 function getSystemStatus() {
   const cycle = getDelayStatus();
@@ -208,7 +208,7 @@ function getSystemStatus() {
 
 
 // ===============================
-// GLOBAL STATE
+// UI STATE
 // ===============================
 let currentGrade = 9;
 let currentSection = 'study';
@@ -218,7 +218,7 @@ let nav, prevBtn, nextBtn;
 
 
 // ===============================
-// NAV BUTTONS
+// NAV UI
 // ===============================
 function updateNavButtons() {
   if (!nav || !prevBtn || !nextBtn) return;
@@ -231,7 +231,7 @@ function updateNavButtons() {
 
 
 // ===============================
-// SECTION CONTROLLER
+// ROUTER
 // ===============================
 function loadSection(type, grade) {
   currentSection = type;
@@ -239,13 +239,9 @@ function loadSection(type, grade) {
 
   updateNavButtons();
 
-  if (type === 'study') {
-    loadStudySection(grade);
-  }
-
-  if (type === 'timetable') {
-    loadWeeklyTimetable();
-  }
+  if (type === 'study') loadStudySection(grade);
+  if (type === 'timetable') loadWeeklyTimetable();
+  if (type === 'dashboard') loadDashboard();
 }
 
 
@@ -312,6 +308,10 @@ window.loadSection = loadSection;
 
     if (currentSection === "study" && typeof updateGradeSummary === "function") {
       updateGradeSummary(currentGrade);
+    }
+
+    if (currentSection === "dashboard" && typeof loadDashboard === "function") {
+      loadDashboard();
     }
   }
 
