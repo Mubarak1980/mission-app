@@ -205,7 +205,38 @@ function getSystemStatus() {
   };
 }
 
+// ===============================
+// 🧠 STEP 6: SYSTEM CONTROL LAYER
+// ===============================
 
+function getSystemSnapshot() {
+  const system = getSystemStatus();
+
+  const cycle = system.cycle;
+  const daily = system.dailyDelays;
+
+  const totalPages = getActualProgress().actualPages;
+  const expectedPages = cycle.expectedPages || 0;
+
+  return {
+    time: {
+      cycleDay: cycle.cycleDay,
+      remainingDays: TOTAL_DAYS - cycle.cycleDay
+    },
+
+    progress: {
+      actual: totalPages,
+      expected: expectedPages,
+      gap: system.cycle.gap
+    },
+
+    alerts: {
+      isOnTrack: system.isOnTrack,
+      hasDailyIssues: daily.length > 0,
+      delayCount: daily.length
+    }
+  };
+}
 
 // ===============================
 // UI STATE
