@@ -1,21 +1,23 @@
 // =====================================================
-// ⏱️ UNIFIED SYSTEM INTEGRATION (STEP 6 ENGINE)
+// ⏱️ UNIFIED SYSTEM INTEGRATION (FIXED)
 // =====================================================
+
+const main = document.getElementById("main-content");
 
 const system = typeof getSystemSnapshot === "function"
   ? getSystemSnapshot()
   : null;
 
-const snapshot = system || (typeof getSystemStatus === "function"
+const snapshot = typeof getSystemStatus === "function"
   ? getSystemStatus()
-  : null);
+  : null;
 
 let delayHTML = `
   <div class="delay-section">
     <h2>⏱️ System Status</h2>
 `;
 
-// CASE 1: FULL SYSTEM AVAILABLE
+// CASE 1: FULL SYSTEM
 if (system) {
 
   delayHTML += `
@@ -23,10 +25,8 @@ if (system) {
     <p>📊 Expected Pages: ${system.progress.expected}</p>
     <p>📚 Actual Pages: ${system.progress.actual}</p>
     <p>⚖️ Gap: ${system.progress.gap}</p>
-    <p><b>🚦 Status: ${snapshot.cycle.status}</b></p>
-
+    <p><b>🚦 Status: ${system.alerts.isOnTrack ? "ON TRACK" : "NEEDS ATTENTION"}</b></p>
     <hr/>
-
     <p>📌 Daily Issues: ${system.alerts.delayCount}</p>
   `;
 }
@@ -42,10 +42,9 @@ else if (snapshot) {
   `;
 }
 
-// CASE 3: NO SYSTEM
+// CASE 3: SAFE ERROR STATE
 else {
   delayHTML += `<p>⚠️ System not initialized</p>`;
 }
 
 delayHTML += `</div>`;
-main.innerHTML += delayHTML;
