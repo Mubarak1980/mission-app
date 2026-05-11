@@ -1,65 +1,116 @@
 // =====================================================
-// ⏱️ UNIFIED SYSTEM INTEGRATION (FIXED FINAL)
+// 📊 DASHBOARD (SAFE + STEP 7 COMPATIBLE)
 // =====================================================
 
 function loadDashboard() {
+  currentSection = 'dashboard';
 
-  const main = document.getElementById("main-content");
+  if (typeof updateNavButtons === 'function') {
+    updateNavButtons();
+  }
+
+  // hide nav on dashboard
+  if (typeof nav !== 'undefined' && nav) {
+    nav.style.display = 'none';
+  }
+
+  const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
+  const grades = [9, 10, 11, 12];
+
+  const main = document.getElementById('main-content');
   if (!main) return;
 
-  const system = typeof getSystemSnapshot === "function"
-    ? getSystemSnapshot()
-    : null;
+  if (!window.maxPagesByGrade) {
+    main.innerHTML = `<p>Error: grade data not loaded</p>`;
+    return;
+  }
 
-  const snapshot = typeof getSystemStatus === "function"
-    ? getSystemStatus()
-    : null;
+  // =====================================================
+  // 🧠 SAFE LOAD PROGRESS FUNCTION (FIX FOR BREAK)
+  // =====================================================
+  function safeLoadProgress(grade) {
+    try {
+      if (typeof loadProgress === "function") {
+        return loadProgress(grade) || {};
+      }
 
-  let delayHTML = `
-    <div class="delay-section">
-      <h2>⏱️ System Status</h2>
+      // fallback from localStorage (IMPORTANT FIX)
+      return JSON.parse(
+        localStorage.getItem(`grade_${grade}_progress`) || "{}"
+      );
+    } catch (e) {
+      return {};
+    }
+  }
+
+  let dashboardContent = `
+    <h2>📊 Dashboard: Overall Subject Progress</h2>
+    <div class="dashboard-container">
   `;
 
-  // ===============================
-  // CASE 1: FULL SYSTEM (PRIMARY)
-  // ===============================
-  if (system) {
+  // =====================================================
+  // 📊 SUBJECT PROGRESS ENGINE (UNCHANGED LOGIC)
+  // =====================================================
+  subjects.forEach(subject => {
+    let totalPercent = 0;
+    let count = 0;
 
-    delayHTML += `
-      <p>📅 Cycle Day: ${system.time.cycleDay}/90</p>
-      <p>📊 Expected Pages: ${system.progress.expected}</p>
-      <p>📚 Actual Pages: ${system.progress.actual}</p>
-      <p>⚖️ Gap: ${system.progress.gap}</p>
-      <p><b>🚦 Status: ${system.alerts.isOnTrack ? "ON TRACK" : "NEEDS ATTENTION"}</b></p>
-      <hr/>
-      <p>📌 Daily Issues: ${system.alerts.delayCount}</p>
+    grades.forEach(grade => {
+      const saved = safeLoadProgress(grade);
+
+      const pagesRead = saved?.[subject] || 0;
+      const maxPages = window.maxPagesByGrade?.[grade]?.[subject] || 0;
+
+      if (maxPages > 0) {
+        totalPercent += (pagesRead / maxPages) * 100;
+        count++;
+      }
+    });
+
+    const avgPercent = count ? Math.round(totalPercent / count) : 0;
+
+    dashboardContent += `
+      <div class="dashboard-subject">
+        <h3>${subject}</h3>
+        <progress value="${avgPercent}" max="100"></progress>
+        <p>${avgPercent}% progress in ${subject} (Grades 9–12)</p>
+      </div>
     `;
+  });
+
+  dashboardContent += `</div>`;
+
+  main.innerHTML = dashboardContent;
+
+  const progressContainer = document.getElementById('grade-progress-bar');
+  if (progressContainer) progressContainer.innerHTML = '';
+
+  // =====================================================
+  // ⏱️ STEP 7 SAFE INTEGRATION (NO LOOP PROBLEM)
+  // =====================================================
+  try {
+    const system = typeof getSystemSnapshot === "function"
+      ? getSystemSnapshot()
+      : null;
+
+    if (system) {
+      const delayBlock = `
+        <div class="delay-section">
+          <h2>⏱️ System Status</h2>
+          <p>📅 Cycle Day: ${system.time.cycleDay}/90</p>
+          <p>📊 Expected Pages: ${system.progress.expected}</p>
+          <p>📚 Actual Pages: ${system.progress.actual}</p>
+          <p>⚖️ Gap: ${system.progress.gap}</p>
+          <p><b>Status: ${system.alerts.isOnTrack ? "ON TRACK" : "NEEDS ATTENTION"}</b></p>
+          <p>📌 Daily Issues: ${system.alerts.delayCount}</p>
+        </div>
+      `;
+
+      main.innerHTML += delayBlock;
+    }
+  } catch (e) {
+    // safe fail → dashboard still works
   }
-
-  // ===============================
-  // CASE 2: FALLBACK ENGINE
-  // ===============================
-  else if (snapshot) {
-
-    delayHTML += `
-      <p>📊 Expected: ${snapshot.cycle.expectedPages}</p>
-      <p>📚 Actual: ${snapshot.cycle.actualPages}</p>
-      <p>⚖️ Gap: ${snapshot.cycle.gap}</p>
-      <p><b>🚦 Status: ${snapshot.cycle.status}</b></p>
-    `;
-  }
-
-  // ===============================
-  // CASE 3: SAFE STATE
-  // ===============================
-  else {
-    delayHTML += `<p>⚠️ System not initialized</p>`;
-  }
-
-  delayHTML += `</div>`;
-
-  // 🔥 IMPORTANT FIX (YOU WERE MISSING THIS)
-  main.innerHTML = delayHTML;
 }
 
 window.loadDashboard = loadDashboard;
