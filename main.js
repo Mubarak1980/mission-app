@@ -1,5 +1,5 @@
 // ===============================
-// Main.js (CLEAN SYSTEM CORE)
+// Main.js (CLEAN SYSTEM CORE FIXED)
 // ===============================
 
 
@@ -20,7 +20,7 @@ const TOTAL_PAGES = 5705;
 
 
 // ===============================
-// 🧠 CYCLE ENGINE (LONG TERM SYSTEM)
+// 🧠 CYCLE ENGINE
 // ===============================
 function getCycleState() {
   let state = JSON.parse(localStorage.getItem("cycleState") || "{}");
@@ -90,7 +90,7 @@ function saveTodayLog(grade, subject, pages) {
 
 
 // ===============================
-// 📈 EXPECTED PROGRESS (90-DAY MODEL)
+// 📈 EXPECTED PROGRESS
 // ===============================
 function getExpectedProgress() {
   const cycle = getCycleState();
@@ -108,7 +108,7 @@ function getExpectedProgress() {
 
 
 // ===============================
-// 📊 ACTUAL PROGRESS (STUDY TRACKER)
+// 📊 ACTUAL PROGRESS
 // ===============================
 function getActualProgress() {
   const grades = [9, 10, 11, 12];
@@ -132,7 +132,7 @@ function getActualProgress() {
 
 
 // ===============================
-// ⚖️ DELAY ENGINE (CORE LOGIC)
+// ⚖️ DELAY ENGINE
 // ===============================
 function getDelayStatus() {
   const expected = getExpectedProgress();
@@ -157,7 +157,7 @@ function getDelayStatus() {
 
 
 // ===============================
-// ⚖️ DAILY PLAN vs ACTUAL (SAFE)
+// ⚖️ DAILY DELAY ENGINE
 // ===============================
 function getPlannedVsActual() {
   const plan = getTodayPlan();
@@ -192,7 +192,7 @@ function getPlannedVsActual() {
 
 
 // ===============================
-// 🧠 SYSTEM BRAIN (UNIFIED STATE)
+// 🧠 SYSTEM BRAIN
 // ===============================
 function getSystemStatus() {
   const cycle = getDelayStatus();
@@ -205,38 +205,35 @@ function getSystemStatus() {
   };
 }
 
-// ===============================
-// 🧠 STEP 6: SYSTEM CONTROL LAYER
-// ===============================
 
+
+// ===============================
+// 🧠 SYSTEM SNAPSHOT (FIXED)
+// ===============================
 function getSystemSnapshot() {
   const system = getSystemStatus();
 
-  const cycle = system.cycle;
-  const daily = system.dailyDelays;
-
-  const totalPages = getActualProgress().actualPages;
-  const expectedPages = cycle.expectedPages || 0;
-
   return {
     time: {
-      cycleDay: cycle.cycleDay,
-      remainingDays: TOTAL_DAYS - cycle.cycleDay
+      cycleDay: system.cycle.cycleDay,
+      remainingDays: TOTAL_DAYS - system.cycle.cycleDay
     },
 
     progress: {
-      actual: totalPages,
-      expected: expectedPages,
+      actual: system.cycle.actualPages,
+      expected: system.cycle.expectedPages,
       gap: system.cycle.gap
     },
 
     alerts: {
       isOnTrack: system.isOnTrack,
-      hasDailyIssues: daily.length > 0,
-      delayCount: daily.length
+      hasDailyIssues: system.dailyDelays.length > 0,
+      delayCount: system.dailyDelays.length
     }
   };
 }
+
+
 
 // ===============================
 // UI STATE
@@ -272,7 +269,9 @@ function loadSection(type, grade) {
 
   if (type === 'study') loadStudySection(grade);
   if (type === 'timetable') loadWeeklyTimetable();
-  if (type === 'dashboard') loadDashboard();
+  if (type === 'dashboard' && typeof loadDashboard === 'function') {
+    loadDashboard();
+  }
 }
 
 
@@ -322,7 +321,7 @@ window.loadSection = loadSection;
 
 
 // ===============================
-// SYNC SYSTEM
+// SYNC SYSTEM (SAFE)
 // ===============================
 (function initSmartSync() {
 
