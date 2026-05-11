@@ -1,3 +1,5 @@
+
+
 function loadDashboard() {
   currentSection = 'dashboard';
 
@@ -68,6 +70,66 @@ function loadDashboard() {
   const progressContainer = document.getElementById('grade-progress-bar');
   if (progressContainer) {
     progressContainer.innerHTML = '';
+  }
+
+  // =====================================================
+  // ⏱️ ADDITION: DELAY DETECTION (SAFE - NO CHANGES ABOVE)
+  // =====================================================
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const plan = JSON.parse(localStorage.getItem("todayPlan") || "[]");
+  const logs = JSON.parse(localStorage.getItem("dailyStudyLog") || "{}");
+  const todayLog = logs[today] || {};
+
+  function detectDelays(plan, todayLog) {
+    const delays = [];
+
+    plan.forEach(p => {
+      const grade = p.grade;
+      const subjectsPlan = p.subjects;
+
+      const actual = todayLog[grade] || {};
+
+      Object.keys(subjectsPlan).forEach(subject => {
+        const planned = subjectsPlan[subject];
+        const done = actual[subject] || 0;
+
+        if (done < planned) {
+          delays.push({
+            grade,
+            subject,
+            missing: planned - done
+          });
+        }
+      });
+    });
+
+    return delays;
+  }
+
+  const delays = detectDelays(plan, todayLog);
+
+  let delayHTML = `
+    <div class="delay-section">
+      <h2>⏱️ Today's Delay Report</h2>
+  `;
+
+  if (delays.length === 0) {
+    delayHTML += `<p>✅ No delays today. You are on track.</p>`;
+  } else {
+    delays.forEach(d => {
+      delayHTML += `
+        <p>📉 Grade ${d.grade} - ${d.subject}: 
+        <b>${d.missing} pages behind</b></p>
+      `;
+    });
+  }
+
+  delayHTML += `</div>`;
+
+  if (main) {
+    main.innerHTML += delayHTML;
   }
 }
 
