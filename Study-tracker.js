@@ -156,6 +156,38 @@ function updateGradeSummary(grade) {
 }
 
 // ===============================
+// 📊 STEP 2: EXPECTED PROGRESS ENGINE (STUDY INTEGRATION)
+// ===============================
+function getExpectedProgress() {
+  const cycle = getCycleState ? getCycleState() : null;
+
+  if (!cycle) {
+    return {
+      cycleDay: 1,
+      remainingDays: 90,
+      expectedPages: 0
+    };
+  }
+
+  const TOTAL_DAYS = 90;
+  const TOTAL_PAGES = 5705;
+
+  const expectedPages =
+    (cycle.cycleDay / TOTAL_DAYS) * TOTAL_PAGES;
+
+  return {
+    cycleDay: cycle.cycleDay,
+    remainingDays: cycle.remainingDays,
+    expectedPages: Math.round(expectedPages)
+  };
+}
+
+
+
+
+
+
+// ===============================
 // EXPORT
 // ===============================
 window.loadStudySection = loadStudySection;
