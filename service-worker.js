@@ -1,5 +1,4 @@
-const CACHE_NAME = 'mission-cache-v54';
-
+const CACHE_NAME = 'mission-cache-v55';
 const ASSETS = [
   './',
   './index.html',
