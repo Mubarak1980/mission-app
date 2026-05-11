@@ -44,19 +44,17 @@ function getCycleState() {
 }
 
 
+
 // ===============================
 // 🔴 STEP 3: DELAY DETECTION ENGINE
 // ===============================
 
-// total system pages (already defined conceptually)
-const TOTAL_PAGES = 5705;
-
-// expected progress (from cycle)
+// expected progress
 function getExpectedProgress() {
   const cycle = getCycleState();
 
   const expectedPages =
-    (cycle.cycleDay / 90) * TOTAL_PAGES;
+    (cycle.cycleDay / TOTAL_DAYS) * TOTAL_PAGES;
 
   return {
     cycleDay: cycle.cycleDay,
@@ -66,7 +64,8 @@ function getExpectedProgress() {
 }
 
 
-// actual progress (from study tracker localStorage)
+
+// actual progress
 function getActualProgress() {
   const grades = [9, 10, 11, 12];
   const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
@@ -89,14 +88,15 @@ function getActualProgress() {
 }
 
 
-// main comparison engine
+
+// delay status engine (FIXED STRUCTURE)
 function getDelayStatus() {
   const expected = getExpectedProgress();
   const actual = getActualProgress();
 
   const gap = actual.actualPages - expected.expectedPages;
 
-  let status = "";
+  let status;
 
   if (gap >= 0) {
     status = "🟢 AHEAD / ON TRACK";
@@ -110,11 +110,12 @@ function getDelayStatus() {
     cycleDay: expected.cycleDay,
     expectedPages: expected.expectedPages,
     actualPages: actual.actualPages,
-    gap: gap,
-    status: status
+    gap,
+    status
   };
-    }
-  
+}
+
+
 
 // ===============================
 // GLOBAL STATE (UI CONTROLLER)
@@ -188,7 +189,7 @@ window.addEventListener('load', () => {
 
   updateNavButtons();
 
-  // IMPORTANT: initialize cycle engine first
+  // initialize cycle engine
   getCycleState();
 
   loadSection('study', currentGrade);
@@ -197,7 +198,7 @@ window.addEventListener('load', () => {
 
 
 // ===============================
-// EXPORTS (GLOBAL ACCESS)
+// EXPORTS
 // ===============================
 window.nextGrade = nextGrade;
 window.previousGrade = previousGrade;
@@ -206,8 +207,7 @@ window.loadSection = loadSection;
 
 
 // =======================================================
-// 🔥 SAFE SYNC SYSTEM (UNCHANGED)
-// Study ↔ Weekly Timetable Bridge
+// 🔥 SAFE SYNC SYSTEM
 // =======================================================
 (function initSmartSync() {
 
