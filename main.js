@@ -5,7 +5,7 @@
 
 
 // ===============================
-// MAX PAGES DATA (STATIC CONFIG)
+// MAX PAGES DATA
 // ===============================
 window.maxPagesByGrade = {
   9: { Math: 363, Physics: 174, Chemistry: 175, Biology: 164, English: 223 },
@@ -28,9 +28,7 @@ function getCycleState() {
   const today = new Date();
   const todayStr = today.toISOString().split("T")[0];
 
-  if (!state.startDate) {
-    state.startDate = todayStr;
-  }
+  if (!state.startDate) state.startDate = todayStr;
 
   const start = new Date(state.startDate);
   const diff = Math.floor((today - start) / (1000 * 60 * 60 * 24));
@@ -60,7 +58,6 @@ function getTodayPlan() {
 function saveTodayPlan(planData) {
   const today = getTodayKey();
   const plan = JSON.parse(localStorage.getItem("todayPlan") || "{}");
-
   plan[today] = planData;
   localStorage.setItem("todayPlan", JSON.stringify(plan));
 }
@@ -95,8 +92,7 @@ function saveTodayLog(grade, subject, pages) {
 function getExpectedProgress() {
   const cycle = getCycleState();
 
-  const expectedPages =
-    (cycle.cycleDay / TOTAL_DAYS) * TOTAL_PAGES;
+  const expectedPages = (cycle.cycleDay / TOTAL_DAYS) * TOTAL_PAGES;
 
   return {
     cycleDay: cycle.cycleDay,
@@ -259,7 +255,7 @@ function updateNavButtons() {
 
 
 // ===============================
-// ROUTER
+// ROUTER (SINGLE SOURCE OF TRUTH)
 // ===============================
 function loadSection(type, grade) {
   currentSection = type;
@@ -267,11 +263,9 @@ function loadSection(type, grade) {
 
   updateNavButtons();
 
-  if (type === 'study') loadStudySection(grade);
-  if (type === 'timetable') loadWeeklyTimetable();
-  if (type === 'dashboard' && typeof loadDashboard === 'function') {
-    loadDashboard();
-  }
+  if (type === "study") loadStudySection(grade);
+  else if (type === "timetable") loadWeeklyTimetable();
+  else if (type === "dashboard") loadDashboard();
 }
 
 
@@ -282,32 +276,30 @@ function loadSection(type, grade) {
 function nextGrade() {
   if (currentGrade < 12) {
     currentGrade++;
-    loadSection('study', currentGrade);
+    loadSection("study", currentGrade);
   }
 }
 
 function previousGrade() {
   if (currentGrade > 9) {
     currentGrade--;
-    loadSection('study', currentGrade);
+    loadSection("study", currentGrade);
   }
 }
-
 
 
 
 // ===============================
 // INIT
 // ===============================
-window.addEventListener('load', () => {
-  nav = document.getElementById('grade-nav');
-  prevBtn = document.getElementById('prev-btn');
-  nextBtn = document.getElementById('next-btn');
+window.addEventListener("load", () => {
+  nav = document.getElementById("grade-nav");
+  prevBtn = document.getElementById("prev-btn");
+  nextBtn = document.getElementById("next-btn");
 
   updateNavButtons();
-
   getCycleState();
-  loadSection('study', currentGrade);
+  loadSection("study", currentGrade);
 });
 
 
@@ -320,28 +312,22 @@ window.previousGrade = previousGrade;
 window.loadSection = loadSection;
 
 
-// ===============================
-// 🧩 STEP 7: UI STATE CONNECTOR LAYER
-// ===============================
 
+// ===============================
+// STEP 7 (FIXED - NO RELOAD LOOP)
+// ===============================
 function getUIState() {
-  const system = getSystemSnapshot?.();
-  const status = getSystemStatus?.();
-
   return {
     mode: currentSection,
     grade: currentGrade,
-
-    system: system || null,
-    status: status || null,
-
+    system: getSystemSnapshot?.() || null,
+    status: getSystemStatus?.() || null,
     isDashboard: currentSection === "dashboard",
     isStudy: currentSection === "study",
     isTimetable: currentSection === "timetable"
   };
 }
 
-// UI SAFE REFRESH CONTROLLER
 function refreshUI() {
   const state = getUIState();
 
@@ -349,17 +335,13 @@ function refreshUI() {
     updateGradeSummary(state.grade);
   }
 
-  if (state.isDashboard && typeof loadDashboard === "function") {
-    loadDashboard();
-  }
-
-  if (state.isTimetable && typeof loadWeeklyTimetable === "function") {
-    loadWeeklyTimetable();
-  }
+  // IMPORTANT: NO dashboard/timetable auto reloads
 }
 
+
+
 // ===============================
-// SYNC SYSTEM (SAFE)
+// SAFE SYNC SYSTEM
 // ===============================
 (function initSmartSync() {
 
@@ -376,10 +358,6 @@ function refreshUI() {
 
     if (currentSection === "study" && typeof updateGradeSummary === "function") {
       updateGradeSummary(currentGrade);
-    }
-
-    if (currentSection === "dashboard" && typeof loadDashboard === "function") {
-      loadDashboard();
     }
   }
 
