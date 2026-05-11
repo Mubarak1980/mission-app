@@ -295,6 +295,7 @@ function previousGrade() {
 
 
 
+
 // ===============================
 // INIT
 // ===============================
@@ -319,6 +320,43 @@ window.previousGrade = previousGrade;
 window.loadSection = loadSection;
 
 
+// ===============================
+// 🧩 STEP 7: UI STATE CONNECTOR LAYER
+// ===============================
+
+function getUIState() {
+  const system = getSystemSnapshot?.();
+  const status = getSystemStatus?.();
+
+  return {
+    mode: currentSection,
+    grade: currentGrade,
+
+    system: system || null,
+    status: status || null,
+
+    isDashboard: currentSection === "dashboard",
+    isStudy: currentSection === "study",
+    isTimetable: currentSection === "timetable"
+  };
+}
+
+// UI SAFE REFRESH CONTROLLER
+function refreshUI() {
+  const state = getUIState();
+
+  if (state.isStudy && typeof updateGradeSummary === "function") {
+    updateGradeSummary(state.grade);
+  }
+
+  if (state.isDashboard && typeof loadDashboard === "function") {
+    loadDashboard();
+  }
+
+  if (state.isTimetable && typeof loadWeeklyTimetable === "function") {
+    loadWeeklyTimetable();
+  }
+}
 
 // ===============================
 // SYNC SYSTEM (SAFE)
