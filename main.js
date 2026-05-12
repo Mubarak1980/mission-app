@@ -209,7 +209,7 @@ function getSystemSnapshot() {
 
 
 // ===============================
-// 🧠 SMART CYCLE ENGINE (PRO VERSION)
+// 🧠 SMART CYCLE ENGINE (PRO FIXED - NO CONFLICT)
 // ===============================
 function getSmartCycle() {
   const cycle = getDelayStatus();
@@ -225,6 +225,9 @@ function getSmartCycle() {
   const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
   const grades = [9, 10, 11, 12];
 
+  // ===============================
+  // 📊 WEIGHTED ACTUAL PERFORMANCE
+  // ===============================
   let weightedTotal = 0;
 
   grades.forEach(grade => {
@@ -240,22 +243,13 @@ function getSmartCycle() {
   });
 
   // ===============================
-  // 🔥 ADAPTIVE EXPECTATION
+  // ❗ IMPORTANT RULE (NO CONTRADICTION)
+  // Base expected pages MUST NOT be modified
   // ===============================
-  const performanceRatio =
-    cycle.expectedPages > 0
-      ? weightedTotal / (cycle.expectedPages || 1)
-      : 1;
-
-  let adaptiveFactor = 1;
-
-  if (performanceRatio < 0.8) adaptiveFactor = 0.9; // struggling
-  else if (performanceRatio > 1.2) adaptiveFactor = 1.1; // strong
-
-  const expectedWeighted = cycle.expectedPages * adaptiveFactor;
+  const expectedWeighted = cycle.expectedPages;
 
   // ===============================
-  // ⚖️ GAP
+  // ⚖️ GAP ANALYSIS (PURE COMPARISON ONLY)
   // ===============================
   const gap = weightedTotal - expectedWeighted;
 
@@ -269,33 +263,42 @@ function getSmartCycle() {
   if (gap < 0) {
     catchUpPerDay = Math.ceil(Math.abs(gap) / remainingDays);
 
-    // cap to avoid overload
+    // safety cap (prevents overload)
     catchUpPerDay = Math.min(catchUpPerDay, 60);
   }
 
   // ===============================
-  // 🧘 BURNOUT PROTECTION
+  // 🛡️ BURNOUT PROTECTION SYSTEM
   // ===============================
   const baseDaily = TOTAL_PAGES / TOTAL_DAYS;
 
   let target = baseDaily + catchUpPerDay;
 
-  if (target > 85) target = 85; // hard cap
-  if (target < 25) target = 25; // minimum consistency
+  // hard safety limits
+  if (target > 85) target = 85;
+  if (target < 25) target = 25;
 
   return {
-    expected: Math.round(expectedWeighted),
+    // ===============================
+    // CORE VALUES (CONSISTENT WITH MAIN.JS)
+    // ===============================
+    expected: Math.round(expectedWeighted),  // SAME AS BASE SYSTEM
     actual: Math.round(weightedTotal),
     gap: Math.round(gap),
+
+    // ===============================
+    // INTELLIGENCE LAYER ONLY
+    // ===============================
     catchUpPerDay,
     remainingDays,
+
     dailyLimit: {
       target: Math.round(target),
       safe: target <= 70,
       warning: target > 70
     }
   };
-}
+      }
 
 
 
