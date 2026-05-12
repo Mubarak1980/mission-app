@@ -17,13 +17,24 @@
 </head>
 
 <body>
+
+    <!-- 🌄 SPLASH SCREEN (NEW ADDITION) -->
+    <div id="splash-screen">
+        <div class="splash-content">
+            <h1>📘 Mission App</h1>
+            <p>Loading your study system...</p>
+            <div class="loader"></div>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTENT -->
     <h1>TIME</h1>
 
     <div class="section-buttons">
         <button onclick="loadSunnahTracker()">Sunnah Tracker</button>
         <button onclick="loadSection('study', currentGrade)">Study Tracker</button>
 
-        <!-- ✅ FIXED: unified navigation system -->
+        <!-- NAVIGATION -->
         <button onclick="loadSection('timetable', currentGrade)">📅 Weekly Timetable</button>
 
         <button onclick="loadDashboard()">📊 Dashboard</button>
@@ -57,7 +68,7 @@
         }
     </script>
 
-    <!-- ✅ SAFE STARTUP FIX -->
+    <!-- SAFE STARTUP -->
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             if (typeof loadSection === 'function') {
