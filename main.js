@@ -207,7 +207,7 @@ function getSystemSnapshot() {
 }
 
 
-
+//SMART CYCLE ENGINE//
 
 function getSmartCycle() {
   const cycle = getDelayStatus();
@@ -216,7 +216,7 @@ function getSmartCycle() {
   const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
 
   // ===============================
-  // 📊 RAW ACTUAL (TRUTH ONLY)
+  // 📊 REAL TOTAL (TRUTH ONLY)
   // ===============================
   let actualTotal = 0;
 
@@ -231,19 +231,20 @@ function getSmartCycle() {
   });
 
   // ===============================
-  // 📈 smart cycle 
+  // 📈 EXPECTED (90-DAY SYSTEM TRUTH)
   // ===============================
   const expected = cycle.expectedPages;
 
   // ===============================
-  // ⚖️ GAP (TRUE COMPARISON)
+  // ⚖️ GAP (STANDARDIZED LOGIC)
+  // positive = ahead, negative = behind
   // ===============================
   const gap = actualTotal - expected;
 
   const remainingDays = Math.max(1, TOTAL_DAYS - cycle.cycleDay);
 
   // ===============================
-  // 🚀 CATCH-UP LOGIC
+  // 🚀 CATCH-UP LOGIC (ONLY IF BEHIND)
   // ===============================
   let catchUpPerDay = 0;
 
@@ -253,7 +254,7 @@ function getSmartCycle() {
   }
 
   // ===============================
-  // 🛡️ BURNOUT PROTECTION
+  // 🛡️ SAFE DAILY LIMIT SYSTEM
   // ===============================
   const baseDaily = TOTAL_PAGES / TOTAL_DAYS;
 
@@ -267,6 +268,8 @@ function getSmartCycle() {
     actual: Math.round(actualTotal),
     gap: Math.round(gap),
 
+    status: gap >= 0 ? "AHEAD" : "BEHIND",
+
     catchUpPerDay,
     remainingDays,
 
@@ -276,7 +279,7 @@ function getSmartCycle() {
       warning: target > 70
     }
   };
-    }
+}
 
 
 // ===============================
