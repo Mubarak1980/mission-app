@@ -1,5 +1,5 @@
 // ===============================
-// Main.js (FINAL STABLE BUILD)
+// Main.js (FINAL STABLE + SMART CYCLE)
 // ===============================
 
 
@@ -90,7 +90,9 @@ function getActualProgress() {
   let total = 0;
 
   grades.forEach(grade => {
-    const saved = JSON.parse(localStorage.getItem(`grade_${grade}_progress`) || "{}");
+    const saved = JSON.parse(
+      localStorage.getItem(`grade_${grade}_progress`) || "{}"
+    );
 
     subjects.forEach(subject => {
       total += Number(saved[subject]) || 0;
@@ -112,7 +114,6 @@ function getDelayStatus() {
   const gap = actual.actualPages - expected.expectedPages;
 
   let status = "🟢 AHEAD / ON TRACK";
-
   if (gap < 0) status = "🟡 SLIGHTLY BEHIND";
   if (gap < -200) status = "🔴 SERIOUSLY BEHIND";
 
@@ -179,7 +180,7 @@ function getSystemStatus() {
 
 
 // ===============================
-// 🧠 SYSTEM SNAPSHOT (FIXED + CONSISTENT)
+// 🧠 SYSTEM SNAPSHOT (FIXED & SAFE)
 // ===============================
 function getSystemSnapshot() {
   const status = getSystemStatus();
@@ -202,6 +203,67 @@ function getSystemSnapshot() {
       hasDailyIssues: status.dailyDelays.length > 0,
       delayCount: status.dailyDelays.length
     }
+  };
+}
+
+
+
+// ===============================
+// 🧠 SMART CYCLE ENGINE (STEP 8)
+// ===============================
+function getSmartCycle() {
+  const cycle = getDelayStatus();
+
+  const difficultyMap = {
+    Math: 1.3,
+    Physics: 1.25,
+    Chemistry: 1.2,
+    Biology: 1.1,
+    English: 0.9
+  };
+
+  const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
+  const grades = [9, 10, 11, 12];
+
+  let weightedTotal = 0;
+  let weightSum = 0;
+
+  grades.forEach(grade => {
+    const saved = JSON.parse(
+      localStorage.getItem(`grade_${grade}_progress`) || "{}"
+    );
+
+    subjects.forEach(subject => {
+      const pages = Number(saved[subject]) || 0;
+      const weight = difficultyMap[subject] || 1;
+
+      weightedTotal += pages * weight;
+      weightSum += weight;
+    });
+  });
+
+  const weightedActual = weightedTotal;
+  const expectedWeighted = cycle.expectedPages * 1.15;
+
+  const gap = weightedActual - expectedWeighted;
+
+  const remainingDays = Math.max(1, TOTAL_DAYS - cycle.cycleDay);
+
+  const catchUpPerDay =
+    gap < 0 ? Math.ceil(Math.abs(gap) / remainingDays) : 0;
+
+  const dailyLimit = {
+    target: Math.min(80, Math.round(cycle.expectedPages / 90)),
+    warning: catchUpPerDay > 70
+  };
+
+  return {
+    expected: Math.round(expectedWeighted),
+    actual: Math.round(weightedActual),
+    gap: Math.round(gap),
+    catchUpPerDay,
+    remainingDays,
+    dailyLimit
   };
 }
 
@@ -231,7 +293,7 @@ function updateNavButtons() {
 
 
 // ===============================
-// ROUTER (SAFE SINGLE ENTRY)
+// ROUTER
 // ===============================
 function loadSection(type, grade) {
   currentSection = type;
@@ -290,7 +352,7 @@ window.loadSection = loadSection;
 
 
 // ===============================
-// STEP 7 (SAFE UI CONNECTOR)
+// STEP 7 UI CONNECTOR (SAFE)
 // ===============================
 function getUIState() {
   return {
@@ -310,8 +372,6 @@ function refreshUI() {
   if (state.isStudy && typeof updateGradeSummary === "function") {
     updateGradeSummary(state.grade);
   }
-
-  // IMPORTANT: dashboard is NOT auto-refreshed to avoid loops
 }
 
 
