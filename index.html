@@ -18,7 +18,7 @@
 
 <body>
 
-    <!-- 🌄 SPLASH SCREEN (NEW ADDITION) -->
+    <!-- 🌄 SPLASH SCREEN -->
     <div id="splash-screen">
         <div class="splash-content">
             <h1>📘 Mission App</h1>
@@ -28,25 +28,28 @@
     </div>
 
     <!-- MAIN APP CONTENT -->
-    <h1>TIME</h1>
+    <div id="app" style="display:none;">
 
-    <div class="section-buttons">
-        <button onclick="loadSunnahTracker()">Sunnah Tracker</button>
-        <button onclick="loadSection('study', currentGrade)">Study Tracker</button>
+        <h1>TIME</h1>
 
-        <!-- NAVIGATION -->
-        <button onclick="loadSection('timetable', currentGrade)">📅 Weekly Timetable</button>
+        <div class="section-buttons">
+            <button onclick="loadSunnahTracker()">Sunnah Tracker</button>
+            <button onclick="loadSection('study', currentGrade)">Study Tracker</button>
 
-        <button onclick="loadDashboard()">📊 Dashboard</button>
-        <button onclick="loadTopStudentMode()">🎓 Top Student Mode</button>
-    </div>
+            <button onclick="loadSection('timetable', currentGrade)">📅 Weekly Timetable</button>
 
-    <div id="grade-progress-bar"></div>
-    <div id="main-content"></div>
+            <button onclick="loadDashboard()">📊 Dashboard</button>
+            <button onclick="loadTopStudentMode()">🎓 Top Student Mode</button>
+        </div>
 
-    <div class="nav-buttons" id="grade-nav">
-        <button onclick="previousGrade()" id="prev-btn">Previous</button>
-        <button onclick="nextGrade()" id="next-btn">Next</button>
+        <div id="grade-progress-bar"></div>
+        <div id="main-content"></div>
+
+        <div class="nav-buttons" id="grade-nav">
+            <button onclick="previousGrade()" id="prev-btn">Previous</button>
+            <button onclick="nextGrade()" id="next-btn">Next</button>
+        </div>
+
     </div>
 
     <!-- JS FILES -->
@@ -68,7 +71,27 @@
         }
     </script>
 
-    <!-- SAFE STARTUP -->
+    <!-- SPLASH CONTROL (NEW SAFE LOGIC ONLY) -->
+    <script>
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const splash = document.getElementById("splash-screen");
+                const app = document.getElementById("app");
+
+                if (splash && app) {
+                    splash.style.opacity = "0";
+                    splash.style.transition = "0.5s ease";
+
+                    setTimeout(() => {
+                        splash.style.display = "none";
+                        app.style.display = "block";
+                    }, 500);
+                }
+            }, 1200); // splash duration
+        });
+    </script>
+
+    <!-- SAFE STARTUP (unchanged logic) -->
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             if (typeof loadSection === 'function') {
