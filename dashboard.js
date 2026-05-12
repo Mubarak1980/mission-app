@@ -87,26 +87,34 @@ function loadDashboard() {
   }
 
   // ===============================
-  // 🧠 SMART CYCLE (SOURCE OF TRUTH ONLY)
+  // 🧠 SMART CYCLE (CLEAR TRUTH DISPLAY)
   // ===============================
   const smart = getSmartCycle?.();
 
   if (smart && smart.expected !== undefined) {
 
+    const progressRate =
+      smart.expected > 0
+        ? ((smart.actual / smart.expected) * 100).toFixed(1)
+        : 0;
+
     html += `
       <div class="smart-cycle-section">
         <h2>🧠 Smart Study Engine</h2>
 
-        <p>📊 Adaptive Target: ${smart.expected}</p>
-        <p>📚 Your Progress: ${smart.actual}</p>
+        <p>📊 Total Expected (90-day plan): ${smart.expected}</p>
 
-        <p>⚖️ Gap: ${smart.gap}</p>
+        <p>📚 Total Completed (all grades): ${smart.actual}</p>
+
+        <p>⚖️ Difference (Gap): ${smart.gap}</p>
+
+        <p>📈 Progress Rate: ${progressRate}%</p>
 
         <hr/>
 
         <p>🚀 Catch-up Plan: ${smart.catchUpPerDay ?? 0} pages/day</p>
 
-        <p>🛡️ Safe Limit: ${smart.dailyLimit?.target ?? 0}</p>
+        <p>🛡️ Safe Limit: ${smart.dailyLimit?.target ?? 0} pages/day</p>
 
         <p>
           ⚠️ Burnout Risk:
