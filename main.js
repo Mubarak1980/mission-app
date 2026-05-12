@@ -208,27 +208,17 @@ function getSystemSnapshot() {
 
 
 
-// ===============================
-// 🧠 SMART CYCLE ENGINE (PRO FIXED - NO CONFLICT)
-// ===============================
+
 function getSmartCycle() {
   const cycle = getDelayStatus();
 
-  const difficultyMap = {
-    Math: 1.3,
-    Physics: 1.25,
-    Chemistry: 1.2,
-    Biology: 1.1,
-    English: 0.9
-  };
-
-  const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
   const grades = [9, 10, 11, 12];
+  const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
 
   // ===============================
-  // 📊 WEIGHTED ACTUAL PERFORMANCE
+  // 📊 RAW ACTUAL (TRUTH ONLY)
   // ===============================
-  let weightedTotal = 0;
+  let actualTotal = 0;
 
   grades.forEach(grade => {
     const saved = JSON.parse(
@@ -236,59 +226,47 @@ function getSmartCycle() {
     );
 
     subjects.forEach(subject => {
-      const pages = Number(saved[subject]) || 0;
-      const weight = difficultyMap[subject] || 1;
-      weightedTotal += pages * weight;
+      actualTotal += Number(saved[subject]) || 0;
     });
   });
 
   // ===============================
-  // ❗ IMPORTANT RULE (NO CONTRADICTION)
-  // Base expected pages MUST NOT be modified
+  // 📈 smart cycle 
   // ===============================
-  const expectedWeighted = cycle.expectedPages;
+  const expected = cycle.expectedPages;
 
   // ===============================
-  // ⚖️ GAP ANALYSIS (PURE COMPARISON ONLY)
+  // ⚖️ GAP (TRUE COMPARISON)
   // ===============================
-  const gap = weightedTotal - expectedWeighted;
+  const gap = actualTotal - expected;
 
   const remainingDays = Math.max(1, TOTAL_DAYS - cycle.cycleDay);
 
   // ===============================
-  // 🚀 CATCH-UP INTELLIGENCE
+  // 🚀 CATCH-UP LOGIC
   // ===============================
   let catchUpPerDay = 0;
 
   if (gap < 0) {
     catchUpPerDay = Math.ceil(Math.abs(gap) / remainingDays);
-
-    // safety cap (prevents overload)
     catchUpPerDay = Math.min(catchUpPerDay, 60);
   }
 
   // ===============================
-  // 🛡️ BURNOUT PROTECTION SYSTEM
+  // 🛡️ BURNOUT PROTECTION
   // ===============================
   const baseDaily = TOTAL_PAGES / TOTAL_DAYS;
 
   let target = baseDaily + catchUpPerDay;
 
-  // hard safety limits
   if (target > 85) target = 85;
   if (target < 25) target = 25;
 
   return {
-    // ===============================
-    // CORE VALUES (CONSISTENT WITH MAIN.JS)
-    // ===============================
-    expected: Math.round(expectedWeighted),  // SAME AS BASE SYSTEM
-    actual: Math.round(weightedTotal),
+    expected: Math.round(expected),
+    actual: Math.round(actualTotal),
     gap: Math.round(gap),
 
-    // ===============================
-    // INTELLIGENCE LAYER ONLY
-    // ===============================
     catchUpPerDay,
     remainingDays,
 
@@ -298,8 +276,7 @@ function getSmartCycle() {
       warning: target > 70
     }
   };
-      }
-
+    }
 
 
 // ===============================
