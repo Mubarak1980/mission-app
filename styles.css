@@ -389,6 +389,10 @@ tr:nth-child(even) {
 }
 
 
+
+}
+
+
 /* ===============================
    SPLASH SCREEN (PRO LEVEL)
 =============================== */
@@ -403,11 +407,13 @@ tr:nth-child(even) {
   z-index: 99999;
 
   opacity: 1;
-  transition: opacity 0.6s ease;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
 }
 
+/* THIS is the correct fade-out system */
 #splash-screen.hide {
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
 }
 
@@ -420,7 +426,6 @@ tr:nth-child(even) {
   font-size: 24px;
   margin-bottom: 8px;
 }
-
 
 #splash-screen p {
   color: var(--muted);
