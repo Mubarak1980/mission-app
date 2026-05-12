@@ -5,13 +5,9 @@
 function loadDashboard() {
   currentSection = 'dashboard';
 
-  if (typeof updateNavButtons === 'function') {
-    updateNavButtons();
-  }
+  updateNavButtons?.();
 
-  if (typeof nav !== 'undefined' && nav) {
-    nav.style.display = 'none';
-  }
+  if (nav) nav.style.display = 'none';
 
   const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
   const grades = [9, 10, 11, 12];
@@ -27,27 +23,25 @@ function loadDashboard() {
   // ===============================
   // SAFE LOAD PROGRESS
   // ===============================
-  function safeLoadProgress(grade) {
+  const safeLoadProgress = (grade) => {
     try {
-      if (typeof loadProgress === "function") {
-        return loadProgress(grade) || {};
-      }
-
-      return JSON.parse(
-        localStorage.getItem(`grade_${grade}_progress`) || "{}"
-      );
-    } catch (e) {
+      return loadProgress?.(grade) ||
+        JSON.parse(localStorage.getItem(`grade_${grade}_progress`) || "{}");
+    } catch {
       return {};
     }
-  }
+  };
 
-  let dashboardContent = `
+  // ===============================
+  // BUILD SINGLE HTML OUTPUT
+  // ===============================
+  let html = `
     <h2>📊 Dashboard: Overall Subject Progress</h2>
     <div class="dashboard-container">
   `;
 
   // ===============================
-  // SUBJECT PROGRESS
+  // SUBJECT PROGRESS ENGINE
   // ===============================
   subjects.forEach(subject => {
     let totalPercent = 0;
@@ -67,7 +61,7 @@ function loadDashboard() {
 
     const avgPercent = count ? Math.round(totalPercent / count) : 0;
 
-    dashboardContent += `
+    html += `
       <div class="dashboard-subject">
         <h3>${subject}</h3>
         <progress value="${avgPercent}" max="100"></progress>
@@ -76,66 +70,61 @@ function loadDashboard() {
     `;
   });
 
-  dashboardContent += `</div>`;
-
-  main.innerHTML = dashboardContent;
-
-  const progressContainer = document.getElementById('grade-progress-bar');
-  if (progressContainer) progressContainer.innerHTML = '';
+  html += `</div>`;
 
   // ===============================
-  // STEP 7 SYSTEM STATUS
+  // STEP 7 SYSTEM STATUS (SAFE)
   // ===============================
-  try {
-    const system = typeof getSystemSnapshot === "function"
-      ? getSystemSnapshot()
-      : null;
+  const system = getSystemSnapshot?.();
 
-    if (system) {
-      main.innerHTML += `
-        <div class="delay-section">
-          <h2>⏱️ System Status</h2>
-          <p>📅 Cycle Day: ${system.time.cycleDay}/90</p>
-          <p>📊 Expected Pages: ${system.progress.expected}</p>
-          <p>📚 Actual Pages: ${system.progress.actual}</p>
-          <p>⚖️ Gap: ${system.progress.gap}</p>
-          <p><b>Status: ${system.alerts.isOnTrack ? "ON TRACK" : "NEEDS ATTENTION"}</b></p>
-          <p>📌 Daily Issues: ${system.alerts.delayCount}</p>
-        </div>
-      `;
-    }
-  } catch (e) {}
+  if (system?.time) {
+    html += `
+      <div class="delay-section">
+        <h2>⏱️ System Status</h2>
+        <p>📅 Cycle Day: ${system.time.cycleDay}/90</p>
+        <p>📊 Expected Pages: ${system.progress?.expected ?? 0}</p>
+        <p>📚 Actual Pages: ${system.progress?.actual ?? 0}</p>
+        <p>⚖️ Gap: ${system.progress?.gap ?? 0}</p>
+        <p><b>Status: ${system.alerts?.isOnTrack ? "ON TRACK" : "NEEDS ATTENTION"}</b></p>
+        <p>📌 Daily Issues: ${system.alerts?.delayCount ?? 0}</p>
+      </div>
+    `;
+  }
 
   // ===============================
-  // 🧠 SMART CYCLE PANEL (FIXED POSITION)
+  // SMART CYCLE PANEL (SAFE)
   // ===============================
-  try {
-    if (typeof getSmartCycle === "function") {
+  const smart = getSmartCycle?.();
 
-      const smart = getSmartCycle();
+  if (smart?.expected !== undefined) {
+    html += `
+      <div class="smart-cycle-section">
+        <h2>🧠 Smart Cycle</h2>
 
-      main.innerHTML += `
-        <div class="smart-cycle-section">
-          <h2>🧠 Smart Cycle</h2>
+        <p>📊 Expected (weighted): ${smart.expected ?? 0}</p>
+        <p>📚 Actual (weighted): ${smart.actual ?? 0}</p>
+        <p>⚖️ Gap: ${smart.gap ?? 0}</p>
 
-          <p>📊 Expected (weighted): ${smart.expected}</p>
-          <p>📚 Actual (weighted): ${smart.actual}</p>
-          <p>⚖️ Gap: ${smart.gap}</p>
+        <hr/>
 
-          <hr/>
+        <p>🚀 Catch-up Needed: ${smart.catchUpPerDay ?? 0} pages/day</p>
+        <p>🛡️ Safe Daily Limit: ${smart.dailyLimit?.target ?? 0}</p>
 
-          <p>🚀 Catch-up Needed: ${smart.catchUpPerDay} pages/day</p>
-          <p>🛡️ Safe Daily Limit: ${smart.dailyLimit.target}</p>
+        <p>
+          ⚠️ Burnout Risk:
+          <b>${smart.dailyLimit?.warning ? "HIGH" : "SAFE"}</b>
+        </p>
+      </div>
+    `;
+  }
 
-          <p>
-            ⚠️ Burnout Risk:
-            <b>${smart.dailyLimit.warning ? "HIGH" : "SAFE"}</b>
-          </p>
-        </div>
-      `;
-    }
-  } catch (e) {}
+  // ===============================
+  // FINAL RENDER (ONLY ONCE)
+  // ===============================
+  main.innerHTML = html;
 
+  const bar = document.getElementById('grade-progress-bar');
+  if (bar) bar.innerHTML = '';
 }
 
 window.loadDashboard = loadDashboard;
