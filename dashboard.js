@@ -1,5 +1,5 @@
 // =====================================================
-// 📊 DASHBOARD (SAFE + STEP 7 COMPATIBLE)
+// 📊 DASHBOARD (SAFE + STEP 7 + SMART CYCLE FIXED)
 // =====================================================
 
 function loadDashboard() {
@@ -9,7 +9,6 @@ function loadDashboard() {
     updateNavButtons();
   }
 
-  // hide nav on dashboard
   if (typeof nav !== 'undefined' && nav) {
     nav.style.display = 'none';
   }
@@ -25,16 +24,15 @@ function loadDashboard() {
     return;
   }
 
-  // =====================================================
-  // 🧠 SAFE LOAD PROGRESS FUNCTION (FIX FOR BREAK)
-  // =====================================================
+  // ===============================
+  // SAFE LOAD PROGRESS
+  // ===============================
   function safeLoadProgress(grade) {
     try {
       if (typeof loadProgress === "function") {
         return loadProgress(grade) || {};
       }
 
-      // fallback from localStorage (IMPORTANT FIX)
       return JSON.parse(
         localStorage.getItem(`grade_${grade}_progress`) || "{}"
       );
@@ -48,9 +46,9 @@ function loadDashboard() {
     <div class="dashboard-container">
   `;
 
-  // =====================================================
-  // 📊 SUBJECT PROGRESS ENGINE (UNCHANGED LOGIC)
-  // =====================================================
+  // ===============================
+  // SUBJECT PROGRESS
+  // ===============================
   subjects.forEach(subject => {
     let totalPercent = 0;
     let count = 0;
@@ -73,7 +71,7 @@ function loadDashboard() {
       <div class="dashboard-subject">
         <h3>${subject}</h3>
         <progress value="${avgPercent}" max="100"></progress>
-        <p>${avgPercent}% progress in ${subject} (Grades 9–12)</p>
+        <p>${avgPercent}% progress in ${subject}</p>
       </div>
     `;
   });
@@ -85,16 +83,16 @@ function loadDashboard() {
   const progressContainer = document.getElementById('grade-progress-bar');
   if (progressContainer) progressContainer.innerHTML = '';
 
-  // =====================================================
-  // ⏱️ STEP 7 SAFE INTEGRATION (NO LOOP PROBLEM)
-  // =====================================================
+  // ===============================
+  // STEP 7 SYSTEM STATUS
+  // ===============================
   try {
     const system = typeof getSystemSnapshot === "function"
       ? getSystemSnapshot()
       : null;
 
     if (system) {
-      const delayBlock = `
+      main.innerHTML += `
         <div class="delay-section">
           <h2>⏱️ System Status</h2>
           <p>📅 Cycle Day: ${system.time.cycleDay}/90</p>
@@ -105,23 +103,18 @@ function loadDashboard() {
           <p>📌 Daily Issues: ${system.alerts.delayCount}</p>
         </div>
       `;
-
-      main.innerHTML += delayBlock;
     }
-  } catch (e) {
-    // safe fail → dashboard still works
-  }
-}
+  } catch (e) {}
 
-// =====================================================
-  // 🧠 SMART CYCLE PANEL (NON-DESTRUCTIVE ADD)
-  // =====================================================
+  // ===============================
+  // 🧠 SMART CYCLE PANEL (FIXED POSITION)
+  // ===============================
   try {
     if (typeof getSmartCycle === "function") {
 
       const smart = getSmartCycle();
 
-      const smartBlock = `
+      main.innerHTML += `
         <div class="smart-cycle-section">
           <h2>🧠 Smart Cycle</h2>
 
@@ -140,10 +133,9 @@ function loadDashboard() {
           </p>
         </div>
       `;
-
-      main.innerHTML += smartBlock;
     }
-  } catch (e) {
-    // safe fail (no crash)
-  }
+  } catch (e) {}
+
+}
+
 window.loadDashboard = loadDashboard;
