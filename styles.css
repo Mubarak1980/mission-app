@@ -387,3 +387,50 @@ tr:nth-child(even) {
     grid-template-columns: 1fr;
   }
 }
+
+
+   #splash-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+
+  animation: splashFadeOut 0.8s ease 2.2s forwards;
+}
+
+#splash-screen .splash-content {
+  text-align: center;
+}
+
+#splash-screen h1 {
+  color: var(--primary);
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+#splash-screen p {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Loader */
+.loader {
+  width: 38px;
+  height: 38px;
+  margin: 18px auto 0;
+  border: 4px solid var(--border);
+  border-top: 4px solid var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Splash fade */
+@keyframes splashFadeOut {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
