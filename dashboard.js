@@ -1,5 +1,5 @@
 // =====================================================
-// 📊 DASHBOARD (SAFE + STEP 7 + SMART CYCLE FIXED)
+// 📊 DASHBOARD (CLEAN + NO CONTRADICTION)
 // =====================================================
 
 function loadDashboard() {
@@ -33,7 +33,7 @@ function loadDashboard() {
   };
 
   // ===============================
-  // BUILD SINGLE HTML OUTPUT
+  // BUILD HTML
   // ===============================
   let html = `
     <h2>📊 Dashboard: Overall Subject Progress</h2>
@@ -41,7 +41,7 @@ function loadDashboard() {
   `;
 
   // ===============================
-  // SUBJECT PROGRESS ENGINE
+  // SUBJECT PROGRESS
   // ===============================
   subjects.forEach(subject => {
     let totalPercent = 0;
@@ -73,42 +73,43 @@ function loadDashboard() {
   html += `</div>`;
 
   // ===============================
-  // STEP 7 SYSTEM STATUS (SAFE)
+  // SYSTEM INFO (ONLY TIME — no duplication)
   // ===============================
   const system = getSystemSnapshot?.();
 
   if (system?.time) {
     html += `
       <div class="delay-section">
-        <h2>⏱️ System Status</h2>
-        <p>📅 Cycle Day: ${system.time.cycleDay}/90</p>
-        <p>📊 Expected Pages: ${system.progress?.expected ?? 0}</p>
-        <p>📚 Actual Pages: ${system.progress?.actual ?? 0}</p>
-        <p>⚖️ Gap: ${system.progress?.gap ?? 0}</p>
-        <p><b>Status: ${system.alerts?.isOnTrack ? "ON TRACK" : "NEEDS ATTENTION"}</b></p>
-        <p>📌 Daily Issues: ${system.alerts?.delayCount ?? 0}</p>
+        <h2>⏱️ Cycle Info</h2>
+        <p>📅 Day: ${system.time.cycleDay}/90</p>
       </div>
     `;
   }
 
   // ===============================
-  // SMART CYCLE PANEL (SAFE)
+  // 🧠 SMART CYCLE (MAIN ENGINE)
   // ===============================
   const smart = getSmartCycle?.();
 
   if (smart?.expected !== undefined) {
     html += `
       <div class="smart-cycle-section">
-        <h2>🧠 Smart Cycle</h2>
+        <h2>🧠 Smart Study Engine</h2>
 
-        <p>📊 Expected (weighted): ${smart.expected ?? 0}</p>
-        <p>📚 Actual (weighted): ${smart.actual ?? 0}</p>
-        <p>⚖️ Gap: ${smart.gap ?? 0}</p>
+        <p>📊 Adaptive Target: ${smart.expected ?? 0}</p>
+        <p>📚 Your Progress: ${smart.actual ?? 0}</p>
+
+        <p>
+          ⚖️ Status:
+          <b>${smart.gap >= 0 ? "AHEAD" : "BEHIND"}</b>
+          (${smart.gap})
+        </p>
 
         <hr/>
 
-        <p>🚀 Catch-up Needed: ${smart.catchUpPerDay ?? 0} pages/day</p>
-        <p>🛡️ Safe Daily Limit: ${smart.dailyLimit?.target ?? 0}</p>
+        <p>🚀 Catch-up Plan: ${smart.catchUpPerDay ?? 0} pages/day</p>
+
+        <p>🛡️ Safe Limit: ${smart.dailyLimit?.target ?? 0}</p>
 
         <p>
           ⚠️ Burnout Risk:
@@ -119,7 +120,7 @@ function loadDashboard() {
   }
 
   // ===============================
-  // FINAL RENDER (ONLY ONCE)
+  // FINAL RENDER
   // ===============================
   main.innerHTML = html;
 
