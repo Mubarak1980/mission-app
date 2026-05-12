@@ -207,17 +207,16 @@ function getSystemSnapshot() {
 }
 
 
-//SMART CYCLE ENGINE//
 
+// ===============================
+// SMART CYCLE ENGINE
+// ===============================
 function getSmartCycle() {
   const cycle = getDelayStatus();
 
   const grades = [9, 10, 11, 12];
   const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
 
-  // ===============================
-  // 📚 ACTUAL (WHAT YOU READ)
-  // ===============================
   let actualTotal = 0;
 
   grades.forEach(grade => {
@@ -230,21 +229,11 @@ function getSmartCycle() {
     });
   });
 
-  // ===============================
-  // 📊 EXPECTED (90-DAY PLAN ONLY)
-  // ===============================
   const expected = cycle.expectedPages;
-
-  // ===============================
-  // ⚖️ DIFFERENCE
-  // ===============================
   const gap = actualTotal - expected;
 
   const remainingDays = Math.max(1, TOTAL_DAYS - cycle.cycleDay);
 
-  // ===============================
-  // 🚀 CATCH-UP (ONLY IF BEHIND)
-  // ===============================
   let catchUpPerDay = 0;
 
   if (gap < 0) {
@@ -252,9 +241,6 @@ function getSmartCycle() {
     catchUpPerDay = Math.min(catchUpPerDay, 60);
   }
 
-  // ===============================
-  // 🛡️ DAILY LIMIT (SAFETY ONLY)
-  // ===============================
   const baseDaily = TOTAL_PAGES / TOTAL_DAYS;
 
   let target = baseDaily + catchUpPerDay;
@@ -263,15 +249,12 @@ function getSmartCycle() {
   if (target < 25) target = 25;
 
   return {
-    // CORE TRUTH
     expected: Math.round(expected),
     actual: Math.round(actualTotal),
     gap: Math.round(gap),
 
-    // HUMAN READABLE STATUS
     status: gap >= 0 ? "AHEAD / ON TRACK" : "BEHIND",
 
-    // ONLY HELPING LOGIC (NOT CORE DATA)
     catchUpPerDay,
     remainingDays,
 
@@ -282,6 +265,7 @@ function getSmartCycle() {
     }
   };
 }
+
 
 
 // ===============================
@@ -414,4 +398,30 @@ function refreshUI() {
   });
 
   setInterval(sync, 5000);
+})();
+
+
+
+// ===============================
+// 🌄 SPLASH SCREEN CONTROLLER (ADDED ONLY)
+// ===============================
+(function splashController() {
+
+  function hideSplash() {
+    const splash = document.getElementById("splash-screen");
+    if (!splash) return;
+
+    splash.classList.add("hide");
+
+    setTimeout(() => {
+      splash.remove();
+    }, 700);
+  }
+
+  window.addEventListener("load", () => {
+    setTimeout(() => {
+      hideSplash();
+    }, 1200);
+  });
+
 })();
