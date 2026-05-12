@@ -1,5 +1,5 @@
 // =====================================================
-// 📊 DASHBOARD (FINAL CLEAN + STABLE)
+// 📊 DASHBOARD (FINAL CLEAN + NON-CONFLICT VERSION)
 // =====================================================
 
 function loadDashboard() {
@@ -73,7 +73,7 @@ function loadDashboard() {
   html += `</div>`;
 
   // ===============================
-  // CYCLE INFO (MINIMAL, NO DUPLICATION)
+  // CYCLE INFO (PURE DISPLAY ONLY)
   // ===============================
   const system = getSystemSnapshot?.();
 
@@ -87,22 +87,11 @@ function loadDashboard() {
   }
 
   // ===============================
-  // 🧠 SMART ENGINE DISPLAY
+  // 🧠 SMART CYCLE (SOURCE OF TRUTH ONLY)
   // ===============================
   const smart = getSmartCycle?.();
 
   if (smart && smart.expected !== undefined) {
-
-    // ✅ tolerance band (important fix)
-    const TOLERANCE = 10;
-
-    let statusLabel = "ON TRACK";
-    if (smart.gap > TOLERANCE) statusLabel = "AHEAD";
-    else if (smart.gap < -TOLERANCE) statusLabel = "BEHIND";
-
-    // ✅ formatted gap (+ / -)
-    const formattedGap =
-      smart.gap > 0 ? `+${smart.gap}` : `${smart.gap}`;
 
     html += `
       <div class="smart-cycle-section">
@@ -111,11 +100,7 @@ function loadDashboard() {
         <p>📊 Adaptive Target: ${smart.expected}</p>
         <p>📚 Your Progress: ${smart.actual}</p>
 
-        <p>
-          ⚖️ Status:
-          <b>${statusLabel}</b>
-          (${formattedGap})
-        </p>
+        <p>⚖️ Gap: ${smart.gap}</p>
 
         <hr/>
 
