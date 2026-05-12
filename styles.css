@@ -390,35 +390,49 @@ tr:nth-child(even) {
 
 
 
-}
-
-
 /* ===============================
-   SPLASH SCREEN (PRO LEVEL)
+   SPLASH SCREEN (PRO LEVEL - FIXED)
 =============================== */
 
 #splash-screen {
   position: fixed;
   inset: 0;
   background: var(--bg);
+
   display: flex;
   justify-content: center;
   align-items: center;
+
   z-index: 99999;
 
   opacity: 1;
-  transition: opacity 0.6s ease, visibility 0.6s ease;
+  visibility: visible;
+
+  transition: opacity 0.5s ease, visibility 0.5s ease;
 }
 
-/* THIS is the correct fade-out system */
+/* Smooth fade out */
 #splash-screen.hide {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
 }
 
+/* Slight entrance animation (feels like real apps) */
 .splash-content {
   text-align: center;
+  animation: splashFadeIn 0.6s ease;
+}
+
+@keyframes splashFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 #splash-screen h1 {
@@ -437,10 +451,12 @@ tr:nth-child(even) {
   width: 40px;
   height: 40px;
   margin: 18px auto 0;
+
   border: 4px solid var(--border);
   border-top: 4px solid var(--primary);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+
+  animation: spin 0.9s linear infinite;
 }
 
 @keyframes spin {
