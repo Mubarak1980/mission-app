@@ -22,8 +22,8 @@
         </div>
     </div>
 
-    <!-- MAIN APP -->
-    <div id="app">
+    <!-- MAIN APP (hidden at start for clean splash experience) -->
+    <div id="app" style="display: none;">
 
         <h1>TIME</h1>
 
@@ -45,7 +45,7 @@
 
     </div>
 
-    <!-- JS FILES -->
+    <!-- JS FILES (UNCHANGED) -->
     <script src="./Sunnah-tracker.js"></script>
     <script src="./Study-tracker.js"></script>
     <script src="./weekly-timetable.js"></script>
@@ -53,7 +53,7 @@
     <script src="./top-student-mode.js"></script>
     <script src="./main.js"></script>
 
-    <!-- SERVICE WORKER -->
+    <!-- SERVICE WORKER (UNCHANGED) -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -64,18 +64,20 @@
         }
     </script>
 
-    <!-- SPLASH CONTROLLER (CLEAN & RELIABLE) -->
+    <!-- SPLASH CONTROLLER (SAFE + NO SYSTEM BREAK) -->
     <script>
         window.addEventListener('load', () => {
             const splash = document.getElementById("splash-screen");
+            const app = document.getElementById("app");
 
             setTimeout(() => {
-                if (splash) {
+                if (splash && app) {
                     splash.style.opacity = "0";
                     splash.style.transition = "opacity 0.5s ease";
 
                     setTimeout(() => {
-                        splash.remove(); // cleaner than display:none
+                        splash.remove();
+                        app.style.display = "block"; // show app AFTER splash
                     }, 500);
                 }
             }, 1200);
