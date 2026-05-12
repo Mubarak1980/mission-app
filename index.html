@@ -5,14 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mission App</title>
 
-    <!-- CSS -->
     <link rel="stylesheet" href="./styles.css" />
-
-    <!-- PWA -->
     <link rel="manifest" href="./manifest.json" />
     <meta name="theme-color" content="#2d89ef" />
-
-    <!-- Icons -->
     <link rel="apple-touch-icon" href="./icon-192.png">
 </head>
 
@@ -27,17 +22,15 @@
         </div>
     </div>
 
-    <!-- MAIN APP CONTENT -->
-    <div id="app" style="display:none;">
+    <!-- MAIN APP -->
+    <div id="app">
 
         <h1>TIME</h1>
 
         <div class="section-buttons">
             <button onclick="loadSunnahTracker()">Sunnah Tracker</button>
             <button onclick="loadSection('study', currentGrade)">Study Tracker</button>
-
             <button onclick="loadSection('timetable', currentGrade)">📅 Weekly Timetable</button>
-
             <button onclick="loadDashboard()">📊 Dashboard</button>
             <button onclick="loadTopStudentMode()">🎓 Top Student Mode</button>
         </div>
@@ -71,32 +64,21 @@
         }
     </script>
 
-    <!-- SPLASH CONTROL (NEW SAFE LOGIC ONLY) -->
+    <!-- SPLASH CONTROLLER (CLEAN & RELIABLE) -->
     <script>
         window.addEventListener('load', () => {
-            setTimeout(() => {
-                const splash = document.getElementById("splash-screen");
-                const app = document.getElementById("app");
+            const splash = document.getElementById("splash-screen");
 
-                if (splash && app) {
+            setTimeout(() => {
+                if (splash) {
                     splash.style.opacity = "0";
-                    splash.style.transition = "0.5s ease";
+                    splash.style.transition = "opacity 0.5s ease";
 
                     setTimeout(() => {
-                        splash.style.display = "none";
-                        app.style.display = "block";
+                        splash.remove(); // cleaner than display:none
                     }, 500);
                 }
-            }, 1200); // splash duration
-        });
-    </script>
-
-    <!-- SAFE STARTUP (unchanged logic) -->
-    <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            if (typeof loadSection === 'function') {
-                loadSection('study', window.currentGrade || 9);
-            }
+            }, 1200);
         });
     </script>
 
