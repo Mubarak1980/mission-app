@@ -5,9 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mission App</title>
 
+    <!-- CSS -->
     <link rel="stylesheet" href="./styles.css" />
+
+    <!-- PWA -->
     <link rel="manifest" href="./manifest.json" />
     <meta name="theme-color" content="#2d89ef" />
+
+    <!-- Icons -->
     <link rel="apple-touch-icon" href="./icon-192.png">
 </head>
 
@@ -22,8 +27,8 @@
         </div>
     </div>
 
-    <!-- MAIN APP (hidden at start for clean splash experience) -->
-    <div id="app" style="display: none;">
+    <!-- MAIN APP -->
+    <div id="app">
 
         <h1>TIME</h1>
 
@@ -45,7 +50,7 @@
 
     </div>
 
-    <!-- JS FILES (UNCHANGED) -->
+    <!-- JS FILES (UNCHANGED ORDER) -->
     <script src="./Sunnah-tracker.js"></script>
     <script src="./Study-tracker.js"></script>
     <script src="./weekly-timetable.js"></script>
@@ -64,22 +69,19 @@
         }
     </script>
 
-    <!-- SPLASH CONTROLLER (SAFE + NO SYSTEM BREAK) -->
+    <!-- SPLASH CONTROLLER (FINAL PLACE) -->
     <script>
         window.addEventListener('load', () => {
-            const splash = document.getElementById("splash-screen");
-            const app = document.getElementById("app");
+            const splash = document.getElementById('splash-screen');
+
+            if (!splash) return;
 
             setTimeout(() => {
-                if (splash && app) {
-                    splash.style.opacity = "0";
-                    splash.style.transition = "opacity 0.5s ease";
+                splash.classList.add('hide');
 
-                    setTimeout(() => {
-                        splash.remove();
-                        app.style.display = "block"; // show app AFTER splash
-                    }, 500);
-                }
+                setTimeout(() => {
+                    splash.remove();
+                }, 600);
             }, 1200);
         });
     </script>
