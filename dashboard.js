@@ -1,5 +1,5 @@
 // =====================================================
-// 📊 DASHBOARD (CLEAN + NO CONTRADICTION)
+// 📊 DASHBOARD (FINAL CLEAN + STABLE)
 // =====================================================
 
 function loadDashboard() {
@@ -73,7 +73,7 @@ function loadDashboard() {
   html += `</div>`;
 
   // ===============================
-  // SYSTEM INFO (ONLY TIME — no duplication)
+  // CYCLE INFO (MINIMAL, NO DUPLICATION)
   // ===============================
   const system = getSystemSnapshot?.();
 
@@ -87,22 +87,34 @@ function loadDashboard() {
   }
 
   // ===============================
-  // 🧠 SMART CYCLE (MAIN ENGINE)
+  // 🧠 SMART ENGINE DISPLAY
   // ===============================
   const smart = getSmartCycle?.();
 
-  if (smart?.expected !== undefined) {
+  if (smart && smart.expected !== undefined) {
+
+    // ✅ tolerance band (important fix)
+    const TOLERANCE = 10;
+
+    let statusLabel = "ON TRACK";
+    if (smart.gap > TOLERANCE) statusLabel = "AHEAD";
+    else if (smart.gap < -TOLERANCE) statusLabel = "BEHIND";
+
+    // ✅ formatted gap (+ / -)
+    const formattedGap =
+      smart.gap > 0 ? `+${smart.gap}` : `${smart.gap}`;
+
     html += `
       <div class="smart-cycle-section">
         <h2>🧠 Smart Study Engine</h2>
 
-        <p>📊 Adaptive Target: ${smart.expected ?? 0}</p>
-        <p>📚 Your Progress: ${smart.actual ?? 0}</p>
+        <p>📊 Adaptive Target: ${smart.expected}</p>
+        <p>📚 Your Progress: ${smart.actual}</p>
 
         <p>
           ⚖️ Status:
-          <b>${smart.gap >= 0 ? "AHEAD" : "BEHIND"}</b>
-          (${smart.gap})
+          <b>${statusLabel}</b>
+          (${formattedGap})
         </p>
 
         <hr/>
