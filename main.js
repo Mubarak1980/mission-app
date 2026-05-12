@@ -216,7 +216,7 @@ function getSmartCycle() {
   const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
 
   // ===============================
-  // 📊 REAL TOTAL (TRUTH ONLY)
+  // 📚 ACTUAL (WHAT YOU READ)
   // ===============================
   let actualTotal = 0;
 
@@ -231,20 +231,19 @@ function getSmartCycle() {
   });
 
   // ===============================
-  // 📈 EXPECTED (90-DAY SYSTEM TRUTH)
+  // 📊 EXPECTED (90-DAY PLAN ONLY)
   // ===============================
   const expected = cycle.expectedPages;
 
   // ===============================
-  // ⚖️ GAP (STANDARDIZED LOGIC)
-  // positive = ahead, negative = behind
+  // ⚖️ DIFFERENCE
   // ===============================
   const gap = actualTotal - expected;
 
   const remainingDays = Math.max(1, TOTAL_DAYS - cycle.cycleDay);
 
   // ===============================
-  // 🚀 CATCH-UP LOGIC (ONLY IF BEHIND)
+  // 🚀 CATCH-UP (ONLY IF BEHIND)
   // ===============================
   let catchUpPerDay = 0;
 
@@ -254,7 +253,7 @@ function getSmartCycle() {
   }
 
   // ===============================
-  // 🛡️ SAFE DAILY LIMIT SYSTEM
+  // 🛡️ DAILY LIMIT (SAFETY ONLY)
   // ===============================
   const baseDaily = TOTAL_PAGES / TOTAL_DAYS;
 
@@ -264,12 +263,15 @@ function getSmartCycle() {
   if (target < 25) target = 25;
 
   return {
+    // CORE TRUTH
     expected: Math.round(expected),
     actual: Math.round(actualTotal),
     gap: Math.round(gap),
 
-    status: gap >= 0 ? "AHEAD" : "BEHIND",
+    // HUMAN READABLE STATUS
+    status: gap >= 0 ? "AHEAD / ON TRACK" : "BEHIND",
 
+    // ONLY HELPING LOGIC (NOT CORE DATA)
     catchUpPerDay,
     remainingDays,
 
