@@ -113,4 +113,37 @@ function loadDashboard() {
   }
 }
 
+// =====================================================
+  // 🧠 SMART CYCLE PANEL (NON-DESTRUCTIVE ADD)
+  // =====================================================
+  try {
+    if (typeof getSmartCycle === "function") {
+
+      const smart = getSmartCycle();
+
+      const smartBlock = `
+        <div class="smart-cycle-section">
+          <h2>🧠 Smart Cycle</h2>
+
+          <p>📊 Expected (weighted): ${smart.expected}</p>
+          <p>📚 Actual (weighted): ${smart.actual}</p>
+          <p>⚖️ Gap: ${smart.gap}</p>
+
+          <hr/>
+
+          <p>🚀 Catch-up Needed: ${smart.catchUpPerDay} pages/day</p>
+          <p>🛡️ Safe Daily Limit: ${smart.dailyLimit.target}</p>
+
+          <p>
+            ⚠️ Burnout Risk:
+            <b>${smart.dailyLimit.warning ? "HIGH" : "SAFE"}</b>
+          </p>
+        </div>
+      `;
+
+      main.innerHTML += smartBlock;
+    }
+  } catch (e) {
+    // safe fail (no crash)
+  }
 window.loadDashboard = loadDashboard;
