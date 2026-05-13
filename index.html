@@ -11,8 +11,8 @@
     <!-- PWA -->
     <link rel="manifest" href="./manifest.json" />
 
-    <!-- FIXED: system launch color (NOW GREEN) -->
-    <meta name="theme-color" content="#00d4ff" />
+    <!-- GREEN SYSTEM THEME (FIXED) -->
+    <meta name="theme-color" content="#00ffa6" />
 
     <!-- Icons -->
     <link rel="apple-touch-icon" href="./icon-192.png">
@@ -20,7 +20,7 @@
 
 <body>
 
-    <!-- 🌄 SPLASH SCREEN -->
+    <!-- SPLASH SCREEN -->
     <div id="splash-screen">
         <div class="splash-content">
             <h1>📘 Mission App</h1>
@@ -29,8 +29,8 @@
         </div>
     </div>
 
-    <!-- MAIN APP (HIDDEN INITIALLY FOR REAL APP FEEL) -->
-    <div id="app" style="visibility: hidden;">
+    <!-- APP -->
+    <div id="app" class="hidden">
 
         <h1>TIME</h1>
 
@@ -64,27 +64,23 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
-                    .then(() => console.log('Service Worker Registered'))
-                    .catch(err => console.log('SW Error:', err));
+                navigator.serviceWorker.register('./service-worker.js');
             });
         }
     </script>
 
-    <!-- SPLASH CONTROLLER (PRO + STABLE) -->
+    <!-- SPLASH CONTROLLER -->
     <script>
         window.addEventListener('load', () => {
             const splash = document.getElementById('splash-screen');
             const app = document.getElementById('app');
-
-            if (!splash || !app) return;
 
             setTimeout(() => {
                 splash.classList.add('hide');
 
                 setTimeout(() => {
                     splash.remove();
-                    app.style.visibility = 'visible';
+                    app.classList.remove('hidden');
                 }, 600);
 
             }, 1200);
@@ -92,4 +88,4 @@
     </script>
 
 </body>
-        </html>
+</html>
