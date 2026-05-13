@@ -240,7 +240,6 @@ tr:nth-child(even) {
   border: 1px solid var(--border);
   border-radius: 18px;
   padding: 16px;
-
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
   transition: all 0.25s ease;
   position: relative;
@@ -277,7 +276,7 @@ tr:nth-child(even) {
 }
 
 /* ===============================
-   TOP STUDENT MODE (FIXED + RESTORED)
+   TOP STUDENT MODE
 =============================== */
 
 .top-student-container {
@@ -388,8 +387,10 @@ tr:nth-child(even) {
   }
 }
 
-
-   #splash-screen {
+/* ===============================
+   SPLASH SCREEN
+=============================== */
+#splash-screen {
   position: fixed;
   inset: 0;
   background: var(--bg);
@@ -397,8 +398,6 @@ tr:nth-child(even) {
   justify-content: center;
   align-items: center;
   z-index: 99999;
-
-  animation: splashFadeOut 0.8s ease 2.2s forwards;
 }
 
 #splash-screen .splash-content {
@@ -434,3 +433,13 @@ tr:nth-child(even) {
     visibility: hidden;
   }
 }
+
+/* FIX: missing animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+     }
