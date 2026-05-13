@@ -3,24 +3,32 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>Mission App</title>
 
-    <!-- CSS -->
-    <link rel="stylesheet" href="./styles.css" />
-
-    <!-- PWA -->
+    <!-- PWA MANIFEST -->
     <link rel="manifest" href="./manifest.json" />
 
-    <!-- THEME -->
+    <!-- THEME COLOR -->
     <meta name="theme-color" content="#00ffa6" />
+
+    <!-- iOS SUPPORT -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <!-- ICON -->
     <link rel="apple-touch-icon" href="./icon-192.png">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="./styles.css" />
 </head>
 
 <body>
 
-<!-- SPLASH -->
+<!-- ===================== -->
+<!-- SPLASH SCREEN -->
+<!-- ===================== -->
 <div id="splash-screen">
     <div class="splash-content">
         <h1>📘 Mission App</h1>
@@ -29,7 +37,9 @@
     </div>
 </div>
 
-<!-- APP -->
+<!-- ===================== -->
+<!-- APP ROOT -->
+<!-- ===================== -->
 <div id="app" class="hidden">
 
     <h1>TIME</h1>
@@ -52,7 +62,9 @@
 
 </div>
 
-<!-- JS -->
+<!-- ===================== -->
+<!-- JS FILES -->
+<!-- ===================== -->
 <script src="./Sunnah-tracker.js"></script>
 <script src="./Study-tracker.js"></script>
 <script src="./weekly-timetable.js"></script>
@@ -60,37 +72,45 @@
 <script src="./top-student-mode.js"></script>
 <script src="./main.js"></script>
 
-<!-- SERVICE WORKER (IMPORTANT) -->
+<!-- ===================== -->
+<!-- SERVICE WORKER -->
+<!-- ===================== -->
 <script>
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
         try {
             await navigator.serviceWorker.register('./service-worker.js');
             console.log("Service Worker Registered");
-        } catch (e) {
-            console.log("SW error", e);
+        } catch (err) {
+            console.log("SW error:", err);
         }
     });
 }
 </script>
 
-<!-- SPLASH -->
+<!-- ===================== -->
+<!-- SPLASH CONTROLLER -->
+<!-- ===================== -->
 <script>
 window.addEventListener('load', () => {
     const splash = document.getElementById('splash-screen');
     const app = document.getElementById('app');
 
-    setTimeout(() => {
-        splash.classList.add('hide');
+    if (!splash || !app) return;
 
+    requestAnimationFrame(() => {
         setTimeout(() => {
-            splash.remove();
-            app.classList.remove('hidden');
-        }, 500);
+            splash.classList.add('hide');
 
-    }, 1200);
+            setTimeout(() => {
+                splash.remove();
+                app.classList.remove('hidden');
+            }, 400);
+
+        }, 300);
+    });
 });
 </script>
 
 </body>
-</html>
+    </html>
