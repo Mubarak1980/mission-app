@@ -1,7 +1,6 @@
 // ===============================
-// Main.js (FINAL STABLE + SMART CYCLE PRO)
+// Main.js (FINAL STABLE + SMART CYCLE PRO - FIXED CORE)
 // ===============================
-
 
 
 // ===============================
@@ -16,7 +15,6 @@ window.maxPagesByGrade = {
 
 const TOTAL_DAYS = 90;
 const TOTAL_PAGES = 5705;
-
 
 
 // ===============================
@@ -41,7 +39,6 @@ function getCycleState() {
 }
 
 
-
 // ===============================
 // 📅 DAILY SYSTEM
 // ===============================
@@ -62,7 +59,6 @@ function getTodayLog() {
 }
 
 
-
 // ===============================
 // 📈 EXPECTED PROGRESS
 // ===============================
@@ -77,7 +73,6 @@ function getExpectedProgress() {
     expectedPages: Math.round(expectedPages)
   };
 }
-
 
 
 // ===============================
@@ -103,7 +98,6 @@ function getActualProgress() {
 }
 
 
-
 // ===============================
 // ⚖️ DELAY ENGINE
 // ===============================
@@ -125,7 +119,6 @@ function getDelayStatus() {
     status
   };
 }
-
 
 
 // ===============================
@@ -162,7 +155,6 @@ function getPlannedVsActual() {
 }
 
 
-
 // ===============================
 // 🧠 SYSTEM STATUS
 // ===============================
@@ -178,7 +170,6 @@ function getSystemStatus() {
 }
 
 
-
 // ===============================
 // 🧠 SYSTEM SNAPSHOT
 // ===============================
@@ -191,13 +182,11 @@ function getSystemSnapshot() {
       cycleDay: cycle.cycleDay,
       remainingDays: TOTAL_DAYS - cycle.cycleDay
     },
-
     progress: {
       actual: cycle.actualPages,
       expected: cycle.expectedPages,
       gap: cycle.gap
     },
-
     alerts: {
       isOnTrack: status.isOnTrack,
       hasDailyIssues: status.dailyDelays.length > 0,
@@ -205,7 +194,6 @@ function getSystemSnapshot() {
     }
   };
 }
-
 
 
 // ===============================
@@ -252,12 +240,9 @@ function getSmartCycle() {
     expected: Math.round(expected),
     actual: Math.round(actualTotal),
     gap: Math.round(gap),
-
     status: gap >= 0 ? "AHEAD / ON TRACK" : "BEHIND",
-
     catchUpPerDay,
     remainingDays,
-
     dailyLimit: {
       target: Math.round(target),
       safe: target <= 70,
@@ -267,7 +252,6 @@ function getSmartCycle() {
 }
 
 
-
 // ===============================
 // UI STATE
 // ===============================
@@ -275,7 +259,6 @@ let currentGrade = 9;
 let currentSection = "study";
 
 let nav, prevBtn, nextBtn;
-
 
 
 // ===============================
@@ -288,7 +271,6 @@ function updateNavButtons() {
   prevBtn.disabled = currentGrade === 9;
   nextBtn.disabled = currentGrade === 12;
 }
-
 
 
 // ===============================
@@ -304,7 +286,6 @@ function loadSection(type, grade) {
   else if (type === "timetable") loadWeeklyTimetable?.();
   else if (type === "dashboard") loadDashboard?.();
 }
-
 
 
 // ===============================
@@ -325,20 +306,23 @@ function previousGrade() {
 }
 
 
-
 // ===============================
 // INIT
 // ===============================
 window.addEventListener("load", () => {
+
   nav = document.getElementById("grade-nav");
   prevBtn = document.getElementById("prev-btn");
   nextBtn = document.getElementById("next-btn");
 
   updateNavButtons();
   getCycleState();
-  loadSection("study", currentGrade);
-});
 
+  // SAFE START (prevents splash conflict)
+  setTimeout(() => {
+    loadSection("study", currentGrade);
+  }, 200);
+});
 
 
 // ===============================
@@ -349,88 +333,25 @@ window.previousGrade = previousGrade;
 window.loadSection = loadSection;
 
 
-
 // ===============================
-// UI CONNECTOR
+// SAFE SPLASH HANDLER (ONLY ONE ACTIVE SYSTEM)
 // ===============================
-function getUIState() {
-  return {
-    mode: currentSection,
-    grade: currentGrade,
-    system: getSystemSnapshot(),
-    status: getSystemStatus(),
-    smart: getSmartCycle(),
-    isDashboard: currentSection === "dashboard",
-    isStudy: currentSection === "study",
-    isTimetable: currentSection === "timetable"
-  };
-}
-
-function refreshUI() {
-  const state = getUIState();
-
-  if (state.isStudy && typeof updateGradeSummary === "function") {
-    updateGradeSummary(state.grade);
-  }
-}
-
-
-
-// ===============================
-// SAFE SYNC SYSTEM
-// ===============================
-(function initSmartSync() {
-
-  function sync() {
-    const lastUpdate = localStorage.getItem("study_last_update");
-    if (!lastUpdate) return;
-
-    if (window.__syncLock === lastUpdate) return;
-    window.__syncLock = lastUpdate;
-
-    if (currentSection === "study") updateGradeSummary?.(currentGrade);
-    if (currentSection === "timetable") loadWeeklyTimetable?.();
-  }
-
-  window.addEventListener("focus", sync);
-  document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) sync();
-  });
-
-  setInterval(sync, 5000);
-})();
-
-
-
-// ===============================
-// 🌄 SPLASH CONTROLLER (FINAL SYNCED VERSION)
-// ===============================
-
-(function splashController() {
+(function splashFix() {
 
   function hideSplash() {
-    const splash = document.getElementById("splash-screen");
+    const splash =
+      document.getElementById("splash-screen") ||
+      document.getElementById("splash");
+
     if (!splash) return;
 
     splash.classList.add("hide");
 
-    setTimeout(() => {
-      splash.remove();
-    }, 600);
+    setTimeout(() => splash.remove(), 600);
   }
 
   window.addEventListener("load", () => {
-
-    // Ensure app is ready FIRST
-    requestAnimationFrame(() => {
-
-      // small realistic delay like real apps
-      setTimeout(() => {
-        hideSplash();
-      }, 1000);
-
-    });
-
+    setTimeout(hideSplash, 1000);
   });
 
 })();
