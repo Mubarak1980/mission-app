@@ -1,4 +1,5 @@
-const CACHE_NAME = 'mission-cache-v95';
+const CACHE_NAME = 'mission-cache-v96';
+
 const ASSETS = [
   './',
   './index.html',
@@ -13,9 +14,13 @@ const ASSETS = [
   './icon-192.png'
 ];
 
+
+// ===============================
 // INSTALL
+// ===============================
 self.addEventListener('install', event => {
   self.skipWaiting();
+
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache =>
       Promise.all(
@@ -27,7 +32,10 @@ self.addEventListener('install', event => {
   );
 });
 
+
+// ===============================
 // ACTIVATE
+// ===============================
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -40,26 +48,30 @@ self.addEventListener('activate', event => {
       )
     )
   );
+
   self.clients.claim();
 });
 
+
+// ===============================
 // FETCH
+// ===============================
 self.addEventListener('fetch', event => {
 
-  // Handle page navigation
+  // NAVIGATION REQUEST
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(() =>
-        caches.match('./index.html')
+        caches.match('./index.html').then(res => res || caches.match('./'))
       )
     );
     return;
   }
 
-  // Handle other files
+  // STATIC FILES
   event.respondWith(
     caches.match(event.request).then(response => {
-      return response || fetch(event.request);
+      return response || fetch(event.request).catch(() => response || null);
     })
   );
 });
