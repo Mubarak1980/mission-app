@@ -2,14 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
     <title>Mission App</title>
 
     <!-- ================= PWA MANIFEST ================= -->
     <link rel="manifest" href="./manifest.json">
 
-    <meta name="theme-color" content="#4CAF50">
+    <!-- FIX: must match manifest for native feel -->
+    <meta name="theme-color" content="#0b0f14">
 
     <!-- ================= PWA CAPABILITY ================= -->
     <meta name="mobile-web-app-capable" content="yes">
@@ -99,7 +100,7 @@
         });
     </script>
 
-    <!-- ✅ FIX: missing splash class -->
+    <!-- FIX: smooth splash transition safety -->
     <style>
         .hide {
             opacity: 0;
