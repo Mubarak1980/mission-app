@@ -11,10 +11,10 @@
     <!-- PWA -->
     <link rel="manifest" href="./manifest.json" />
 
-    <!-- GREEN SYSTEM THEME (FIXED) -->
+    <!-- THEME COLOR -->
     <meta name="theme-color" content="#00ffa6" />
 
-    <!-- Icons -->
+    <!-- ICON -->
     <link rel="apple-touch-icon" href="./icon-192.png">
 </head>
 
@@ -40,6 +40,11 @@
             <button onclick="loadSection('timetable', currentGrade)">📅 Weekly Timetable</button>
             <button onclick="loadDashboard()">📊 Dashboard</button>
             <button onclick="loadTopStudentMode()">🎓 Top Student Mode</button>
+
+            <!-- OPTIONAL INSTALL BUTTON -->
+            <button onclick="installApp()" style="background:#00ffa6; color:#000;">
+                Install App
+            </button>
         </div>
 
         <div id="grade-progress-bar"></div>
@@ -60,11 +65,41 @@
     <script src="./top-student-mode.js"></script>
     <script src="./main.js"></script>
 
-    <!-- SERVICE WORKER -->
+    <!-- SERVICE WORKER (IMPROVED) -->
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js');
+            window.addEventListener('load', async () => {
+                try {
+                    const reg = await navigator.serviceWorker.register('./service-worker.js');
+
+                    console.log("SW registered");
+
+                } catch (err) {
+                    console.log("SW error", err);
+                }
+            });
+        }
+    </script>
+
+    <!-- INSTALL PROMPT FIX (IMPORTANT) -->
+    <script>
+        let deferredPrompt;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+
+        function installApp() {
+            if (!deferredPrompt) {
+                alert("Install not available yet. Open in Chrome and try again.");
+                return;
+            }
+
+            deferredPrompt.prompt();
+
+            deferredPrompt.userChoice.then(() => {
+                deferredPrompt = null;
             });
         }
     </script>
