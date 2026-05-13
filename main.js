@@ -307,7 +307,7 @@ function previousGrade() {
 
 
 // ===============================
-// INIT (FIXED TIMING ONLY)
+// INIT (FIXED - SINGLE CONTROL FLOW)
 // ===============================
 window.addEventListener("load", () => {
 
@@ -318,10 +318,17 @@ window.addEventListener("load", () => {
   updateNavButtons();
   getCycleState();
 
-  // FIX: avoid UI loading before splash finishes
-  setTimeout(() => {
+  const splash = document.getElementById("splash-screen");
+
+  const startApp = () => {
     loadSection("study", currentGrade);
-  }, 1200);
+  };
+
+  if (splash) {
+    setTimeout(startApp, 1400);
+  } else {
+    startApp();
+  }
 });
 
 
@@ -334,7 +341,7 @@ window.loadSection = loadSection;
 
 
 // ===============================
-// SAFE SPLASH HANDLER (MINIMAL FIX ONLY)
+// SAFE SPLASH HANDLER (SYNCED)
 // ===============================
 (function splashFix() {
 
@@ -347,7 +354,9 @@ window.loadSection = loadSection;
 
     splash.classList.add("hide");
 
-    setTimeout(() => splash.remove(), 600);
+    setTimeout(() => {
+      splash.remove();
+    }, 600);
   }
 
   window.addEventListener("load", () => {
