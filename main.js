@@ -403,8 +403,9 @@ function refreshUI() {
 
 
 // ===============================
-// 🌄 SPLASH SCREEN CONTROLLER (ADDED ONLY)
+// 🌄 SPLASH CONTROLLER (FINAL SYNCED VERSION)
 // ===============================
+
 (function splashController() {
 
   function hideSplash() {
@@ -415,13 +416,21 @@ function refreshUI() {
 
     setTimeout(() => {
       splash.remove();
-    }, 700);
+    }, 600);
   }
 
   window.addEventListener("load", () => {
-    setTimeout(() => {
-      hideSplash();
-    }, 1200);
+
+    // Ensure app is ready FIRST
+    requestAnimationFrame(() => {
+
+      // small realistic delay like real apps
+      setTimeout(() => {
+        hideSplash();
+      }, 1000);
+
+    });
+
   });
 
 })();
