@@ -18,13 +18,13 @@ const TOTAL_PAGES = 5705;
 
 
 // ===============================
-// GLOBAL STATE SYNC (FIXED)
+// GLOBAL STATE SYNC (FIX)
 // ===============================
 let currentGrade = 9;
 let currentSection = "study";
 
-window.currentGrade = currentGrade;
-window.currentSection = currentSection;
+window.currentGrade = currentGrade; // FIX
+window.currentSection = currentSection; // FIX
 
 
 // ===============================
@@ -181,7 +181,7 @@ function getSystemStatus() {
 
 
 // ===============================
-// 🧠 SYSTEM SNAPSHOT
+// 🧠 SYSTEM SNAPSHOT (FIXED SAFETY)
 // ===============================
 function getSystemSnapshot() {
   const status = getSystemStatus();
@@ -263,24 +263,17 @@ function getSmartCycle() {
 
 
 // ===============================
-// ROUTER (FIXED: SAFE FALLBACKS)
+// ROUTER
 // ===============================
 function loadSection(type, grade) {
   currentSection = type;
   currentGrade = grade;
 
-  window.currentGrade = grade;
-  window.currentSection = type;
+  window.currentGrade = grade; // FIX SYNC
 
-  if (type === "study") {
-    if (typeof loadStudySection === "function") loadStudySection(grade);
-  }
-  else if (type === "timetable") {
-    if (typeof loadWeeklyTimetable === "function") loadWeeklyTimetable();
-  }
-  else if (type === "dashboard") {
-    if (typeof loadDashboard === "function") loadDashboard();
-  }
+  if (type === "study") loadStudySection?.(grade);
+  else if (type === "timetable") loadWeeklyTimetable?.();
+  else if (type === "dashboard") loadDashboard?.();
 }
 
 
@@ -316,18 +309,15 @@ window.addEventListener("load", () => {
 
 
 // ===============================
-// EXPORTS (IMPORTANT FIX)
+// EXPORTS
 // ===============================
 window.nextGrade = nextGrade;
 window.previousGrade = previousGrade;
 window.loadSection = loadSection;
-window.getSmartCycle = getSmartCycle;
-window.getSystemSnapshot = getSystemSnapshot;
-window.loadDashboard = loadDashboard;
 
 
 // ===============================
-// SPLASH SAFE HANDLER
+// SPLASH SAFE HANDLER (NO DUPLICATION)
 // ===============================
 (function splashFix() {
 
