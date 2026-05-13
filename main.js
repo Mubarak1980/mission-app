@@ -1,5 +1,5 @@
 // ===============================
-// Main.js (FINAL STABLE + SMART CYCLE PRO - FIXED CORE)
+// Main.js (FIXED ONLY - NO LOGIC CHANGE)
 // ===============================
 
 
@@ -307,7 +307,7 @@ function previousGrade() {
 
 
 // ===============================
-// INIT
+// INIT (FIXED TIMING ONLY)
 // ===============================
 window.addEventListener("load", () => {
 
@@ -318,10 +318,10 @@ window.addEventListener("load", () => {
   updateNavButtons();
   getCycleState();
 
-  // SAFE START (prevents splash conflict)
+  // FIX: avoid UI loading before splash finishes
   setTimeout(() => {
     loadSection("study", currentGrade);
-  }, 200);
+  }, 1200);
 });
 
 
@@ -334,7 +334,7 @@ window.loadSection = loadSection;
 
 
 // ===============================
-// SAFE SPLASH HANDLER (ONLY ONE ACTIVE SYSTEM)
+// SAFE SPLASH HANDLER (MINIMAL FIX ONLY)
 // ===============================
 (function splashFix() {
 
