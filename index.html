@@ -9,7 +9,6 @@
     <!-- ================= PWA MANIFEST ================= -->
     <link rel="manifest" href="./manifest.json">
 
-    <!-- IMPORTANT: theme color must match splash for native feel -->
     <meta name="theme-color" content="#4CAF50">
 
     <!-- ================= PWA CAPABILITY ================= -->
@@ -66,7 +65,7 @@
     <script src="./top-student-mode.js"></script>
     <script src="./main.js"></script>
 
-    <!-- ================= SERVICE WORKER (FIXED SAFE VERSION) ================= -->
+    <!-- ================= SERVICE WORKER ================= -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', async () => {
@@ -80,7 +79,7 @@
         }
     </script>
 
-    <!-- ================= SPLASH CONTROL (SAFE + RELIABLE) ================= -->
+    <!-- ================= SPLASH CONTROL ================= -->
     <script>
         window.addEventListener('load', () => {
             const splash = document.getElementById('splash-screen');
@@ -100,5 +99,14 @@
         });
     </script>
 
+    <!-- ✅ FIX: missing splash class -->
+    <style>
+        .hide {
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease;
+        }
+    </style>
+
 </body>
-    </html>
+</html>
