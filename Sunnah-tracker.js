@@ -5,125 +5,127 @@ const totalJuz = 30;
 // DATE HELP
 // ===============================
 function getDaysSinceStart(startDate) {
-  const today = new Date();
-  const start = new Date(startDate);
+const today = new Date();
+const start = new Date(startDate);
 
-  const diff = Math.floor((today - start) / (1000 * 60 * 60 * 24));
-  return diff + 1;
+const diff = Math.floor((today - start) / (1000 * 60 * 60 * 24));
+return diff + 1;
 }
 
 // ===============================
 // MAIN TRACKER
 // ===============================
 function loadSunnahTracker() {
-  let saved = JSON.parse(localStorage.getItem('sunnah_progress')) || {};
+let saved = JSON.parse(localStorage.getItem('sunnah_progress')) || {};
 
-  // ===============================
-  // FIX 1: ensure startDate is stable (DO NOT reset daily offline)
-  // ===============================
-  let startDate = saved.startDate;
+// ===============================
+// FIX 1: ensure startDate is stable (DO NOT reset daily offline)
+// ===============================
+let startDate = saved.startDate;
 
-  if (!startDate) {
-    startDate = new Date().toISOString().split('T')[0];
-    saved.startDate = startDate;
-    localStorage.setItem('sunnah_progress', JSON.stringify(saved));
-  }
+if (!startDate) {
+startDate = new Date().toISOString().split('T')[0];
+saved.startDate = startDate;
+localStorage.setItem('sunnah_progress', JSON.stringify(saved));
+}
 
-  let daysSinceStart = getDaysSinceStart(startDate);
+let daysSinceStart = getDaysSinceStart(startDate);
 
-  let expectedPages = Math.min(daysSinceStart, totalQuranPages);
+let expectedPages = Math.min(daysSinceStart, totalQuranPages);
 
-  let actualPages = Number(saved.pages) || 0;
+let actualPages = Number(saved.pages) || 0;
 
-  let calculatedJuz = Math.floor((actualPages / totalQuranPages) * totalJuz);
+let calculatedJuz = Math.floor((actualPages / totalQuranPages) * totalJuz);
 
-  let status =
-    actualPages === expectedPages
-      ? '🟢 On Track'
-      : actualPages > expectedPages
-      ? '🟩 Ahead'
-      : '🟠 Behind';
+let status =
+actualPages === expectedPages
+? '🟢 On Track'
+: actualPages > expectedPages
+? '🟩 Ahead'
+: '🟠 Behind';
 
-  // ===============================
-  // UI
-  // ===============================
-  let content = `
-    <h2>🕌 Weekly Sunnah Tracker</h2>
+// ===============================
+// UI
+// ===============================
+let content = `
+<h2>🕌 Weekly Sunnah Tracker</h2>
 
-    <div class="quran-progress">
-      <h3>Qur'an Reading Progress (1 page/day)</h3>
+<div class="quran-progress">  
+  <h3>Qur'an Reading Progress (1 page/day)</h3>  
 
-      <p><strong>Started on:</strong> ${startDate}</p>
-      <p><strong>Today is Day:</strong> ${daysSinceStart}</p>
-      <p><strong>Expected Page:</strong> ${expectedPages}</p>
-      <p><strong>Status:</strong> ${status}</p>
+  <p><strong>Started on:</strong> ${startDate}</p>  
+  <p><strong>Today is Day:</strong> ${daysSinceStart}</p>  
+  <p><strong>Expected Page:</strong> ${expectedPages}</p>  
+  <p><strong>Status:</strong> ${status}</p>  
 
-      <label>Pages Read:</label>
-      <input id="quran-pages" type="number" min="0" max="${totalQuranPages}" value="${actualPages}" />
-      <progress id="quran-pages-progress" max="${totalQuranPages}" value="${actualPages}"></progress>
-      <p>${Math.round((actualPages / totalQuranPages) * 100)}% complete</p>
+  <label>Pages Read:</label>  
+  <input id="quran-pages" type="number" min="0" max="${totalQuranPages}" value="${actualPages}" />  
+  <progress id="quran-pages-progress" max="${totalQuranPages}" value="${actualPages}"></progress>  
+  <p>${Math.round((actualPages / totalQuranPages) * 100)}% complete</p>  
 
-      <label>Juz Completed:</label>
-      <input id="quran-juz" type="number" min="0" max="${totalJuz}" value="${calculatedJuz}" readonly />
-      <progress id="quran-juz-progress" max="${totalJuz}" value="${calculatedJuz}"></progress>
-      <p>${Math.round((calculatedJuz / totalJuz) * 100)}% complete</p>
-  `;
+  <label>Juz Completed:</label>  
+  <input id="quran-juz" type="number" min="0" max="${totalJuz}" value="${calculatedJuz}" readonly />  
+  <progress id="quran-juz-progress" max="${totalJuz}" value="${calculatedJuz}"></progress>  
+  <p>${Math.round((calculatedJuz / totalJuz) * 100)}% complete</p>
 
-  if (actualPages < expectedPages) {
-    content += `<p style="color:red;"><strong>Don’t forget today’s page 📖</strong></p>`;
-  } else if (actualPages === expectedPages) {
-    content += `<p style="color:green;"><strong>On track 💪</strong></p>`;
-  } else {
-    content += `<p style="color:blue;"><strong>Ahead 🚀</strong></p>`;
-  }
+`;
 
-  content += `</div>`;
+if (actualPages < expectedPages) {
+content += <p style="color:red;"><strong>Don’t forget today’s page 📖</strong></p>;
+} else if (actualPages === expectedPages) {
+content += <p style="color:green;"><strong>On track 💪</strong></p>;
+} else {
+content += <p style="color:blue;"><strong>Ahead 🚀</strong></p>;
+}
 
-  document.getElementById('main-content').innerHTML = content;
+content += </div>;
 
-  // ===============================
-  // INPUT HANDLING (FIXED SAFETY)
-  // ===============================
-  const pagesInput = document.getElementById('quran-pages');
-  const pagesProgress = document.getElementById('quran-pages-progress');
-  const juzInput = document.getElementById('quran-juz');
-  const juzProgress = document.getElementById('quran-juz-progress');
+document.getElementById('main-content').innerHTML = content;
 
-  if (!pagesInput) return;
+// ===============================
+// INPUT HANDLING (FIXED SAFETY)
+// ===============================
+const pagesInput = document.getElementById('quran-pages');
+const pagesProgress = document.getElementById('quran-pages-progress');
+const juzInput = document.getElementById('quran-juz');
+const juzProgress = document.getElementById('quran-juz-progress');
 
-  pagesInput.addEventListener('input', () => {
-    let pages = Number(pagesInput.value) || 0;
+if (!pagesInput) return;
 
-    pages = Math.max(0, Math.min(pages, totalQuranPages));
+pagesInput.addEventListener('input', () => {
+let pages = Number(pagesInput.value) || 0;
 
-    let newJuz = Math.floor((pages / totalQuranPages) * totalJuz);
+pages = Math.max(0, Math.min(pages, totalQuranPages));  
 
-    pagesInput.value = pages;
-    pagesProgress.value = pages;
+let newJuz = Math.floor((pages / totalQuranPages) * totalJuz);  
 
-    juzInput.value = newJuz;
-    juzProgress.value = newJuz;
+pagesInput.value = pages;  
+pagesProgress.value = pages;  
 
-    saveSunnahProgress({
-      pages,
-      juz: newJuz,
-      startDate
-    });
-  });
+juzInput.value = newJuz;  
+juzProgress.value = newJuz;  
+
+saveSunnahProgress({  
+  pages,  
+  juz: newJuz,  
+  startDate  
+});
+
+});
 }
 
 // ===============================
 // SAVE FUNCTION (CLEAN + STABLE)
 // ===============================
 function saveSunnahProgress(data) {
-  const saved = JSON.parse(localStorage.getItem('sunnah_progress')) || {};
+const saved = JSON.parse(localStorage.getItem('sunnah_progress')) || {};
 
-  const updated = {
-    ...saved,
-    ...data
-  };
+const updated = {
+...saved,
+...data
+};
 
-  localStorage.setItem('sunnah_progress', JSON.stringify(updated));
+localStorage.setItem('sunnah_progress', JSON.stringify(updated));
 }
 
 // ===============================
