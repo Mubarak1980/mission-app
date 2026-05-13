@@ -10,7 +10,7 @@
     <link rel="manifest" href="./manifest.json" />
     <meta name="theme-color" content="#00ffa6" />
 
-    <!-- iOS FULL SCREEN -->
+    <!-- iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -22,10 +22,10 @@
 
 <body>
 
-<!-- ================= APP SHELL ================= -->
-<div id="app-shell">
+<!-- APP ROOT (important for PWA stability) -->
+<div id="app-root">
 
-    <!-- SPLASH (native-style) -->
+    <!-- SPLASH -->
     <div id="splash">
         <div class="logo">📘 Mission App</div>
         <div class="loader"></div>
@@ -63,33 +63,52 @@
 <script src="./top-student-mode.js"></script>
 <script src="./main.js"></script>
 
-<!-- ================= SERVICE WORKER ================= -->
+<!-- ================= SERVICE WORKER (FIXED) ================= -->
 <script>
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
-        await navigator.serviceWorker.register('./service-worker.js');
+        try {
+            const reg = await navigator.serviceWorker.register('./service-worker.js');
+
+            // IMPORTANT: wait until SW is active
+            await navigator.serviceWorker.ready;
+
+            console.log("SW ACTIVE - PWA READY");
+        } catch (err) {
+            console.log("SW ERROR", err);
+        }
     });
 }
 </script>
 
-<!-- ================= NATIVE START ENGINE ================= -->
+<!-- ================= SPLASH (INSTALL-STABLE) ================= -->
 <script>
 window.addEventListener('load', () => {
 
     const splash = document.getElementById('splash');
     const app = document.getElementById('app');
 
-    // fast native transition
+    if (!splash || !app) return;
+
     requestAnimationFrame(() => {
+
         setTimeout(() => {
             splash.style.opacity = "0";
 
             setTimeout(() => {
                 splash.remove();
                 app.classList.remove('hidden');
+
+                // FORCE layout stabilization (important for install detection)
+                document.body.style.overflow = "hidden";
+                setTimeout(() => {
+                    document.body.style.overflow = "";
+                }, 50);
+
             }, 250);
 
         }, 400);
+
     });
 
 });
