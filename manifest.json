@@ -2,12 +2,16 @@
   "name": "Mission App",
   "short_name": "Mission",
   "id": "mission-app-v1",
+
   "start_url": "./index.html?source=pwa",
   "scope": "./",
+
   "display": "standalone",
   "orientation": "portrait",
+
   "background_color": "#4CAF50",
   "theme_color": "#4CAF50",
+
   "icons": [
     {
       "src": "./icon-192.png",
