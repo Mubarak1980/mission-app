@@ -6,65 +6,56 @@
 
     <title>Mission App</title>
 
-    <!-- PWA MANIFEST -->
+    <!-- PWA -->
     <link rel="manifest" href="./manifest.json" />
-
-    <!-- THEME COLOR -->
     <meta name="theme-color" content="#00ffa6" />
 
-    <!-- iOS SUPPORT -->
+    <!-- iOS FULL SCREEN -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <!-- ICON -->
     <link rel="apple-touch-icon" href="./icon-192.png">
 
-    <!-- CSS -->
     <link rel="stylesheet" href="./styles.css" />
 </head>
 
 <body>
 
-<!-- ===================== -->
-<!-- SPLASH SCREEN -->
-<!-- ===================== -->
-<div id="splash-screen">
-    <div class="splash-content">
-        <h1>📘 Mission App</h1>
-        <p>Loading your study system...</p>
+<!-- ================= APP SHELL ================= -->
+<div id="app-shell">
+
+    <!-- SPLASH (native-style) -->
+    <div id="splash">
+        <div class="logo">📘 Mission App</div>
         <div class="loader"></div>
     </div>
+
+    <!-- MAIN APP -->
+    <div id="app" class="hidden">
+
+        <h1>TIME</h1>
+
+        <div class="section-buttons">
+            <button onclick="loadSunnahTracker()">Sunnah Tracker</button>
+            <button onclick="loadSection('study', currentGrade)">Study Tracker</button>
+            <button onclick="loadSection('timetable', currentGrade)">📅 Weekly Timetable</button>
+            <button onclick="loadDashboard()">📊 Dashboard</button>
+            <button onclick="loadTopStudentMode()">🎓 Top Student Mode</button>
+        </div>
+
+        <div id="grade-progress-bar"></div>
+        <div id="main-content"></div>
+
+        <div class="nav-buttons">
+            <button onclick="previousGrade()">Previous</button>
+            <button onclick="nextGrade()">Next</button>
+        </div>
+
+    </div>
 </div>
 
-<!-- ===================== -->
-<!-- APP ROOT -->
-<!-- ===================== -->
-<div id="app" class="hidden">
-
-    <h1>TIME</h1>
-
-    <div class="section-buttons">
-        <button onclick="loadSunnahTracker()">Sunnah Tracker</button>
-        <button onclick="loadSection('study', currentGrade)">Study Tracker</button>
-        <button onclick="loadSection('timetable', currentGrade)">📅 Weekly Timetable</button>
-        <button onclick="loadDashboard()">📊 Dashboard</button>
-        <button onclick="loadTopStudentMode()">🎓 Top Student Mode</button>
-    </div>
-
-    <div id="grade-progress-bar"></div>
-    <div id="main-content"></div>
-
-    <div class="nav-buttons" id="grade-nav">
-        <button onclick="previousGrade()" id="prev-btn">Previous</button>
-        <button onclick="nextGrade()" id="next-btn">Next</button>
-    </div>
-
-</div>
-
-<!-- ===================== -->
-<!-- JS FILES -->
-<!-- ===================== -->
+<!-- JS -->
 <script src="./Sunnah-tracker.js"></script>
 <script src="./Study-tracker.js"></script>
 <script src="./weekly-timetable.js"></script>
@@ -72,45 +63,37 @@
 <script src="./top-student-mode.js"></script>
 <script src="./main.js"></script>
 
-<!-- ===================== -->
-<!-- SERVICE WORKER -->
-<!-- ===================== -->
+<!-- ================= SERVICE WORKER ================= -->
 <script>
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
-        try {
-            await navigator.serviceWorker.register('./service-worker.js');
-            console.log("Service Worker Registered");
-        } catch (err) {
-            console.log("SW error:", err);
-        }
+        await navigator.serviceWorker.register('./service-worker.js');
     });
 }
 </script>
 
-<!-- ===================== -->
-<!-- SPLASH CONTROLLER -->
-<!-- ===================== -->
+<!-- ================= NATIVE START ENGINE ================= -->
 <script>
 window.addEventListener('load', () => {
-    const splash = document.getElementById('splash-screen');
+
+    const splash = document.getElementById('splash');
     const app = document.getElementById('app');
 
-    if (!splash || !app) return;
-
+    // fast native transition
     requestAnimationFrame(() => {
         setTimeout(() => {
-            splash.classList.add('hide');
+            splash.style.opacity = "0";
 
             setTimeout(() => {
                 splash.remove();
                 app.classList.remove('hidden');
-            }, 400);
+            }, 250);
 
-        }, 300);
+        }, 400);
     });
+
 });
 </script>
 
 </body>
-    </html>
+</html>
