@@ -3,116 +3,79 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
     <title>Mission App</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="./styles.css" />
 
     <!-- PWA -->
     <link rel="manifest" href="./manifest.json" />
-    <meta name="theme-color" content="#00ffa6" />
+    <meta name="theme-color" content="#2d89ef" />
 
-    <!-- iOS -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
+    <!-- Icons -->
     <link rel="apple-touch-icon" href="./icon-192.png">
-
-    <link rel="stylesheet" href="./styles.css" />
 </head>
 
 <body>
 
-<!-- APP ROOT (important for PWA stability) -->
-<div id="app-root">
-
-    <!-- SPLASH -->
-    <div id="splash">
-        <div class="logo">📘 Mission App</div>
-        <div class="loader"></div>
+    <!-- 🌄 SPLASH SCREEN (NEW ADDITION) -->
+    <div id="splash-screen">
+        <div class="splash-content">
+            <h1>📘 Mission App</h1>
+            <p>Loading your study system...</p>
+            <div class="loader"></div>
+        </div>
     </div>
 
-    <!-- MAIN APP -->
-    <div id="app" class="hidden">
+    <!-- MAIN APP CONTENT -->
+    <h1>TIME</h1>
 
-        <h1>TIME</h1>
+    <div class="section-buttons">
+        <button onclick="loadSunnahTracker()">Sunnah Tracker</button>
+        <button onclick="loadSection('study', currentGrade)">Study Tracker</button>
 
-        <div class="section-buttons">
-            <button onclick="loadSunnahTracker()">Sunnah Tracker</button>
-            <button onclick="loadSection('study', currentGrade)">Study Tracker</button>
-            <button onclick="loadSection('timetable', currentGrade)">📅 Weekly Timetable</button>
-            <button onclick="loadDashboard()">📊 Dashboard</button>
-            <button onclick="loadTopStudentMode()">🎓 Top Student Mode</button>
-        </div>
+        <!-- NAVIGATION -->
+        <button onclick="loadSection('timetable', currentGrade)">📅 Weekly Timetable</button>
 
-        <div id="grade-progress-bar"></div>
-        <div id="main-content"></div>
-
-        <div class="nav-buttons">
-            <button onclick="previousGrade()">Previous</button>
-            <button onclick="nextGrade()">Next</button>
-        </div>
-
+        <button onclick="loadDashboard()">📊 Dashboard</button>
+        <button onclick="loadTopStudentMode()">🎓 Top Student Mode</button>
     </div>
-</div>
 
-<!-- JS -->
-<script src="./Sunnah-tracker.js"></script>
-<script src="./Study-tracker.js"></script>
-<script src="./weekly-timetable.js"></script>
-<script src="./dashboard.js"></script>
-<script src="./top-student-mode.js"></script>
-<script src="./main.js"></script>
+    <div id="grade-progress-bar"></div>
+    <div id="main-content"></div>
 
-<!-- ================= SERVICE WORKER (FIXED) ================= -->
-<script>
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', async () => {
-        try {
-            const reg = await navigator.serviceWorker.register('./service-worker.js');
+    <div class="nav-buttons" id="grade-nav">
+        <button onclick="previousGrade()" id="prev-btn">Previous</button>
+        <button onclick="nextGrade()" id="next-btn">Next</button>
+    </div>
 
-            // IMPORTANT: wait until SW is active
-            await navigator.serviceWorker.ready;
+    <!-- JS FILES -->
+    <script src="./Sunnah-tracker.js"></script>
+    <script src="./Study-tracker.js"></script>
+    <script src="./weekly-timetable.js"></script>
+    <script src="./dashboard.js"></script>
+    <script src="./top-student-mode.js"></script>
+    <script src="./main.js"></script>
 
-            console.log("SW ACTIVE - PWA READY");
-        } catch (err) {
-            console.log("SW ERROR", err);
+    <!-- SERVICE WORKER -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(() => console.log('Service Worker Registered'))
+                    .catch(err => console.log('SW Error:', err));
+            });
         }
-    });
-}
-</script>
+    </script>
 
-<!-- ================= SPLASH (INSTALL-STABLE) ================= -->
-<script>
-window.addEventListener('load', () => {
-
-    const splash = document.getElementById('splash');
-    const app = document.getElementById('app');
-
-    if (!splash || !app) return;
-
-    requestAnimationFrame(() => {
-
-        setTimeout(() => {
-            splash.style.opacity = "0";
-
-            setTimeout(() => {
-                splash.remove();
-                app.classList.remove('hidden');
-
-                // FORCE layout stabilization (important for install detection)
-                document.body.style.overflow = "hidden";
-                setTimeout(() => {
-                    document.body.style.overflow = "";
-                }, 50);
-
-            }, 250);
-
-        }, 400);
-
-    });
-
-});
-</script>
+    <!-- SAFE STARTUP -->
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            if (typeof loadSection === 'function') {
+                loadSection('study', window.currentGrade || 9);
+            }
+        });
+    </script>
 
 </body>
 </html>
