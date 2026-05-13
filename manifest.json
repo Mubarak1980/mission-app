@@ -1,12 +1,14 @@
 {
   "name": "Mission App",
   "short_name": "Mission",
-  "id": "mission-app-v1",
+  "id": "mission-app-v2",
 
-  "start_url": "./index.html?source=pwa",
+  "start_url": "./index.html",
   "scope": "./",
 
   "display": "standalone",
+  "display_override": ["standalone", "window-controls-overlay"],
+
   "orientation": "portrait",
 
   "background_color": "#4CAF50",
