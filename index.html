@@ -27,8 +27,8 @@
         </div>
     </div>
 
-    <!-- MAIN APP -->
-    <div id="app">
+    <!-- MAIN APP (HIDDEN INITIALLY FOR REAL APP FEEL) -->
+    <div id="app" style="visibility: hidden;">
 
         <h1>TIME</h1>
 
@@ -50,7 +50,7 @@
 
     </div>
 
-    <!-- JS FILES (UNCHANGED ORDER) -->
+    <!-- JS FILES -->
     <script src="./Sunnah-tracker.js"></script>
     <script src="./Study-tracker.js"></script>
     <script src="./weekly-timetable.js"></script>
@@ -58,7 +58,7 @@
     <script src="./top-student-mode.js"></script>
     <script src="./main.js"></script>
 
-    <!-- SERVICE WORKER (UNCHANGED) -->
+    <!-- SERVICE WORKER -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -69,19 +69,22 @@
         }
     </script>
 
-    <!-- SPLASH CONTROLLER (FINAL PLACE) -->
+    <!-- SPLASH CONTROLLER (PRO + STABLE) -->
     <script>
         window.addEventListener('load', () => {
             const splash = document.getElementById('splash-screen');
+            const app = document.getElementById('app');
 
-            if (!splash) return;
+            if (!splash || !app) return;
 
             setTimeout(() => {
                 splash.classList.add('hide');
 
                 setTimeout(() => {
                     splash.remove();
+                    app.style.visibility = 'visible';
                 }, 600);
+
             }, 1200);
         });
     </script>
