@@ -3,134 +3,128 @@
 // =====================================================
 
 function loadDashboard() {
-  currentSection = 'dashboard';
+currentSection = 'dashboard';
 
-  updateNavButtons?.();
+updateNavButtons?.();
 
-  if (nav) nav.style.display = 'none';
+if (nav) nav.style.display = 'none';
 
-  const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
-  const grades = [9, 10, 11, 12];
+const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
+const grades = [9, 10, 11, 12];
 
-  const main = document.getElementById('main-content');
-  if (!main) return;
+const main = document.getElementById('main-content');
+if (!main) return;
 
-  if (!window.maxPagesByGrade) {
-    main.innerHTML = `<p>Error: grade data not loaded</p>`;
-    return;
-  }
+if (!window.maxPagesByGrade) {
+main.innerHTML = <p>Error: grade data not loaded</p>;
+return;
+}
 
-  // ===============================
-  // SAFE LOAD PROGRESS
-  // ===============================
-  const safeLoadProgress = (grade) => {
-    try {
-      return loadProgress?.(grade) ||
-        JSON.parse(localStorage.getItem(`grade_${grade}_progress`) || "{}");
-    } catch {
-      return {};
-    }
-  };
+// ===============================
+// SAFE LOAD PROGRESS
+// ===============================
+const safeLoadProgress = (grade) => {
+try {
+return loadProgress?.(grade) ||
+JSON.parse(localStorage.getItem(grade_${grade}_progress) || "{}");
+} catch {
+return {};
+}
+};
 
-  // ===============================
-  // BUILD HTML
-  // ===============================
-  let html = `
-    <h2>📊 Dashboard: Overall Subject Progress</h2>
-    <div class="dashboard-container">
-  `;
+// ===============================
+// BUILD HTML
+// ===============================
+let html =   <h2>📊 Dashboard: Overall Subject Progress</h2>   <div class="dashboard-container">  ;
 
-  // ===============================
-  // SUBJECT PROGRESS
-  // ===============================
-  subjects.forEach(subject => {
-    let totalPercent = 0;
-    let count = 0;
+// ===============================
+// SUBJECT PROGRESS
+// ===============================
+subjects.forEach(subject => {
+let totalPercent = 0;
+let count = 0;
 
-    grades.forEach(grade => {
-      const saved = safeLoadProgress(grade);
+grades.forEach(grade => {  
+  const saved = safeLoadProgress(grade);  
 
-      const pagesRead = saved?.[subject] || 0;
-      const maxPages = window.maxPagesByGrade?.[grade]?.[subject] || 0;
+  const pagesRead = saved?.[subject] || 0;  
+  const maxPages = window.maxPagesByGrade?.[grade]?.[subject] || 0;  
 
-      if (maxPages > 0) {
-        totalPercent += (pagesRead / maxPages) * 100;
-        count++;
-      }
-    });
+  if (maxPages > 0) {  
+    totalPercent += (pagesRead / maxPages) * 100;  
+    count++;  
+  }  
+});  
 
-    const avgPercent = count ? Math.round(totalPercent / count) : 0;
+const avgPercent = count ? Math.round(totalPercent / count) : 0;  
 
-    html += `
-      <div class="dashboard-subject">
-        <h3>${subject}</h3>
-        <progress value="${avgPercent}" max="100"></progress>
-        <p>${avgPercent}% progress in ${subject}</p>
-      </div>
-    `;
-  });
+html += `  
+  <div class="dashboard-subject">  
+    <h3>${subject}</h3>  
+    <progress value="${avgPercent}" max="100"></progress>  
+    <p>${avgPercent}% progress in ${subject}</p>  
+  </div>  
+`;
 
-  html += `</div>`;
+});
 
-  // ===============================
-  // CYCLE INFO (PURE DISPLAY ONLY)
-  // ===============================
-  const system = getSystemSnapshot?.();
+html += </div>;
 
-  if (system?.time) {
-    html += `
-      <div class="delay-section">
-        <h2>⏱️ Cycle Info</h2>
-        <p>📅 Day: ${system.time.cycleDay}/90</p>
-      </div>
-    `;
-  }
+// ===============================
+// CYCLE INFO (PURE DISPLAY ONLY)
+// ===============================
+const system = getSystemSnapshot?.();
 
-  // ===============================
-  // 🧠 SMART CYCLE (CLEAR TRUTH DISPLAY)
-  // ===============================
-  const smart = getSmartCycle?.();
+if (system?.time) {
+html +=   <div class="delay-section">   <h2>⏱️ Cycle Info</h2>   <p>📅 Day: ${system.time.cycleDay}/90</p>   </div>  ;
+}
 
-  if (smart && smart.expected !== undefined) {
+// ===============================
+// 🧠 SMART CYCLE (CLEAR TRUTH DISPLAY)
+// ===============================
+const smart = getSmartCycle?.();
 
-    const progressRate =
-      smart.expected > 0
-        ? ((smart.actual / smart.expected) * 100).toFixed(1)
-        : 0;
+if (smart && smart.expected !== undefined) {
 
-    html += `
-      <div class="smart-cycle-section">
-        <h2>🧠 Smart Study Engine</h2>
+const progressRate =  
+  smart.expected > 0  
+    ? ((smart.actual / smart.expected) * 100).toFixed(1)  
+    : 0;  
 
-        <p>📊 Expected : ${smart.expected}</p>
+html += `  
+  <div class="smart-cycle-section">  
+    <h2>🧠 Smart Study Engine</h2>  
 
-        <p>📚 Progress: ${smart.actual}</p>
+    <p>📊 Expected : ${smart.expected}</p>  
 
-        <p>⚖️ Difference (Gap): ${smart.gap}</p>
+    <p>📚 Progress: ${smart.actual}</p>  
 
-        <p>📈 Progress Rate: ${progressRate}%</p>
+    <p>⚖️ Difference (Gap): ${smart.gap}</p>  
 
-        <hr/>
+    <p>📈 Progress Rate: ${progressRate}%</p>  
 
-        <p>🚀 Catch-up Plan: ${smart.catchUpPerDay ?? 0} pages/day</p>
+    <hr/>  
 
-        <p>🛡️ Safe Limit: ${smart.dailyLimit?.target ?? 0} pages/day</p>
+    <p>🚀 Catch-up Plan: ${smart.catchUpPerDay ?? 0} pages/day</p>  
 
-        <p>
-          ⚠️ Burnout Risk:
-          <b>${smart.dailyLimit?.warning ? "HIGH" : "SAFE"}</b>
-        </p>
-      </div>
-    `;
-  }
+    <p>🛡️ Safe Limit: ${smart.dailyLimit?.target ?? 0} pages/day</p>  
 
-  // ===============================
-  // FINAL RENDER
-  // ===============================
-  main.innerHTML = html;
+    <p>  
+      ⚠️ Burnout Risk:  
+      <b>${smart.dailyLimit?.warning ? "HIGH" : "SAFE"}</b>  
+    </p>  
+  </div>  
+`;
 
-  const bar = document.getElementById('grade-progress-bar');
-  if (bar) bar.innerHTML = '';
+}
+
+// ===============================
+// FINAL RENDER
+// ===============================
+main.innerHTML = html;
+
+const bar = document.getElementById('grade-progress-bar');
+if (bar) bar.innerHTML = '';
 }
 
 window.loadDashboard = loadDashboard;
