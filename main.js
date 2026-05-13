@@ -18,6 +18,16 @@ const TOTAL_PAGES = 5705;
 
 
 // ===============================
+// GLOBAL STATE SYNC (FIX)
+// ===============================
+let currentGrade = 9;
+let currentSection = "study";
+
+window.currentGrade = currentGrade; // FIX
+window.currentSection = currentSection; // FIX
+
+
+// ===============================
 // 🧠 CYCLE ENGINE
 // ===============================
 function getCycleState() {
@@ -171,7 +181,7 @@ function getSystemStatus() {
 
 
 // ===============================
-// 🧠 SYSTEM SNAPSHOT
+// 🧠 SYSTEM SNAPSHOT (FIXED SAFETY)
 // ===============================
 function getSystemSnapshot() {
   const status = getSystemStatus();
@@ -253,34 +263,13 @@ function getSmartCycle() {
 
 
 // ===============================
-// UI STATE
-// ===============================
-let currentGrade = 9;
-let currentSection = "study";
-
-let nav, prevBtn, nextBtn;
-
-
-// ===============================
-// NAV UI
-// ===============================
-function updateNavButtons() {
-  if (!nav || !prevBtn || !nextBtn) return;
-
-  nav.style.display = "flex";
-  prevBtn.disabled = currentGrade === 9;
-  nextBtn.disabled = currentGrade === 12;
-}
-
-
-// ===============================
 // ROUTER
 // ===============================
 function loadSection(type, grade) {
   currentSection = type;
   currentGrade = grade;
 
-  updateNavButtons();
+  window.currentGrade = grade; // FIX SYNC
 
   if (type === "study") loadStudySection?.(grade);
   else if (type === "timetable") loadWeeklyTimetable?.();
@@ -307,28 +296,15 @@ function previousGrade() {
 
 
 // ===============================
-// INIT (FIXED - SINGLE CONTROL FLOW)
+// INIT (FIXED SAFETY TIMING)
 // ===============================
 window.addEventListener("load", () => {
 
-  nav = document.getElementById("grade-nav");
-  prevBtn = document.getElementById("prev-btn");
-  nextBtn = document.getElementById("next-btn");
-
-  updateNavButtons();
   getCycleState();
 
-  const splash = document.getElementById("splash-screen");
-
-  const startApp = () => {
+  setTimeout(() => {
     loadSection("study", currentGrade);
-  };
-
-  if (splash) {
-    setTimeout(startApp, 1400);
-  } else {
-    startApp();
-  }
+  }, 1200);
 });
 
 
@@ -341,22 +317,16 @@ window.loadSection = loadSection;
 
 
 // ===============================
-// SAFE SPLASH HANDLER (SYNCED)
+// SPLASH SAFE HANDLER (NO DUPLICATION)
 // ===============================
 (function splashFix() {
 
   function hideSplash() {
-    const splash =
-      document.getElementById("splash-screen") ||
-      document.getElementById("splash");
-
+    const splash = document.getElementById("splash-screen");
     if (!splash) return;
 
     splash.classList.add("hide");
-
-    setTimeout(() => {
-      splash.remove();
-    }, 600);
+    setTimeout(() => splash.remove(), 600);
   }
 
   window.addEventListener("load", () => {
