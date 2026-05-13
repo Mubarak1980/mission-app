@@ -1,4 +1,5 @@
-const CACHE_NAME = 'mission-cache-v89';
+const CACHE_NAME = 'mission-cache-v90';
+
 const ASSETS = [
   './',
   './index.html',
@@ -10,24 +11,37 @@ const ASSETS = [
   './weekly-timetable.js',
   './top-student-mode.js',
   './manifest.json',
-  './icon-192.png'
+  './icon-192.png',
+  './icon-512.png'
 ];
 
+// ===============================
 // INSTALL
+// ===============================
 self.addEventListener('install', event => {
   self.skipWaiting();
+
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache =>
-      Promise.all(
-        ASSETS.map(url =>
-          cache.add(url).catch(() => null)
-        )
-      )
-    )
+    caches.open(CACHE_NAME).then(cache => {
+      return Promise.all(
+        ASSETS.map(async (url) => {
+          try {
+            const res = await fetch(url, { cache: "reload" });
+            if (res.ok) {
+              await cache.put(url, res.clone());
+            }
+          } catch (e) {
+            // ignore offline / missing assets
+          }
+        })
+      );
+    })
   );
 });
 
+// ===============================
 // ACTIVATE
+// ===============================
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -40,13 +54,16 @@ self.addEventListener('activate', event => {
       )
     )
   );
+
   self.clients.claim();
 });
 
+// ===============================
 // FETCH
+// ===============================
 self.addEventListener('fetch', event => {
 
-  // Handle page navigation
+  // NAVIGATION (APP SHELL)
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(() =>
@@ -56,10 +73,10 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Handle other files
+  // STATIC FILES
   event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request);
+    caches.match(event.request).then(cached => {
+      return cached || fetch(event.request);
     })
   );
 });
