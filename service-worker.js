@@ -2,7 +2,7 @@
 // Service Worker (MISSION APP - FINAL PRO)
 // ===============================
 
-const CACHE_NAME = 'mission-cache-v101';
+const CACHE_NAME = 'mission-cache-v102';
 
 const ASSETS = [
   './',
