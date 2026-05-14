@@ -102,9 +102,9 @@ function loadDashboard() {
       <div class="smart-cycle-section">
         <h2>🧠 Smart Study Engine</h2>
 
-        <p>📊 Total Expected (90-day plan): ${smart.expected}</p>
+        <p>📊 Expected : ${smart.expected}</p>
 
-        <p>📚 Total Completed (all grades): ${smart.actual}</p>
+        <p>📚 Progress: ${smart.actual}</p>
 
         <p>⚖️ Difference (Gap): ${smart.gap}</p>
 
