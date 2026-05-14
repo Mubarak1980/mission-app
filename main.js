@@ -80,8 +80,9 @@ const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
 let total = 0;
 
 grades.forEach(grade => {
+// FIXED: Added backticks for template literal
 const saved = JSON.parse(
-localStorage.getItem(grade_${grade}_progress) || "{}"
+localStorage.getItem(`grade_${grade}_progress`) || "{}"
 );
 
 subjects.forEach(subject => {  
@@ -203,8 +204,9 @@ const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
 let actualTotal = 0;
 
 grades.forEach(grade => {
+// FIXED: Added backticks for template literal
 const saved = JSON.parse(
-localStorage.getItem(grade_${grade}_progress) || "{}"
+localStorage.getItem(`grade_${grade}_progress`) || "{}"
 );
 
 subjects.forEach(subject => {  
@@ -403,3 +405,4 @@ requestAnimationFrame(() => {
 });
 
 })();
+  
