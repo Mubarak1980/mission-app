@@ -2,7 +2,7 @@
 // 🌐 SERVICE WORKER (STABLE PWA VERSION)
 // ===============================
 
-const CACHE_NAME = 'mission-cache-v121';
+const CACHE_NAME = 'mission-cache-v122';
 
 const ASSETS = [
   './',
