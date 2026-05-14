@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mission-cache-v111';
+const CACHE_NAME = 'mission-cache-v110';
 const ASSETS = [
 './',
 './index.html',
@@ -15,51 +15,51 @@ const ASSETS = [
 
 // INSTALL
 self.addEventListener('install', event => {
-self.skipWaiting();
-event.waitUntil(
-caches.open(CACHE_NAME).then(cache =>
-Promise.all(
-ASSETS.map(url =>
-cache.add(url).catch(() => null)
-)
-)
-)
-);
+    self.skipWaiting();
+    event.waitUntil(
+        caches.open(CACHE_NAME).then(cache =>
+            Promise.all(
+                ASSETS.map(url =>
+                    cache.add(url).catch(() => null)
+                )
+            )
+        )
+    );
 });
 
 // ACTIVATE
 self.addEventListener('activate', event => {
-event.waitUntil(
-caches.keys().then(keys =>
-Promise.all(
-keys.map(key => {
-if (key !== CACHE_NAME) {
-return caches.delete(key);
-}
-})
-)
-)
-);
-self.clients.claim();
+    event.waitUntil(
+        caches.keys().then(keys =>
+            Promise.all(
+                keys.map(key => {
+                    if (key !== CACHE_NAME) {
+                        return caches.delete(key);
+                    }
+                })
+            )
+        )
+    );
+    self.clients.claim();
 });
 
 // FETCH
 self.addEventListener('fetch', event => {
 
-// Handle page navigation
-if (event.request.mode === 'navigate') {
-event.respondWith(
-fetch(event.request).catch(() =>
-caches.match('./index.html')
-)
-);
-return;
-}
+    // Handle page navigation
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request).catch(() =>
+                caches.match('./index.html')
+            )
+        );
+        return;
+    }
 
-// Handle other files
-event.respondWith(
-caches.match(event.request).then(response => {
-return response || fetch(event.request);
-})
-);
+    // Handle other files
+    event.respondWith(
+        caches.match(event.request).then(response => {
+            return response || fetch(event.request);
+        })
+    );
 });
