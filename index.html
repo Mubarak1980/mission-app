@@ -3,40 +3,24 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-
     <title>Mission App</title>
 
-    <!-- CSS -->
-    <link rel="stylesheet" href="./styles.css" />
-
-    <!-- ===============================
-         PWA CONFIG (IMPROVED)
-    =============================== -->
-
-    <link rel="manifest" href="./manifest.json" />
-
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css" />
+    
+    <!-- Chrome Extension / PWA Meta -->
     <meta name="theme-color" content="#00d4ff" />
-    <meta name="background-color" content="#00d4ff" />
-
-    <!-- Mobile App Behavior -->
-    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <!-- Better icon support -->
-    <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png" />
-    <link rel="apple-touch-icon" href="./icon-192.png" />
-
-    <!-- Android enhancement -->
-    <meta name="application-name" content="Mission App" />
-
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
 </head>
-
 <body>
 
     <!-- 🌄 SPLASH SCREEN -->
-    <div id="splash-screen">
+    <div id="splash-screen" role="presentation">
         <div class="splash-content">
             <h1>📘 Mission App</h1>
             <p>Loading your study system...</p>
@@ -45,75 +29,39 @@
     </div>
 
     <!-- MAIN APP -->
-    <div id="app" style="visibility: hidden;">
+    <main id="app" style="visibility: hidden;" aria-hidden="true">
+        <header>
+            <h1>TIME</h1>
+        </header>
 
-        <h1>TIME</h1>
+        <nav class="section-buttons">
+            <button type="button" id="btn-sunnah">Sunnah Tracker</button>
+            <button type="button" id="btn-study">Study Tracker</button>
+            <button type="button" id="btn-timetable">📅 Weekly Timetable</button>
+            <button type="button" id="btn-dashboard">📊 Dashboard</button>
+            <button type="button" id="btn-top-student">🎓 Top Student Mode</button>
+        </nav>
 
-        <div class="section-buttons">
-            <button onclick="loadSunnahTracker()">Sunnah Tracker</button>
-            <button onclick="loadSection('study', currentGrade)">Study Tracker</button>
-            <button onclick="loadSection('timetable', currentGrade)">📅 Weekly Timetable</button>
-            <button onclick="loadDashboard()">📊 Dashboard</button>
-            <button onclick="loadTopStudentMode()">🎓 Top Student Mode</button>
-        </div>
+        <section id="content-area">
+            <div id="grade-progress-bar"></div>
+            <div id="main-content"></div>
+        </section>
 
-        <div id="grade-progress-bar"></div>
-        <div id="main-content"></div>
+        <footer class="nav-buttons" id="grade-nav">
+            <button type="button" id="prev-btn">Previous</button>
+            <button type="button" id="next-btn">Next</button>
+        </footer>
+    </main>
 
-        <div class="nav-buttons" id="grade-nav">
-            <button onclick="previousGrade()" id="prev-btn">Previous</button>
-            <button onclick="nextGrade()" id="next-btn">Next</button>
-        </div>
+    <!-- CORE LOGIC FILES -->
+    <script src="Sunnah-tracker.js"></script>
+    <script src="Study-tracker.js"></script>
+    <script src="weekly-timetable.js"></script>
+    <script src="dashboard.js"></script>
+    <script src="top-student-mode.js"></script>
+    <script src="main.js"></script>
 
-    </div>
-
-    <!-- JS FILES -->
-    <script src="./Sunnah-tracker.js"></script>
-    <script src="./Study-tracker.js"></script>
-    <script src="./weekly-timetable.js"></script>
-    <script src="./dashboard.js"></script>
-    <script src="./top-student-mode.js"></script>
-    <script src="./main.js"></script>
-
-    <!-- ===============================
-         SERVICE WORKER (IMPROVED)
-    =============================== -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', async () => {
-                try {
-                    const reg = await navigator.serviceWorker.register('./service-worker.js', {
-                        scope: './'
-                    });
-                    console.log('Service Worker Registered:', reg.scope);
-                } catch (err) {
-                    console.log('SW Error:', err);
-                }
-            });
-        }
-    </script>
-
-    <!-- ===============================
-         SPLASH CONTROLLER (UNCHANGED LOGIC)
-    =============================== -->
-    <script>
-        window.addEventListener('load', () => {
-            const splash = document.getElementById('splash-screen');
-            const app = document.getElementById('app');
-
-            if (!splash || !app) return;
-
-            setTimeout(() => {
-                splash.classList.add('hide');
-
-                setTimeout(() => {
-                    splash.remove();
-                    app.style.visibility = 'visible';
-                }, 600);
-
-            }, 1200);
-        });
-    </script>
-
+    <!-- EXTENSION INITIALIZER (Replacing inline scripts) -->
+    <script src="app-init.js"></script>
 </body>
 </html>
