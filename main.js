@@ -326,10 +326,7 @@ function previousGrade() {
 
 
 
-// ===============================
-// INIT
-// ===============================
-window.addEventListener("load", () => {
+function initApp() {
   nav = document.getElementById("grade-nav");
   prevBtn = document.getElementById("prev-btn");
   nextBtn = document.getElementById("next-btn");
@@ -337,6 +334,19 @@ window.addEventListener("load", () => {
   updateNavButtons();
   getCycleState();
   loadSection("study", currentGrade);
+}
+
+// Fast startup (normal web)
+document.addEventListener("DOMContentLoaded", initApp);
+
+// Backup startup (TWA / Android safety)
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    if (!document.body.dataset.initialized) {
+      document.body.dataset.initialized = "true";
+      initApp();
+    }
+  }, 300);
 });
 
 
