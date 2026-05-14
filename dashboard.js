@@ -1,130 +1,67 @@
-// =====================================================
-// 📊 DASHBOARD (FINAL CLEAN + NON-CONFLICT VERSION)
-// =====================================================
+// ===============================
+// Dashboard.js (FINAL ENHANCED)
+// ===============================
 
 function loadDashboard() {
-currentSection = 'dashboard';
+    const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
+    const grades = [9, 10, 11, 12];
+    const main = document.getElementById('main-content');
+    
+    // Ensure the main container and global data exist before running
+    if (!main || !window.maxPagesByGrade) {
+        console.error("Dashboard failed to load: Missing container or maxPagesByGrade data.");
+        return;
+    }
 
-updateNavButtons?.();
+    let html = `
+        <div class="top-student-container">
+            <h2>📊 Overall Academic Progress</h2>
+            <p class="top-student-intro">This dashboard shows your average completion across all grades (9-12).</p>
+        </div>
+        <div class="dashboard-container">`;
 
-if (nav) nav.style.display = 'none';
+    subjects.forEach(subject => {
+        let totalPercent = 0;
+        let count = 0;
 
-const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
-const grades = [9, 10, 11, 12];
+        grades.forEach(grade => {
+            // Retrieve saved progress for the specific grade
+            const storageKey = `grade_${grade}_progress`;
+            const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
+            
+            const pagesRead = Number(saved[subject]) || 0;
+            const maxPages = window.maxPagesByGrade[grade][subject] || 0;
 
-const main = document.getElementById('main-content');
-if (!main) return;
+            if (maxPages > 0) {
+                // Calculate percentage for this specific grade and subject
+                totalPercent += (pagesRead / maxPages) * 100;
+                count++;
+            }
+        });
 
-if (!window.maxPagesByGrade) {
-main.innerHTML = <p>Error: grade data not loaded</p>;
-return;
+        // Calculate average percentage across all available grades
+        const avgPercent = count ? Math.round(totalPercent / count) : 0;
+
+        // Generate the dashboard card for the subject
+        html += `
+            <div class="dashboard-subject">
+                <h3>${subject}</h3>
+                <progress value="${avgPercent}" max="100"></progress>
+                <p>${avgPercent}% Overall</p>
+            </div>`;
+    });
+
+    html += `</div>`;
+    
+    // Inject into the DOM
+    main.innerHTML = html;
+
+    // Remove the grade-specific progress bar since this is a global view
+    const gradeBar = document.getElementById('grade-progress-bar');
+    if (gradeBar) {
+        gradeBar.innerHTML = '';
+    }
 }
 
-// ===============================
-// SAFE LOAD PROGRESS
-// ===============================
-const safeLoadProgress = (grade) => {
-try {
-return loadProgress?.(grade) ||
-JSON.parse(localStorage.getItem(grade_${grade}_progress) || "{}");
-} catch {
-return {};
-}
-};
-
-// ===============================
-// BUILD HTML
-// ===============================
-let html =   <h2>📊 Dashboard: Overall Subject Progress</h2>   <div class="dashboard-container">  ;
-
-// ===============================
-// SUBJECT PROGRESS
-// ===============================
-subjects.forEach(subject => {
-let totalPercent = 0;
-let count = 0;
-
-grades.forEach(grade => {  
-  const saved = safeLoadProgress(grade);  
-
-  const pagesRead = saved?.[subject] || 0;  
-  const maxPages = window.maxPagesByGrade?.[grade]?.[subject] || 0;  
-
-  if (maxPages > 0) {  
-    totalPercent += (pagesRead / maxPages) * 100;  
-    count++;  
-  }  
-});  
-
-const avgPercent = count ? Math.round(totalPercent / count) : 0;  
-
-html += `  
-  <div class="dashboard-subject">  
-    <h3>${subject}</h3>  
-    <progress value="${avgPercent}" max="100"></progress>  
-    <p>${avgPercent}% progress in ${subject}</p>  
-  </div>  
-`;
-
-});
-
-html += </div>;
-
-// ===============================
-// CYCLE INFO (PURE DISPLAY ONLY)
-// ===============================
-const system = getSystemSnapshot?.();
-
-if (system?.time) {
-html +=   <div class="delay-section">   <h2>⏱️ Cycle Info</h2>   <p>📅 Day: ${system.time.cycleDay}/90</p>   </div>  ;
-}
-
-// ===============================
-// 🧠 SMART CYCLE (CLEAR TRUTH DISPLAY)
-// ===============================
-const smart = getSmartCycle?.();
-
-if (smart && smart.expected !== undefined) {
-
-const progressRate =  
-  smart.expected > 0  
-    ? ((smart.actual / smart.expected) * 100).toFixed(1)  
-    : 0;  
-
-html += `  
-  <div class="smart-cycle-section">  
-    <h2>🧠 Smart Study Engine</h2>  
-
-    <p>📊 Expected : ${smart.expected}</p>  
-
-    <p>📚 Progress: ${smart.actual}</p>  
-
-    <p>⚖️ Difference (Gap): ${smart.gap}</p>  
-
-    <p>📈 Progress Rate: ${progressRate}%</p>  
-
-    <hr/>  
-
-    <p>🚀 Catch-up Plan: ${smart.catchUpPerDay ?? 0} pages/day</p>  
-
-    <p>🛡️ Safe Limit: ${smart.dailyLimit?.target ?? 0} pages/day</p>  
-
-    <p>  
-      ⚠️ Burnout Risk:  
-      <b>${smart.dailyLimit?.warning ? "HIGH" : "SAFE"}</b>  
-    </p>  
-  </div>  
-`;
-
-}
-
-// ===============================
-// FINAL RENDER
-// ===============================
-main.innerHTML = html;
-
-const bar = document.getElementById('grade-progress-bar');
-if (bar) bar.innerHTML = '';
-}
-
+// Ensure the function is available globally for the navigation system
 window.loadDashboard = loadDashboard;
