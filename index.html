@@ -3,17 +3,32 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>Mission App</title>
 
     <!-- CSS -->
     <link rel="stylesheet" href="./styles.css" />
 
-    <!-- PWA -->
-    <link rel="manifest" href="./manifest.json" />
-    <meta name="theme-color" content="#2d89ef" />
+    <!-- ===============================
+         PWA CONFIG (FIXED)
+    =============================== -->
 
-    <!-- Icons -->
-    <link rel="apple-touch-icon" href="./icon-192.png">
+    <!-- Manifest MUST be absolute path -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Theme color MUST match manifest -->
+    <meta name="theme-color" content="#00d4ff" />
+
+    <!-- ===============================
+         ICONS (FIXED + COMPLETE)
+    =============================== -->
+
+    <!-- Fallback icon -->
+    <link rel="icon" href="/icon-192.png" />
+
+    <!-- Apple devices -->
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+
 </head>
 
 <body>
@@ -27,7 +42,7 @@
         </div>
     </div>
 
-    <!-- MAIN APP (HIDDEN INITIALLY FOR REAL APP FEEL) -->
+    <!-- MAIN APP -->
     <div id="app" style="visibility: hidden;">
 
         <h1>TIME</h1>
@@ -58,18 +73,22 @@
     <script src="./top-student-mode.js"></script>
     <script src="./main.js"></script>
 
-    <!-- SERVICE WORKER -->
+    <!-- ===============================
+         SERVICE WORKER (SAFE REGISTRATION)
+    =============================== -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
+                navigator.serviceWorker.register('/service-worker.js')
                     .then(() => console.log('Service Worker Registered'))
                     .catch(err => console.log('SW Error:', err));
             });
         }
     </script>
 
-    <!-- SPLASH CONTROLLER (PRO + STABLE) -->
+    <!-- ===============================
+         SPLASH CONTROLLER
+    =============================== -->
     <script>
         window.addEventListener('load', () => {
             const splash = document.getElementById('splash-screen');
@@ -90,4 +109,4 @@
     </script>
 
 </body>
-</html>
+    </html>
