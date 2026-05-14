@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mission-cache-v111';
+const CACHE_NAME = 'mission-cache-v112';
 const ASSETS = [
 './',
 './index.html',
