@@ -1,188 +1,150 @@
 // ===============================
-// study tracker
+// Study-tracker.js (CORRECTED)
 // ===============================
+
 const SUBJECTS = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
 
 // ===============================
 // LOAD SAVED PROGRESS
 // ===============================
 function loadProgress(grade) {
-try {
-return JSON.parse(localStorage.getItem(grade_${grade}_progress) || "{}");
-} catch (e) {
-return {};
-}
+    try {
+        // FIXED: Added backticks for template literal to correctly access localStorage keys
+        return JSON.parse(localStorage.getItem(`grade_${grade}_progress`) || "{}");
+    } catch (e) {
+        return {};
+    }
 }
 
 // ===============================
 // SAVE PROGRESS
 // ===============================
 function saveStudyProgress(grade) {
-const inputs = document.querySelectorAll('.subject-progress');
-const saved = {};
+    const inputs = document.querySelectorAll('.subject-progress');
+    const saved = {};
 
-inputs.forEach(input => {
-const subject = input.dataset.subject;
-const value = Math.max(0, Number(input.value) || 0);
-saved[subject] = value;
-});
+    inputs.forEach(input => {
+        const subject = input.dataset.subject;
+        const value = Math.max(0, Number(input.value) || 0);
+        saved[subject] = value;
+    });
 
-localStorage.setItem(grade_${grade}_progress, JSON.stringify(saved));
-updateGradeSummary(grade);
+    // FIXED: Added backticks for template literal to save to the specific grade key
+    localStorage.setItem(`grade_${grade}_progress`, JSON.stringify(saved));
+    updateGradeSummary(grade);
 }
 
 // ===============================
-// SUBJECT UI
+// SUBJECT UI GENERATOR
 // ===============================
 function createSubject(name, maxPages, savedPages) {
-const percent = maxPages > 0
-? Math.round((savedPages / maxPages) * 100)
-: 0;
+    const percent = maxPages > 0 ? Math.round((savedPages / maxPages) * 100) : 0;
 
-return `
-<div class="subject ${percent === 100 ? 'complete' : ''}">
-<h3>${name}</h3>
-
-<input   
-    class="subject-progress"  
-    type="number"  
-    min="0"  
-    max="${maxPages}"  
-    value="${savedPages}"  
-    data-subject="${name}"  
-    data-maxpages="${maxPages}"  
-  />  
-
-  <progress value="${savedPages}" max="${maxPages}"></progress>  
-
-  <p>${percent}% complete</p>  
-</div>
-
-`;
+    // FIXED: Used backticks for the multiline HTML structure
+    return `
+        <div class="subject ${percent === 100 ? 'complete' : ''}">
+            <h3>${name}</h3>
+            <input 
+                class="subject-progress" 
+                type="number" 
+                min="0" 
+                max="${maxPages}" 
+                value="${savedPages}" 
+                data-subject="${name}" 
+                data-maxpages="${maxPages}" 
+            />  
+            <progress value="${savedPages}" max="${maxPages}"></progress>  
+            <p>${percent}% complete</p>  
+        </div>`;
 }
 
 // ===============================
 // UPDATE UI LIVE
 // ===============================
 function updateSubjectProgressUI(input) {
-let value = Math.max(0, Number(input.value) || 0);
-const max = Number(input.dataset.maxpages);
+    let value = Math.max(0, Number(input.value) || 0);
+    const max = Number(input.dataset.maxpages);
 
-if (value > max) value = max;
-input.value = value;
+    if (value > max) value = max;
+    input.value = value;
 
-const percent = max ? Math.round((value / max) * 100) : 0;
+    const percent = max ? Math.round((value / max) * 100) : 0;
+    const container = input.closest('.subject');
+    
+    if (!container) return;
 
-const container = input.closest('.subject');
-if (!container) return;
-
-container.querySelector('progress').value = value;
-container.querySelector('p').textContent = ${percent}% complete;
-
-container.classList.toggle('complete', percent === 100);
+    container.querySelector('progress').value = value;
+    // FIXED: Added backticks for template literal
+    container.querySelector('p').textContent = `${percent}% complete`;
+    container.classList.toggle('complete', percent === 100);
 }
 
 // ===============================
-// LOAD STUDY SECTION
+// MAIN LOADER
 // ===============================
 function loadStudySection(grade) {
-if (!window.maxPagesByGrade?.[grade]) {
-document.getElementById('main-content').innerHTML =
-<p>Missing data for Grade ${grade}</p>;
-return;
-}
+    // Ensure the data exists in main.js
+    if (!window.maxPagesByGrade?.[grade]) {
+        // FIXED: Added backticks for template literal
+        document.getElementById('main-content').innerHTML = `<p>Missing data for Grade ${grade}</p>`;
+        return;
+    }
 
-const saved = loadProgress(grade);
+    const saved = loadProgress(grade);
+    // FIXED: Added backticks for template literal
+    let html = `<h2>📘 Grade ${grade} Study Tracker</h2><div class="subjects-container">`;
 
-let html =   <h2>📘 Grade ${grade} Study Tracker</h2>   <div class="subjects-container">  ;
+    SUBJECTS.forEach(subject => {
+        const max = window.maxPagesByGrade[grade][subject] || 0;
+        const done = saved[subject] || 0;
+        html += createSubject(subject, max, done);
+    });
 
-SUBJECTS.forEach(subject => {
-const max = window.maxPagesByGrade[grade][subject] || 0;
-const done = saved[subject] || 0;
+    html += `</div>`;
+    document.getElementById('main-content').innerHTML = html;
 
-html += createSubject(subject, max, done);
+    // Attach event listeners to all inputs for automatic saving
+    document.querySelectorAll('.subject-progress').forEach(input => {
+        input.addEventListener('input', function () {
+            updateSubjectProgressUI(this);
+            saveStudyProgress(grade);
+        });
+    });
 
-});
-
-html += </div>;
-
-document.getElementById('main-content').innerHTML = html;
-
-document.querySelectorAll('.subject-progress').forEach(input => {
-updateSubjectProgressUI(input);
-
-input.addEventListener('input', function () {  
-  updateSubjectProgressUI(this);  
-  saveStudyProgress(grade);  
-});
-
-});
-
-updateGradeSummary(grade);
+    updateGradeSummary(grade);
 }
 
 // ===============================
-// WEIGHTED SUMMARY (FIXED LOGIC)
+// OVERALL GRADE SUMMARY
 // ===============================
 function updateGradeSummary(grade) {
-const saved = loadProgress(grade);
-const data = window.maxPagesByGrade?.[grade];
+    const saved = loadProgress(grade);
+    const data = window.maxPagesByGrade?.[grade];
 
-if (!data) return;
+    if (!data) return;
 
-let totalDone = 0;
-let totalPages = 0;
+    let totalDone = 0;
+    let totalPages = 0;
 
-SUBJECTS.forEach(subject => {
-const max = data[subject] || 0;
-const done = saved[subject] || 0;
+    SUBJECTS.forEach(subject => {
+        const max = data[subject] || 0;
+        const done = saved[subject] || 0;
+        totalDone += Math.min(done, max);
+        totalPages += max;
+    });
 
-totalDone += Math.min(done, max);  
-totalPages += max;
+    const percent = totalPages ? Math.round((totalDone / totalPages) * 100) : 0;
+    const el = document.getElementById('grade-progress-bar');
 
-});
-
-const percent = totalPages
-? Math.round((totalDone / totalPages) * 100)
-: 0;
-
-const el = document.getElementById('grade-progress-bar');
-
-if (el) {
-el.innerHTML =   <label>📘 Overall Progress (Grade ${grade}): ${percent}%</label>   <progress value="${percent}" max="100"></progress>  ;
-}
+    if (el) {
+        // FIXED: Used backticks for summary label and values
+        el.innerHTML = `
+            <label>📘 Overall Progress (Grade ${grade}): ${percent}%</label>
+            <progress value="${percent}" max="100"></progress>`;
+    }
 }
 
-// ===============================
-// 📊 STEP 2: EXPECTED PROGRESS ENGINE (STUDY INTEGRATION)
-// ===============================
-function getExpectedProgress() {
-const cycle = getCycleState ? getCycleState() : null;
-
-if (!cycle) {
-return {
-cycleDay: 1,
-remainingDays: 90,
-expectedPages: 0
-};
-}
-
-const TOTAL_DAYS = 90;
-const TOTAL_PAGES = 5705;
-
-const expectedPages =
-(cycle.cycleDay / TOTAL_DAYS) * TOTAL_PAGES;
-
-return {
-cycleDay: cycle.cycleDay,
-remainingDays: cycle.remainingDays,
-expectedPages: Math.round(expectedPages)
-};
-}
-
-// ===============================
-// EXPORT
-// ===============================
+// EXPORTS to ensure main.js can access these functions
 window.loadStudySection = loadStudySection;
-window.saveStudyProgress = saveStudyProgress;
 window.updateGradeSummary = updateGradeSummary;
+            
