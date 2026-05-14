@@ -1,4 +1,6 @@
-// js/top-student-mode.js
+// ===============================
+// top-student-mode.js
+// ===============================
 
 function loadTopStudentMode() {
   const mainContent = document.getElementById('main-content');
@@ -8,13 +10,13 @@ function loadTopStudentMode() {
     return;
   }
 
-  const grade =
-    (typeof window.currentGrade === 'number' &&
-      window.currentGrade >= 9 &&
-      window.currentGrade <= 12)
-      ? window.currentGrade
-      : 12;
+  // Clear the top progress bar to give the text more room
+  const gradeBar = document.getElementById('grade-progress-bar');
+  if (gradeBar) {
+    gradeBar.innerHTML = '';
+  }
 
+  // Injecting your exact text and structure
   mainContent.innerHTML = `
     <div class="top-student-container">
       <h2>🎓 Top Student Mode</h2>
@@ -62,7 +64,6 @@ function loadTopStudentMode() {
         </ul>
       </div>
 
-      <!-- ✅ NEW SECTION ADDED -->
       <div class="top-student-card">
         <h3>🧠⚖️ Performance & Body–Brain Balance</h3>
         <ul>
@@ -104,4 +105,5 @@ function loadTopStudentMode() {
   `;
 }
 
+// Ensure the function is accessible globally
 window.loadTopStudentMode = loadTopStudentMode;
