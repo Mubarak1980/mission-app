@@ -8,12 +8,14 @@
   "scope": "/Mission-app/",
 
   "display": "standalone",
-  "display_override": ["standalone", "fullscreen"],
+  "display_override": ["fullscreen", "standalone"],
 
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
 
   "background_color": "#00d4ff",
   "theme_color": "#00d4ff",
+
+  "description": "Mission App - Study tracking and productivity system",
 
   "icons": [
     {
@@ -28,5 +30,9 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  }
 }
