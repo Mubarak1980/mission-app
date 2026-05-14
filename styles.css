@@ -1,5 +1,5 @@
 /* ===============================
-ROOT (DESIGN SYSTEM)
+   ROOT (DESIGN SYSTEM)
 =============================== */
 :root {
   --bg: #0b0f14;
@@ -9,11 +9,10 @@ ROOT (DESIGN SYSTEM)
   --primary-soft: rgba(0, 212, 255, 0.15);
   --text: #e6edf3;
   --muted: #8b949e;
-  --success: #00ffa6;
 }
 
 /* ===============================
-GLOBAL
+   GLOBAL
 =============================== */
 body {
   font-family: 'Segoe UI', Roboto, sans-serif;
@@ -22,12 +21,10 @@ body {
   background: var(--bg);
   color: var(--text);
   -webkit-tap-highlight-color: transparent;
-  overscroll-behavior: none; /* removes browser “rubber band” feel */
-  touch-action: manipulation;
 }
 
 /* ===============================
-TITLE
+   TITLE
 =============================== */
 h1 {
   text-align: center;
@@ -38,7 +35,7 @@ h1 {
 }
 
 /* ===============================
-SECTION BUTTONS
+   SECTION BUTTONS
 =============================== */
 .section-buttons {
   display: flex;
@@ -70,14 +67,14 @@ SECTION BUTTONS
 }
 
 /* ===============================
-MAIN CONTENT
+   MAIN CONTENT
 =============================== */
 #main-content {
   overflow-x: auto;
 }
 
 /* ===============================
-SUBJECT CARDS
+   SUBJECT CARDS
 =============================== */
 .subjects-container {
   display: flex;
@@ -93,6 +90,9 @@ SUBJECT CARDS
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
 }
 
+/* ===============================
+   SUBJECT TITLE
+=============================== */
 .subject h3 {
   margin-bottom: 10px;
   color: var(--primary);
@@ -100,11 +100,10 @@ SUBJECT CARDS
 }
 
 /* ===============================
-INPUT
+   INPUT
 =============================== */
 .subject input {
   width: 100%;
-  box-sizing: border-box; /* Fix for padding overflow */
   padding: 10px;
   border-radius: 10px;
   border: 1px solid var(--border);
@@ -121,7 +120,7 @@ INPUT
 }
 
 /* ===============================
-PROGRESS BAR (GLOBAL)
+   PROGRESS BAR (GLOBAL)
 =============================== */
 progress {
   width: 100%;
@@ -136,114 +135,25 @@ progress::-webkit-progress-bar {
 }
 
 progress::-webkit-progress-value {
-  background: linear-gradient(90deg, var(--primary), var(--success));
+  background: linear-gradient(90deg, #00d4ff, #00ffa6);
 }
 
 progress::-moz-progress-bar {
-  background: linear-gradient(90deg, var(--primary), var(--success));
+  background: linear-gradient(90deg, #00d4ff, #00ffa6);
 }
 
 /* ===============================
-DASHBOARD & SMART ENGINE
+   SUBJECT TEXT
 =============================== */
-.dashboard-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
-  margin-top: 10px;
-}
-
-.dashboard-subject {
-  background: var(--card);
-  padding: 15px;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  text-align: center;
-}
-
-.dashboard-subject h3 {
-  margin: 0 0 10px 0;
-  font-size: 14px;
-  color: var(--primary);
-}
-
-.smart-cycle-section, .delay-section {
-  background: var(--card);
-  padding: 18px;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  margin-top: 20px;
+.subject p {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: right;
 }
 
 /* ===============================
-TOP STUDENT MODE
-=============================== */
-.top-student-container {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding-bottom: 30px;
-}
-
-.top-student-card {
-  background: var(--card);
-  padding: 18px;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  line-height: 1.6;
-}
-
-.top-student-card h3 {
-  margin-top: 0;
-  color: var(--primary);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.highlight-card {
-  border: 1px solid var(--primary);
-  background: linear-gradient(145deg, #121821, #0b0f14);
-  box-shadow: 0 0 15px var(--primary-soft);
-}
-
-/* ===============================
-SPLASH SCREEN
-=============================== */
-#splash-screen {
-  position: fixed;
-  inset: 0;
-  background: var(--bg);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 99999;
-  opacity: 1;
-  transition: opacity 0.6s ease;
-}
-
-#splash-screen.hide {
-  opacity: 0;
-  visibility: hidden;
-}
-
-.loader {
-  width: 38px;
-  height: 38px;
-  margin: 18px auto 0;
-  border: 4px solid var(--border);
-  border-top: 4px solid var(--primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-/* ===============================
-NAV & SUMMARY BAR
+   NAV BUTTONS
 =============================== */
 .nav-buttons {
   display: flex;
@@ -259,8 +169,16 @@ NAV & SUMMARY BAR
   background: linear-gradient(135deg, #007acc, #00d4ff);
   color: white;
   font-weight: bold;
+  transition: all 0.2s ease;
 }
 
+.nav-buttons button:active {
+  transform: scale(0.96);
+}
+
+/* ===============================
+   SUMMARY BAR
+=============================== */
 #grade-progress-bar {
   margin-bottom: 14px;
   text-align: center;
@@ -271,4 +189,278 @@ NAV & SUMMARY BAR
   margin-bottom: 6px;
   font-size: 13px;
   color: var(--muted);
+}
+
+/* ===============================
+   TABLE
+=============================== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card);
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 13px;
+  min-width: 650px;
+}
+
+thead {
+  background: #007acc;
+}
+
+th {
+  padding: 10px;
+  color: white;
+  font-weight: 600;
+}
+
+td {
+  padding: 8px;
+  border-top: 1px solid var(--border);
+  color: var(--text);
+}
+
+tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ===============================
+   DASHBOARD
+=============================== */
+.dashboard-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+  padding: 4px;
+}
+
+.dashboard-subject {
+  background: linear-gradient(145deg, var(--card), #0e141c);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 16px;
+
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-subject:hover {
+  transform: translateY(-4px);
+  border-color: var(--primary);
+  box-shadow: 0 10px 26px rgba(0, 212, 255, 0.15);
+}
+
+.dashboard-subject::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  background: linear-gradient(90deg, var(--primary), #00ffa6);
+}
+
+.dashboard-subject h3 {
+  margin: 0 0 12px 0;
+  font-size: 17px;
+  color: var(--primary);
+}
+
+.dashboard-subject p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: right;
+}
+
+/* ===============================
+   TOP STUDENT MODE (FIXED + RESTORED)
+=============================== */
+
+.top-student-container {
+  max-width: 900px;
+  margin: 10px auto;
+  animation: fadeIn 0.5s ease;
+}
+
+.top-student-container h2 {
+  text-align: center;
+  margin-bottom: 10px;
+  color: var(--primary);
+}
+
+.top-student-intro {
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.top-student-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  transition: all 0.25s ease;
+}
+
+.top-student-card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 6px 18px rgba(0, 212, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.top-student-card h3 {
+  color: var(--primary);
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.top-student-card ul {
+  padding-left: 18px;
+}
+
+.top-student-card li {
+  margin-bottom: 8px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.top-student-card p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.highlight-card {
+  background: linear-gradient(135deg, #007acc, #00d4ff);
+  color: white;
+  border: none;
+}
+
+.highlight-card p {
+  color: white;
+  font-weight: 500;
+}
+
+.top-student-card::before {
+  content: "";
+  display: block;
+  height: 3px;
+  width: 40px;
+  background: var(--primary);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  opacity: 0.7;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===============================
+   MOBILE
+=============================== */
+@media (max-width: 500px) {
+  h1 {
+    font-size: 18px;
+  }
+
+  th, td {
+    font-size: 11px;
+    padding: 6px;
+  }
+
+  .dashboard-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+/* ===============================
+   SPLASH SCREEN (PRO LEVEL - FIXED)
+=============================== */
+
+#splash-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 99999;
+
+  opacity: 1;
+  visibility: visible;
+
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+/* Smooth fade out */
+#splash-screen.hide {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Slight entrance animation (feels like real apps) */
+.splash-content {
+  text-align: center;
+  animation: splashFadeIn 0.6s ease;
+}
+
+@keyframes splashFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+#splash-screen h1 {
+  color: var(--primary);
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+#splash-screen p {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Loader */
+.loader {
+  width: 40px;
+  height: 40px;
+  margin: 18px auto 0;
+
+  border: 4px solid var(--border);
+  border-top: 4px solid var(--primary);
+  border-radius: 50%;
+
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
