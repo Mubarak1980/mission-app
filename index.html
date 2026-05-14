@@ -13,15 +13,16 @@
          PWA CONFIG (TWA SAFE)
     =============================== -->
 
-    <!-- Manifest (RELATIVE PATH for GitHub Pages + TWA) -->
+    <!-- Manifest -->
     <link rel="manifest" href="./manifest.json" />
 
-    <!-- Theme color -->
+    <!-- Theme -->
     <meta name="theme-color" content="#00d4ff" />
 
-    <!-- Mobile app capability -->
+    <!-- App-like behavior -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <!-- Icons -->
     <link rel="icon" href="./icon-192.png" />
@@ -72,7 +73,7 @@
     <script src="./main.js"></script>
 
     <!-- ===============================
-         SERVICE WORKER (TWA SAFE)
+         SERVICE WORKER
     =============================== -->
     <script>
         if ('serviceWorker' in navigator) {
