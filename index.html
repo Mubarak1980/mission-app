@@ -10,24 +10,22 @@
     <link rel="stylesheet" href="./styles.css" />
 
     <!-- ===============================
-         PWA CONFIG (FIXED)
+         PWA CONFIG (TWA SAFE)
     =============================== -->
 
-    <!-- Manifest MUST be absolute path -->
-    <link rel="manifest" href="/manifest.json" />
+    <!-- Manifest (RELATIVE PATH for GitHub Pages + TWA) -->
+    <link rel="manifest" href="./manifest.json" />
 
-    <!-- Theme color MUST match manifest -->
+    <!-- Theme color -->
     <meta name="theme-color" content="#00d4ff" />
 
-    <!-- ===============================
-         ICONS (FIXED + COMPLETE)
-    =============================== -->
+    <!-- Mobile app capability -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
 
-    <!-- Fallback icon -->
-    <link rel="icon" href="/icon-192.png" />
-
-    <!-- Apple devices -->
-    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <!-- Icons -->
+    <link rel="icon" href="./icon-192.png" />
+    <link rel="apple-touch-icon" href="./icon-192.png" />
 
 </head>
 
@@ -74,12 +72,12 @@
     <script src="./main.js"></script>
 
     <!-- ===============================
-         SERVICE WORKER (SAFE REGISTRATION)
+         SERVICE WORKER (TWA SAFE)
     =============================== -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
+                navigator.serviceWorker.register('./service-worker.js')
                     .then(() => console.log('Service Worker Registered'))
                     .catch(err => console.log('SW Error:', err));
             });
@@ -109,4 +107,4 @@
     </script>
 
 </body>
-    </html>
+</html>
