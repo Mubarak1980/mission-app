@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mission App</title>
-    
+
     <!-- CSS -->
     <link rel="stylesheet" href="./styles.css" />
 
@@ -14,84 +14,80 @@
 
     <!-- Icons -->
     <link rel="apple-touch-icon" href="./icon-192.png">
-
 </head>
+
 <body>
 
-<!-- 🌄 SPLASH SCREEN -->
-<div id="splash-screen">
-    <div class="splash-content">
-        <h1>📘 Mission App</h1>
-        <p>Loading your study system...</p>
-        <div class="loader"></div>
-    </div>
-</div>
-
-<!-- MAIN APP (HIDDEN INITIALLY FOR REAL APP FEEL) -->
-<div id="app" style="visibility: hidden;">
-
-    <h1>TIME</h1>
-
-    <div class="section-buttons">
-        <!-- FIXED: Updated to call functions defined in your JS files -->
-        <button onclick="loadSunnahTracker()">Sunnah Tracker</button>
-        <button onclick="loadSection('study', currentGrade)">Study Tracker</button>
-        <button onclick="loadSection('timetable', currentGrade)">📅 Weekly Timetable</button>
-        <button onclick="loadSection('dashboard', currentGrade)">📊 Dashboard</button>
-        <button onclick="loadSection('top-student', currentGrade)">🎓 Top Student Mode</button>
+    <!-- 🌄 SPLASH SCREEN -->
+    <div id="splash-screen">
+        <div class="splash-content">
+            <h1>📘 Mission App</h1>
+            <p>Loading your study system...</p>
+            <div class="loader"></div>
+        </div>
     </div>
 
-    <div id="grade-progress-bar"></div>
-    <div id="main-content"></div>
+    <!-- MAIN APP (HIDDEN INITIALLY FOR REAL APP FEEL) -->
+    <div id="app" style="visibility: hidden;">
 
-    <div class="nav-buttons" id="grade-nav">
-        <button onclick="previousGrade()" id="prev-btn">Previous</button>
-        <button onclick="nextGrade()" id="next-btn">Next</button>
+        <h1>TIME</h1>
+
+        <div class="section-buttons">
+            <button onclick="loadSunnahTracker()">Sunnah Tracker</button>
+            <button onclick="loadSection('study', currentGrade)">Study Tracker</button>
+            <button onclick="loadSection('timetable', currentGrade)">📅 Weekly Timetable</button>
+            <button onclick="loadDashboard()">📊 Dashboard</button>
+            <button onclick="loadTopStudentMode()">🎓 Top Student Mode</button>
+        </div>
+
+        <div id="grade-progress-bar"></div>
+        <div id="main-content"></div>
+
+        <div class="nav-buttons" id="grade-nav">
+            <button onclick="previousGrade()" id="prev-btn">Previous</button>
+            <button onclick="nextGrade()" id="next-btn">Next</button>
+        </div>
+
     </div>
 
-</div>
+    <!-- JS FILES -->
+    <script src="./Sunnah-tracker.js"></script>
+    <script src="./Study-tracker.js"></script>
+    <script src="./weekly-timetable.js"></script>
+    <script src="./dashboard.js"></script>
+    <script src="./top-student-mode.js"></script>
+    <script src="./main.js"></script>
 
-<!-- JS FILES -->
-<!-- Order is important: data and core logic first -->
-<script src="./Sunnah-tracker.js"></script>
-<script src="./Study-tracker.js"></script>
-<script src="./weekly-timetable.js"></script>
-<script src="./dashboard.js"></script>
-<script src="./top-student-mode.js"></script>
-<script src="./main.js"></script>
+    <!-- SERVICE WORKER -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(() => console.log('Service Worker Registered'))
+                    .catch(err => console.log('SW Error:', err));
+            });
+        }
+    </script>
 
-<!-- SERVICE WORKER REGISTRATION -->
-<script>
-    if ('serviceWorker' in navigator) {
+    <!-- SPLASH CONTROLLER (PRO + STABLE) -->
+    <script>
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js')
-                .then(() => console.log('Service Worker Registered'))
-                .catch(err => console.log('SW Error:', err));
-        });
-    }
-</script>
+            const splash = document.getElementById('splash-screen');
+            const app = document.getElementById('app');
 
-<!-- SPLASH CONTROLLER (PRO + STABLE) -->
-<script>
-    window.addEventListener('load', () => {
-        const splash = document.getElementById('splash-screen');
-        const app = document.getElementById('app');
-
-        if (!splash || !app) return;
-
-        // Matches the timing logic in your main.js/splashController
-        setTimeout(() => {
-            splash.classList.add('hide');
+            if (!splash || !app) return;
 
             setTimeout(() => {
-                splash.remove();
-                app.style.visibility = 'visible';
-            }, 600);
+                splash.classList.add('hide');
 
-        }, 1200);
-    });
-</script>
+                setTimeout(() => {
+                    splash.remove();
+                    app.style.visibility = 'visible';
+                }, 600);
+
+            }, 1200);
+        });
+    </script>
 
 </body>
-    </html>
-    
+</html>
