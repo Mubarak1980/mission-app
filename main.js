@@ -1,8 +1,4 @@
-// ===============================
-// Main.js (FINAL STABLE + SMART CYCLE PRO)
-// ===============================
-
-
+"use strict";
 
 // ===============================
 // MAX PAGES DATA
@@ -17,54 +13,62 @@ window.maxPagesByGrade = {
 const TOTAL_DAYS = 90;
 const TOTAL_PAGES = 5705;
 
+// ===============================
+// SAFE STORAGE HELPERS (NEW)
+// ===============================
+function safeJSON(key, fallback) {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
+  } catch (e) {
+    return fallback;
+  }
+}
 
+function todayISO() {
+  return new Date().toISOString().split("T")[0];
+}
 
 // ===============================
-// 🧠 CYCLE ENGINE
+// CYCLE ENGINE
 // ===============================
 function getCycleState() {
-  let state = JSON.parse(localStorage.getItem("cycleState") || "{}");
-
-  const today = new Date();
-  const todayStr = today.toISOString().split("T")[0];
+  const todayStr = todayISO();
+  const state = safeJSON("cycleState", {});
 
   if (!state.startDate) state.startDate = todayStr;
 
   const start = new Date(state.startDate);
-  const diff = Math.floor((today - start) / (1000 * 60 * 60 * 24));
+  const now = new Date();
+
+  const diff = Math.floor((now - start) / 86400000);
 
   state.cycleDay = Math.min(diff + 1, TOTAL_DAYS);
-  state.remainingDays = TOTAL_DAYS - state.cycleDay;
+  state.remainingDays = Math.max(0, TOTAL_DAYS - state.cycleDay);
 
   localStorage.setItem("cycleState", JSON.stringify(state));
   return state;
 }
 
-
-
 // ===============================
-// 📅 DAILY SYSTEM
+// TODAY DATA
 // ===============================
 function getTodayKey() {
-  return new Date().toISOString().split("T")[0];
+  return todayISO();
 }
 
 function getTodayPlan() {
-  const today = getTodayKey();
-  const plan = JSON.parse(localStorage.getItem("todayPlan") || "{}");
-  return plan[today] || [];
+  const plan = safeJSON("todayPlan", {});
+  return plan[getTodayKey()] || [];
 }
 
 function getTodayLog() {
-  const today = getTodayKey();
-  const logs = JSON.parse(localStorage.getItem("dailyStudyLog") || "{}");
-  return logs[today] || {};
+  const logs = safeJSON("dailyStudyLog", {});
+  return logs[getTodayKey()] || {};
 }
 
-
-
 // ===============================
-// 📈 EXPECTED PROGRESS
+// PROGRESS ENGINE
 // ===============================
 function getExpectedProgress() {
   const cycle = getCycleState();
@@ -78,34 +82,28 @@ function getExpectedProgress() {
   };
 }
 
-
-
 // ===============================
-// 📊 ACTUAL PROGRESS
+// ACTUAL PROGRESS
 // ===============================
 function getActualProgress() {
   const grades = [9, 10, 11, 12];
-  const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
+  const subjects = ["Math", "Physics", "Chemistry", "Biology", "English"];
 
   let total = 0;
 
-  grades.forEach(grade => {
-    const saved = JSON.parse(
-      localStorage.getItem(`grade_${grade}_progress`) || "{}"
-    );
+  for (let i = 0; i < grades.length; i++) {
+    const saved = safeJSON(`grade_${grades[i]}_progress`, {});
 
-    subjects.forEach(subject => {
-      total += Number(saved[subject]) || 0;
-    });
-  });
+    for (let j = 0; j < subjects.length; j++) {
+      total += Number(saved[subjects[j]]) || 0;
+    }
+  }
 
   return { actualPages: total };
 }
 
-
-
 // ===============================
-// ⚖️ DELAY ENGINE
+// DELAY ENGINE
 // ===============================
 function getDelayStatus() {
   const expected = getExpectedProgress();
@@ -126,25 +124,28 @@ function getDelayStatus() {
   };
 }
 
-
-
 // ===============================
-// ⚖️ DAILY DELAY ENGINE
+// DAILY DELAY ENGINE
 // ===============================
 function getPlannedVsActual() {
   const plan = getTodayPlan();
   const todayLog = getTodayLog();
 
-  let delays = [];
+  const delays = [];
 
   if (!Array.isArray(plan)) return delays;
 
-  plan.forEach(p => {
-    if (!p?.grade || !p?.subjects) return;
+  for (let i = 0; i < plan.length; i++) {
+    const p = plan[i];
+    if (!p?.grade || !p?.subjects) continue;
 
     const actual = todayLog[p.grade] || {};
 
-    Object.keys(p.subjects).forEach(subject => {
+    const subjects = Object.keys(p.subjects);
+
+    for (let j = 0; j < subjects.length; j++) {
+      const subject = subjects[j];
+
       const planned = Number(p.subjects[subject]) || 0;
       const done = Number(actual[subject]) || 0;
 
@@ -155,16 +156,14 @@ function getPlannedVsActual() {
           missing: planned - done
         });
       }
-    });
-  });
+    }
+  }
 
   return delays;
 }
 
-
-
 // ===============================
-// 🧠 SYSTEM STATUS
+// SYSTEM STATUS
 // ===============================
 function getSystemStatus() {
   const cycle = getDelayStatus();
@@ -177,10 +176,8 @@ function getSystemStatus() {
   };
 }
 
-
-
 // ===============================
-// 🧠 SYSTEM SNAPSHOT
+// SNAPSHOT
 // ===============================
 function getSystemSnapshot() {
   const status = getSystemStatus();
@@ -191,13 +188,11 @@ function getSystemSnapshot() {
       cycleDay: cycle.cycleDay,
       remainingDays: TOTAL_DAYS - cycle.cycleDay
     },
-
     progress: {
       actual: cycle.actualPages,
       expected: cycle.expectedPages,
       gap: cycle.gap
     },
-
     alerts: {
       isOnTrack: status.isOnTrack,
       hasDailyIssues: status.dailyDelays.length > 0,
@@ -206,58 +201,34 @@ function getSystemSnapshot() {
   };
 }
 
-
-
 // ===============================
-// SMART CYCLE ENGINE
+// SMART CYCLE
 // ===============================
 function getSmartCycle() {
   const cycle = getDelayStatus();
-
-  const grades = [9, 10, 11, 12];
-  const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
-
-  let actualTotal = 0;
-
-  grades.forEach(grade => {
-    const saved = JSON.parse(
-      localStorage.getItem(`grade_${grade}_progress`) || "{}"
-    );
-
-    subjects.forEach(subject => {
-      actualTotal += Number(saved[subject]) || 0;
-    });
-  });
+  const actualTotal = getActualProgress().actualPages;
 
   const expected = cycle.expectedPages;
   const gap = actualTotal - expected;
 
   const remainingDays = Math.max(1, TOTAL_DAYS - cycle.cycleDay);
 
-  let catchUpPerDay = 0;
-
-  if (gap < 0) {
-    catchUpPerDay = Math.ceil(Math.abs(gap) / remainingDays);
-    catchUpPerDay = Math.min(catchUpPerDay, 60);
-  }
+  let catchUpPerDay = gap < 0 ? Math.ceil(Math.abs(gap) / remainingDays) : 0;
+  catchUpPerDay = Math.min(catchUpPerDay, 60);
 
   const baseDaily = TOTAL_PAGES / TOTAL_DAYS;
 
   let target = baseDaily + catchUpPerDay;
 
-  if (target > 85) target = 85;
-  if (target < 25) target = 25;
+  target = Math.min(Math.max(target, 25), 85);
 
   return {
     expected: Math.round(expected),
     actual: Math.round(actualTotal),
     gap: Math.round(gap),
-
     status: gap >= 0 ? "AHEAD / ON TRACK" : "BEHIND",
-
     catchUpPerDay,
     remainingDays,
-
     dailyLimit: {
       target: Math.round(target),
       safe: target <= 70,
@@ -265,8 +236,6 @@ function getSmartCycle() {
     }
   };
 }
-
-
 
 // ===============================
 // UI STATE
@@ -276,20 +245,16 @@ let currentSection = "study";
 
 let nav, prevBtn, nextBtn;
 
-
-
 // ===============================
-// NAV UI
+// NAV
 // ===============================
 function updateNavButtons() {
   if (!nav || !prevBtn || !nextBtn) return;
 
   nav.style.display = "flex";
-  prevBtn.disabled = currentGrade === 9;
-  nextBtn.disabled = currentGrade === 12;
+  prevBtn.disabled = currentGrade <= 9;
+  nextBtn.disabled = currentGrade >= 12;
 }
-
-
 
 // ===============================
 // ROUTER
@@ -304,8 +269,6 @@ function loadSection(type, grade) {
   else if (type === "timetable") loadWeeklyTimetable?.();
   else if (type === "dashboard") loadDashboard?.();
 }
-
-
 
 // ===============================
 // NAVIGATION
@@ -324,8 +287,9 @@ function previousGrade() {
   }
 }
 
-
-
+// ===============================
+// INIT
+// ===============================
 function initApp() {
   nav = document.getElementById("grade-nav");
   prevBtn = document.getElementById("prev-btn");
@@ -336,10 +300,8 @@ function initApp() {
   loadSection("study", currentGrade);
 }
 
-// Fast startup (normal web)
 document.addEventListener("DOMContentLoaded", initApp);
 
-// Backup startup (TWA / Android safety)
 window.addEventListener("load", () => {
   setTimeout(() => {
     if (!document.body.dataset.initialized) {
@@ -349,8 +311,6 @@ window.addEventListener("load", () => {
   }, 300);
 });
 
-
-
 // ===============================
 // EXPORTS
 // ===============================
@@ -358,10 +318,8 @@ window.nextGrade = nextGrade;
 window.previousGrade = previousGrade;
 window.loadSection = loadSection;
 
-
-
 // ===============================
-// UI CONNECTOR
+// UI STATE
 // ===============================
 function getUIState() {
   return {
@@ -369,28 +327,14 @@ function getUIState() {
     grade: currentGrade,
     system: getSystemSnapshot(),
     status: getSystemStatus(),
-    smart: getSmartCycle(),
-    isDashboard: currentSection === "dashboard",
-    isStudy: currentSection === "study",
-    isTimetable: currentSection === "timetable"
+    smart: getSmartCycle()
   };
 }
 
-function refreshUI() {
-  const state = getUIState();
-
-  if (state.isStudy && typeof updateGradeSummary === "function") {
-    updateGradeSummary(state.grade);
-  }
-}
-
-
-
 // ===============================
-// SAFE SYNC SYSTEM
+// SYNC SYSTEM
 // ===============================
 (function initSmartSync() {
-
   function sync() {
     const lastUpdate = localStorage.getItem("study_last_update");
     if (!lastUpdate) return;
@@ -410,43 +354,17 @@ function refreshUI() {
   setInterval(sync, 5000);
 })();
 
-
-
 // ===============================
-// 🌄 SPLASH SCREEN CONTROLLER (ADDED ONLY)
-// ===============================
-(function splashController() {
-
-  function hideSplash() {
-    const splash = document.getElementById("splash-screen");
-    if (!splash) return;
-
-    splash.classList.add("hide");
-
-    setTimeout(() => {
-      splash.remove();
-    }, 700);
-  }
-
-  window.addEventListener("load", () => {
-    setTimeout(() => {
-      hideSplash();
-    }, 1200);
-  });
-
-})();
-
-// ===============================
-// 📲 INSTALL CONTROL (SAFE ADD)
+// INSTALL CONTROL
 // ===============================
 let deferredPrompt = null;
 
 window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault(); // 🚫 stops Chrome default install UI
-
+  e.preventDefault();
   deferredPrompt = e;
 
   const installBtn = document.getElementById("install-btn");
+
   if (installBtn) {
     installBtn.style.display = "block";
 
@@ -454,12 +372,7 @@ window.addEventListener("beforeinstallprompt", (e) => {
       if (!deferredPrompt) return;
 
       deferredPrompt.prompt();
-
-      const choice = await deferredPrompt.userChoice;
-
-      if (choice.outcome === "accepted") {
-        console.log("User installed the app");
-      }
+      await deferredPrompt.userChoice;
 
       deferredPrompt = null;
       installBtn.style.display = "none";
@@ -468,6 +381,5 @@ window.addEventListener("beforeinstallprompt", (e) => {
 });
 
 window.addEventListener("appinstalled", () => {
-  console.log("App installed successfully");
   deferredPrompt = null;
 });
