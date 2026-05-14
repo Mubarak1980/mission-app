@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
     <title>Mission App</title>
 
@@ -10,23 +10,26 @@
     <link rel="stylesheet" href="./styles.css" />
 
     <!-- ===============================
-         PWA CONFIG (TWA SAFE)
+         PWA CONFIG (IMPROVED)
     =============================== -->
 
-    <!-- Manifest -->
     <link rel="manifest" href="./manifest.json" />
 
-    <!-- Theme -->
     <meta name="theme-color" content="#00d4ff" />
+    <meta name="background-color" content="#00d4ff" />
 
-    <!-- App-like behavior -->
+    <!-- Mobile App Behavior -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <!-- Icons -->
-    <link rel="icon" href="./icon-192.png" />
+    <!-- Better icon support -->
+    <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png" />
     <link rel="apple-touch-icon" href="./icon-192.png" />
+
+    <!-- Android enhancement -->
+    <meta name="application-name" content="Mission App" />
 
 </head>
 
@@ -73,20 +76,25 @@
     <script src="./main.js"></script>
 
     <!-- ===============================
-         SERVICE WORKER
+         SERVICE WORKER (IMPROVED)
     =============================== -->
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
-                    .then(() => console.log('Service Worker Registered'))
-                    .catch(err => console.log('SW Error:', err));
+            window.addEventListener('load', async () => {
+                try {
+                    const reg = await navigator.serviceWorker.register('./service-worker.js', {
+                        scope: './'
+                    });
+                    console.log('Service Worker Registered:', reg.scope);
+                } catch (err) {
+                    console.log('SW Error:', err);
+                }
             });
         }
     </script>
 
     <!-- ===============================
-         SPLASH CONTROLLER
+         SPLASH CONTROLLER (UNCHANGED LOGIC)
     =============================== -->
     <script>
         window.addEventListener('load', () => {
