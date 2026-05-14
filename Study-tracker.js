@@ -1,24 +1,25 @@
 // ===============================
-// Study-tracker.js (CORRECTED)
+// Study-tracker.js (COMPLETE)
 // ===============================
 
 const SUBJECTS = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
 
-// ===============================
-// LOAD SAVED PROGRESS
-// ===============================
+/**
+ * Loads progress from localStorage for a specific grade.
+ * Uses backticks for template literals to ensure the key is dynamic.
+ */
 function loadProgress(grade) {
     try {
-        // FIXED: Added backticks for template literal to correctly access localStorage keys
         return JSON.parse(localStorage.getItem(`grade_${grade}_progress`) || "{}");
     } catch (e) {
+        console.error("Error loading progress:", e);
         return {};
     }
 }
 
-// ===============================
-// SAVE PROGRESS
-// ===============================
+/**
+ * Saves current input values to localStorage and updates the top summary bar.
+ */
 function saveStudyProgress(grade) {
     const inputs = document.querySelectorAll('.subject-progress');
     const saved = {};
@@ -29,18 +30,16 @@ function saveStudyProgress(grade) {
         saved[subject] = value;
     });
 
-    // FIXED: Added backticks for template literal to save to the specific grade key
     localStorage.setItem(`grade_${grade}_progress`, JSON.stringify(saved));
     updateGradeSummary(grade);
 }
 
-// ===============================
-// SUBJECT UI GENERATOR
-// ===============================
+/**
+ * Generates the HTML for a single subject card.
+ */
 function createSubject(name, maxPages, savedPages) {
     const percent = maxPages > 0 ? Math.round((savedPages / maxPages) * 100) : 0;
 
-    // FIXED: Used backticks for the multiline HTML structure
     return `
         <div class="subject ${percent === 100 ? 'complete' : ''}">
             <h3>${name}</h3>
@@ -58,9 +57,9 @@ function createSubject(name, maxPages, savedPages) {
         </div>`;
 }
 
-// ===============================
-// UPDATE UI LIVE
-// ===============================
+/**
+ * Updates the UI visuals (progress bar and percentage text) when an input changes.
+ */
 function updateSubjectProgressUI(input) {
     let value = Math.max(0, Number(input.value) || 0);
     const max = Number(input.dataset.maxpages);
@@ -73,25 +72,30 @@ function updateSubjectProgressUI(input) {
     
     if (!container) return;
 
-    container.querySelector('progress').value = value;
-    // FIXED: Added backticks for template literal
-    container.querySelector('p').textContent = `${percent}% complete`;
+    const progressBar = container.querySelector('progress');
+    const statusText = container.querySelector('p');
+
+    if (progressBar) progressBar.value = value;
+    if (statusText) statusText.textContent = `${percent}% complete`;
+    
     container.classList.toggle('complete', percent === 100);
 }
 
-// ===============================
-// MAIN LOADER
-// ===============================
+/**
+ * The main entry point to render the study tracker for a specific grade.
+ */
 function loadStudySection(grade) {
-    // Ensure the data exists in main.js
-    if (!window.maxPagesByGrade?.[grade]) {
-        // FIXED: Added backticks for template literal
-        document.getElementById('main-content').innerHTML = `<p>Missing data for Grade ${grade}</p>`;
+    const mainContent = document.getElementById('main-content');
+    
+    // Ensure the global data from main.js is available
+    if (!window.maxPagesByGrade || !window.maxPagesByGrade[grade]) {
+        if (mainContent) {
+            mainContent.innerHTML = `<p style="padding:20px; text-align:center;">Data for Grade ${grade} not found.</p>`;
+        }
         return;
     }
 
     const saved = loadProgress(grade);
-    // FIXED: Added backticks for template literal
     let html = `<h2>📘 Grade ${grade} Study Tracker</h2><div class="subjects-container">`;
 
     SUBJECTS.forEach(subject => {
@@ -101,25 +105,28 @@ function loadStudySection(grade) {
     });
 
     html += `</div>`;
-    document.getElementById('main-content').innerHTML = html;
+    
+    if (mainContent) {
+        mainContent.innerHTML = html;
 
-    // Attach event listeners to all inputs for automatic saving
-    document.querySelectorAll('.subject-progress').forEach(input => {
-        input.addEventListener('input', function () {
-            updateSubjectProgressUI(this);
-            saveStudyProgress(grade);
+        // Attach event listeners for real-time updates and saving
+        document.querySelectorAll('.subject-progress').forEach(input => {
+            input.addEventListener('input', function () {
+                updateSubjectProgressUI(this);
+                saveStudyProgress(grade);
+            });
         });
-    });
+    }
 
     updateGradeSummary(grade);
 }
 
-// ===============================
-// OVERALL GRADE SUMMARY
-// ===============================
+/**
+ * Updates the overall progress bar at the top of the app.
+ */
 function updateGradeSummary(grade) {
     const saved = loadProgress(grade);
-    const data = window.maxPagesByGrade?.[grade];
+    const data = window.maxPagesByGrade ? window.maxPagesByGrade[grade] : null;
 
     if (!data) return;
 
@@ -137,14 +144,12 @@ function updateGradeSummary(grade) {
     const el = document.getElementById('grade-progress-bar');
 
     if (el) {
-        // FIXED: Used backticks for summary label and values
         el.innerHTML = `
-            <label>📘 Overall Progress (Grade ${grade}): ${percent}%</label>
+            <label>📘 Grade ${grade} Overall Progress: ${percent}%</label>
             <progress value="${percent}" max="100"></progress>`;
     }
 }
 
-// EXPORTS to ensure main.js can access these functions
+// Ensure the functions are available to main.js
 window.loadStudySection = loadStudySection;
 window.updateGradeSummary = updateGradeSummary;
-            
