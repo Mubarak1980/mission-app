@@ -425,3 +425,39 @@ function refreshUI() {
   });
 
 })();
+
+// ===============================
+// 📲 INSTALL CONTROL (SAFE ADD)
+// ===============================
+let deferredPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault(); // 🚫 stops Chrome default install UI
+
+  deferredPrompt = e;
+
+  const installBtn = document.getElementById("install-btn");
+  if (installBtn) {
+    installBtn.style.display = "block";
+
+    installBtn.onclick = async () => {
+      if (!deferredPrompt) return;
+
+      deferredPrompt.prompt();
+
+      const choice = await deferredPrompt.userChoice;
+
+      if (choice.outcome === "accepted") {
+        console.log("User installed the app");
+      }
+
+      deferredPrompt = null;
+      installBtn.style.display = "none";
+    };
+  }
+});
+
+window.addEventListener("appinstalled", () => {
+  console.log("App installed successfully");
+  deferredPrompt = null;
+});
