@@ -1,6 +1,6 @@
-// ===============================
-// MAX PAGES DATA
-// ===============================
+/* ===============================
+MAX PAGES DATA
+=============================== */
 window.maxPagesByGrade = {
   9: { Math: 363, Physics: 174, Chemistry: 175, Biology: 164, English: 223 },
   10: { Math: 385, Physics: 249, Chemistry: 298, Biology: 174, English: 316 },
@@ -11,9 +11,9 @@ window.maxPagesByGrade = {
 const TOTAL_DAYS = 90;
 const TOTAL_PAGES = 5705;
 
-// ===============================
-// SAFE STORAGE HELPERS
-// ===============================
+/* ===============================
+SAFE STORAGE HELPERS
+=============================== */
 function safeJSON(key, fallback) {
   try {
     const value = localStorage.getItem(key);
@@ -27,9 +27,9 @@ function todayISO() {
   return new Date().toISOString().split("T")[0];
 }
 
-// ===============================
-// CYCLE ENGINE
-// ===============================
+/* ===============================
+CYCLE ENGINE
+=============================== */
 function getCycleState() {
   const todayStr = todayISO();
   const state = safeJSON("cycleState", {});
@@ -48,9 +48,9 @@ function getCycleState() {
   return state;
 }
 
-// ===============================
-// TODAY DATA
-// ===============================
+/* ===============================
+TODAY DATA
+=============================== */
 function getTodayKey() {
   return todayISO();
 }
@@ -65,9 +65,9 @@ function getTodayLog() {
   return logs[getTodayKey()] || {};
 }
 
-// ===============================
-// PROGRESS ENGINE
-// ===============================
+/* ===============================
+PROGRESS ENGINE
+=============================== */
 function getExpectedProgress() {
   const cycle = getCycleState();
 
@@ -80,9 +80,9 @@ function getExpectedProgress() {
   };
 }
 
-// ===============================
-// ACTUAL PROGRESS
-// ===============================
+/* ===============================
+ACTUAL PROGRESS
+=============================== */
 function getActualProgress() {
   const grades = [9, 10, 11, 12];
   const subjects = ["Math", "Physics", "Chemistry", "Biology", "English"];
@@ -100,9 +100,9 @@ function getActualProgress() {
   return { actualPages: total };
 }
 
-// ===============================
-// DELAY ENGINE
-// ===============================
+/* ===============================
+DELAY ENGINE
+=============================== */
 function getDelayStatus() {
   const expected = getExpectedProgress();
   const actual = getActualProgress();
@@ -122,9 +122,9 @@ function getDelayStatus() {
   };
 }
 
-// ===============================
-// DAILY DELAY ENGINE
-// ===============================
+/* ===============================
+DAILY DELAY ENGINE
+=============================== */
 function getPlannedVsActual() {
   const plan = getTodayPlan();
   const todayLog = getTodayLog();
@@ -138,7 +138,6 @@ function getPlannedVsActual() {
     if (!p?.grade || !p?.subjects) continue;
 
     const actual = todayLog[p.grade] || {};
-
     const subjects = Object.keys(p.subjects);
 
     for (let j = 0; j < subjects.length; j++) {
@@ -160,9 +159,9 @@ function getPlannedVsActual() {
   return delays;
 }
 
-// ===============================
-// SYSTEM STATUS
-// ===============================
+/* ===============================
+SYSTEM STATUS
+=============================== */
 function getSystemStatus() {
   const cycle = getDelayStatus();
   const dailyDelays = getPlannedVsActual();
@@ -174,9 +173,9 @@ function getSystemStatus() {
   };
 }
 
-// ===============================
-// SNAPSHOT
-// ===============================
+/* ===============================
+SNAPSHOT
+=============================== */
 function getSystemSnapshot() {
   const status = getSystemStatus();
   const cycle = status.cycle;
@@ -199,9 +198,9 @@ function getSystemSnapshot() {
   };
 }
 
-// ===============================
-// SMART CYCLE
-// ===============================
+/* ===============================
+SMART CYCLE
+=============================== */
 function getSmartCycle() {
   const cycle = getDelayStatus();
   const actualTotal = getActualProgress().actualPages;
@@ -235,28 +234,33 @@ function getSmartCycle() {
   };
 }
 
-// ===============================
-// UI STATE
-// ===============================
+/* ===============================
+UI STATE
+=============================== */
 let currentGrade = 9;
 let currentSection = "study";
 
 let nav, prevBtn, nextBtn;
 
-// ===============================
-// NAV
-// ===============================
+/* ===============================
+NAV (FIXED)
+=============================== */
 function updateNavButtons() {
+  nav = document.getElementById("grade-nav");
+  prevBtn = document.getElementById("prev-btn");
+  nextBtn = document.getElementById("next-btn");
+
   if (!nav || !prevBtn || !nextBtn) return;
 
   nav.style.display = "flex";
+
   prevBtn.disabled = currentGrade <= 9;
   nextBtn.disabled = currentGrade >= 12;
 }
 
-// ===============================
-// ROUTER
-// ===============================
+/* ===============================
+ROUTER
+=============================== */
 function loadSection(type, grade) {
   currentSection = type;
   currentGrade = grade;
@@ -268,9 +272,9 @@ function loadSection(type, grade) {
   else if (type === "dashboard") loadDashboard?.();
 }
 
-// ===============================
-// NAVIGATION
-// ===============================
+/* ===============================
+NAVIGATION
+=============================== */
 function nextGrade() {
   if (currentGrade < 12) {
     currentGrade++;
@@ -285,37 +289,36 @@ function previousGrade() {
   }
 }
 
-// ===============================
-// INIT (FIXED - NO DOUBLE RUN)
-// ===============================
+/* ===============================
+INIT (FIXED CLEAN)
+=============================== */
 let initialized = false;
 
 function safeInit() {
   if (initialized) return;
   initialized = true;
 
-  nav = document.getElementById("grade-nav");
-  prevBtn = document.getElementById("prev-btn");
-  nextBtn = document.getElementById("next-btn");
-
-  updateNavButtons();
   getCycleState();
+  updateNavButtons();
   loadSection("study", currentGrade);
 }
 
 document.addEventListener("DOMContentLoaded", safeInit);
-window.addEventListener("load", () => setTimeout(safeInit, 300));
 
-// ===============================
-// EXPORTS
-// ===============================
+window.addEventListener("load", () => {
+  safeInit();
+});
+
+/* ===============================
+EXPORTS
+=============================== */
 window.nextGrade = nextGrade;
 window.previousGrade = previousGrade;
 window.loadSection = loadSection;
 
-// ===============================
-// SYNC SYSTEM
-// ===============================
+/* ===============================
+SYNC SYSTEM
+=============================== */
 (function initSmartSync() {
   function sync() {
     const lastUpdate = localStorage.getItem("study_last_update");
@@ -329,6 +332,7 @@ window.loadSection = loadSection;
   }
 
   window.addEventListener("focus", sync);
+
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) sync();
   });
@@ -336,66 +340,41 @@ window.loadSection = loadSection;
   setInterval(sync, 5000);
 })();
 
-// ===============================
-// INSTALL CONTROL (ROBUST)
-// ===============================
+/* ===============================
+INSTALL CONTROL
+=============================== */
 let deferredPrompt = null;
 
 window.addEventListener("beforeinstallprompt", (e) => {
-  console.log("✅ Install prompt captured");
-
   e.preventDefault();
   deferredPrompt = e;
-
   showInstallButton();
 });
 
 function showInstallButton() {
   const installBtn = document.getElementById("install-btn");
-
-  if (!installBtn) {
-    console.warn("❌ install-btn not found in HTML");
-    return;
-  }
+  if (!installBtn) return;
 
   installBtn.style.display = "block";
 
   installBtn.onclick = async () => {
     if (!deferredPrompt) {
-      alert("App is not ready to install yet. Please wait a few seconds.");
+      alert("App not ready to install yet.");
       return;
     }
 
     deferredPrompt.prompt();
-
     const choice = await deferredPrompt.userChoice;
 
-    console.log("User choice:", choice.outcome);
-
-    if (choice.outcome === "accepted") {
-      console.log("✅ App installed");
-    } else {
-      console.log("❌ Install dismissed");
-    }
+    console.log(choice.outcome);
 
     deferredPrompt = null;
     installBtn.style.display = "none";
   };
 }
 
-// Fallback (important for Android)
-window.addEventListener("load", () => {
-  setTimeout(() => {
-    if (!deferredPrompt) {
-      console.log("⚠️ Install not available yet");
-    }
-  }, 3000);
-});
-
 window.addEventListener("appinstalled", () => {
-  console.log("🎉 App installed successfully");
   deferredPrompt = null;
-
   const installBtn = document.getElementById("install-btn");
   if (installBtn) installBtn.style.display = "none";
 });
