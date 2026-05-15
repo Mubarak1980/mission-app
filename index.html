@@ -2,88 +2,126 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- Mobile viewport (corrected) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
     <title>Mission App</title>
 
     <!-- CSS -->
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="/styles.css" />
 
-    <!-- PWA MANIFEST (must be JSON file) -->
-    <link rel="manifest" href="./manifest.json" />
+    <!-- ===============================
+         PWA CONFIG (FIXED)
+    =============================== -->
+    <link rel="manifest" href="/manifest.json" />
 
+    <!-- Theme -->
     <meta name="theme-color" content="#00d4ff" />
-    <meta name="application-name" content="Mission App">
 
-    <!-- PWA FLAGS -->
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Mission App">
+    <!-- Mobile App Behavior -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Mission App" />
 
-    <!-- ICONS -->
-    <link rel="icon" href="./icon-192.png">
-    <link rel="apple-touch-icon" href="./icon-192.png">
-
+    <!-- Icons (FIXED PATHS) -->
+    <link rel="icon" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" sizes="512x512" href="/icon-512.png" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
 </head>
 
 <body>
 
-    <!-- SPLASH SCREEN -->
+    <!-- 🌄 SPLASH SCREEN -->
     <div id="splash-screen">
         <div class="splash-content">
             <h1>📘 Mission App</h1>
-            <p>Loading...</p>
+            <p>Loading your study system...</p>
             <div class="loader"></div>
         </div>
     </div>
 
     <!-- MAIN APP -->
-    <div id="app" style="visibility:hidden;">
+    <div id="app" style="visibility: hidden;">
 
         <h1>TIME</h1>
-
-        <!-- INSTALL BUTTON -->
-        <button id="install-btn" style="display:none;">Install App</button>
 
         <div class="section-buttons">
             <button onclick="loadSunnahTracker()">Sunnah Tracker</button>
             <button onclick="loadSection('study', currentGrade)">Study Tracker</button>
-            <button onclick="loadSection('timetable', currentGrade)">Weekly Timetable</button>
-            <button onclick="loadDashboard()">Dashboard</button>
-            <button onclick="loadTopStudentMode()">Top Student Mode</button>
+            <button onclick="loadSection('timetable', currentGrade)">📅 Weekly Timetable</button>
+            <button onclick="loadDashboard()">📊 Dashboard</button>
+            <button onclick="loadTopStudentMode()">🎓 Top Student Mode</button>
         </div>
 
         <div id="grade-progress-bar"></div>
         <div id="main-content"></div>
 
-        <div id="section-buttons">
+        <div class="nav-buttons" id="grade-nav">
             <button onclick="previousGrade()" id="prev-btn">Previous</button>
             <button onclick="nextGrade()" id="next-btn">Next</button>
         </div>
 
     </div>
 
-    <!-- JS FILES (defer improves load safety) -->
-    <script src="./Sunnah-tracker.js" defer></script>
-    <script src="./Study-tracker.js" defer></script>
-    <script src="./weekly-timetable.js" defer></script>
-    <script src="./dashboard.js" defer></script>
-    <script src="./top-student-mode.js" defer></script>
-    <script src="./main.js" defer></script>
+    <!-- ===============================
+         JS FILES (FIXED PATHS)
+    =============================== -->
+    <script src="/Sunnah-tracker.js"></script>
+    <script src="/Study-tracker.js"></script>
+    <script src="/weekly-timetable.js"></script>
+    <script src="/dashboard.js"></script>
+    <script src="/top-student-mode.js"></script>
+    <script src="/main.js"></script>
 
-    <!-- SERVICE WORKER REGISTRATION -->
+    <!-- ===============================
+         SERVICE WORKER (FIXED)
+    =============================== -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
-                    .then(reg => console.log('Service Worker registered:', reg.scope))
-                    .catch(err => console.error('Service Worker error:', err));
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(reg => {
+                        console.log('Service Worker Registered:', reg.scope);
+                    })
+                    .catch(err => {
+                        console.log('Service Worker Error:', err);
+                    });
             });
         }
     </script>
 
-    <!-- SPLASH SCREEN HANDLER -->
+    <!-- ===============================
+         INSTALL BUTTON HANDLER (IMPORTANT)
+    =============================== -->
+    <script>
+        let deferredPrompt;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            console.log('Install prompt ready');
+        });
+
+        async function installApp() {
+            if (!deferredPrompt) {
+                alert("App cannot be installed yet. Try refreshing.");
+                return;
+            }
+
+            deferredPrompt.prompt();
+
+            const choice = await deferredPrompt.userChoice;
+            console.log(choice.outcome);
+
+            deferredPrompt = null;
+        }
+    </script>
+
+    <!-- ===============================
+         SPLASH CONTROLLER
+    =============================== -->
     <script>
         window.addEventListener('load', () => {
             const splash = document.getElementById('splash-screen');
