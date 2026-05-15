@@ -1,4 +1,4 @@
-const CACHE_NAME = "mission-app-v16";
+const CACHE_NAME = "mission-app-v17";
 
 // Removed the missing 512 icon to prevent installation failure
 const urlsToCache = [
