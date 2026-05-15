@@ -339,8 +339,19 @@ window.loadSection = loadSection;
 // ===============================
 // INSTALL CONTROL (ROBUST)
 // ===============================
-let deferredPrompt = null;
 
+   let deferredPrompt = null;
+
+// WAIT UNTIL SW IS READY (CRITICAL FIX)
+async function ensurePWAReady() {
+  if ('serviceWorker' in navigator) {
+    await navigator.serviceWorker.ready;
+  }
+}
+
+ensurePWAReady();
+
+// Capture install event (FIXED TIMING)
 window.addEventListener("beforeinstallprompt", (e) => {
   console.log("✅ Install prompt captured");
 
@@ -350,52 +361,43 @@ window.addEventListener("beforeinstallprompt", (e) => {
   showInstallButton();
 });
 
+// Show install button safely
 function showInstallButton() {
   const installBtn = document.getElementById("install-btn");
-
-  if (!installBtn) {
-    console.warn("❌ install-btn not found in HTML");
-    return;
-  }
+  if (!installBtn) return;
 
   installBtn.style.display = "block";
 
   installBtn.onclick = async () => {
-    if (!deferredPrompt) {
-      alert("App is not ready to install yet. Please wait a few seconds.");
-      return;
-    }
+    if (!deferredPrompt) return;
 
     deferredPrompt.prompt();
 
     const choice = await deferredPrompt.userChoice;
 
-    console.log("User choice:", choice.outcome);
-
-    if (choice.outcome === "accepted") {
-      console.log("✅ App installed");
-    } else {
-      console.log("❌ Install dismissed");
-    }
+    console.log("Install result:", choice.outcome);
 
     deferredPrompt = null;
     installBtn.style.display = "none";
   };
 }
 
-// Fallback (important for Android)
-window.addEventListener("load", () => {
-  setTimeout(() => {
+// More reliable fallback detection
+window.addEventListener("load", async () => {
+  setTimeout(async () => {
+    await ensurePWAReady();
+
     if (!deferredPrompt) {
-      console.log("⚠️ Install not available yet");
+      console.log("⚠️ Install not available yet (PWA criteria not fully met)");
     }
-  }, 3000);
+  }, 2000);
 });
 
+// Installed event
 window.addEventListener("appinstalled", () => {
   console.log("🎉 App installed successfully");
   deferredPrompt = null;
 
   const installBtn = document.getElementById("install-btn");
   if (installBtn) installBtn.style.display = "none";
-});
+});   
