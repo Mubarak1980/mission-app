@@ -23,13 +23,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <!-- Better icon support -->
+    <!-- App Name -->
+    <meta name="application-name" content="Mission App" />
+
+    <!-- Icons -->
     <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png" />
     <link rel="apple-touch-icon" href="./icon-192.png" />
-
-    <!-- Android enhancement -->
-    <meta name="application-name" content="Mission App" />
 
 </head>
 
@@ -76,25 +76,24 @@
     <script src="./main.js"></script>
 
     <!-- ===============================
-         SERVICE WORKER (IMPROVED)
+         SERVICE WORKER (FIXED SAFETY)
     =============================== -->
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', async () => {
-                try {
-                    const reg = await navigator.serviceWorker.register('./service-worker.js', {
-                        scope: './'
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(reg => {
+                        console.log('Service Worker Registered:', reg.scope);
+                    })
+                    .catch(err => {
+                        console.log('SW Error:', err);
                     });
-                    console.log('Service Worker Registered:', reg.scope);
-                } catch (err) {
-                    console.log('SW Error:', err);
-                }
             });
         }
     </script>
 
     <!-- ===============================
-         SPLASH CONTROLLER (UNCHANGED LOGIC)
+         SPLASH CONTROLLER (SAFE)
     =============================== -->
     <script>
         window.addEventListener('load', () => {
@@ -116,4 +115,4 @@
     </script>
 
 </body>
-</html>
+    </html>
