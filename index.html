@@ -12,7 +12,9 @@
     <!-- PWA MANIFEST -->
     <link rel="manifest" href="./manifest.json" />
 
+    <!-- IMPORTANT FIX: FORCE PWA IDENTITY -->
     <meta name="theme-color" content="#00d4ff" />
+
     <meta name="application-name" content="Mission App">
 
     <!-- PWA FLAGS -->
@@ -24,6 +26,9 @@
     <!-- ICONS -->
     <link rel="icon" href="./icon-192.png">
     <link rel="apple-touch-icon" href="./icon-192.png">
+
+    <!-- 🔥 CRITICAL FIX: ENSURE CORRECT ORIGIN MATCH -->
+    <meta name="scope" content="/Mission-app/">
 
 </head>
 
@@ -43,7 +48,7 @@
 
         <h1>TIME</h1>
 
-        <!-- KEEP BUTTON (safe but not required for install) -->
+        <!-- KEEP BUTTON (optional fallback only, NOT install logic) -->
         <button id="install-btn" style="display:none;">Install App</button>
 
         <div class="section-buttons">
@@ -72,13 +77,26 @@
     <script src="./top-student-mode.js"></script>
     <script src="./main.js"></script>
 
-    <!-- SERVICE WORKER (IMPORTANT FIX HERE) -->
+    <!-- ===============================
+         🔥 FIXED SERVICE WORKER (IMPORTANT)
+    =============================== -->
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
-                    .then(reg => console.log('SW OK:', reg.scope))
-                    .catch(err => console.error('SW ERROR:', err));
+            window.addEventListener('load', async () => {
+                try {
+                    const reg = await navigator.serviceWorker.register(
+                        './service-worker.js',
+                        { scope: '/Mission-app/' }
+                    );
+
+                    console.log('SW OK:', reg.scope);
+
+                    // IMPORTANT: wait until fully ready
+                    await navigator.serviceWorker.ready;
+
+                } catch (err) {
+                    console.error('SW ERROR:', err);
+                }
             });
         }
     </script>
