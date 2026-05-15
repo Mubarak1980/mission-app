@@ -63,7 +63,7 @@
 <script src="./main.js"></script>
 
 <!-- ===============================
-SERVICE WORKER (FIXED + STABLE INSTALL)
+SERVICE WORKER (SAFE VERSION)
 =============================== -->
 <script>
 if ('serviceWorker' in navigator) {
@@ -73,18 +73,12 @@ if ('serviceWorker' in navigator) {
 
             console.log('SW registered:', reg.scope);
 
-            // ensure SW activates fast
+            // ONLY handle skip waiting (safe)
             if (reg.waiting) {
                 reg.waiting.postMessage({ type: 'SKIP_WAITING' });
             }
 
             await navigator.serviceWorker.ready;
-
-            // ensure page is controlled
-            if (!navigator.serviceWorker.controller) {
-                console.log("Reloading for SW control...");
-                window.location.reload();
-            }
 
         } catch (err) {
             console.error('SW ERROR:', err);
