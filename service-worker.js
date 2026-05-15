@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mission-v1.0.0';
+const CACHE_NAME = 'mission-cache-v60';
 
 const ASSETS = [
   '/Mission-app/',
@@ -27,42 +27,38 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(
-        keys.map(key => {
-          if (key !== CACHE_NAME) return caches.delete(key);
-        })
-      )
+      Promise.all(keys.map(key =>
+        key !== CACHE_NAME ? caches.delete(key) : null
+      ))
     )
   );
   self.clients.claim();
 });
 
-// FETCH (NETWORK-FIRST FOR HTML = PROFESSIONAL RULE)
+// FETCH (SAFE VERSION)
 self.addEventListener('fetch', (event) => {
-  const req = event.request;
+  if (event.request.method !== 'GET') return;
 
-  if (req.method !== 'GET') return;
-
-  const url = new URL(req.url);
-
-  // HTML → network-first (important for updates)
-  if (req.mode === 'navigate') {
-    event.respondWith(
-      fetch(req).catch(() => caches.match('/Mission-app/index.html'))
-    );
-    return;
-  }
-
-  // static assets → cache-first
   event.respondWith(
-    caches.match(req).then(cached => {
-      return cached || fetch(req).then(res => {
-        if (res.status === 200) {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(req, clone));
-        }
+    fetch(event.request)
+      .then(res => {
+        if (!res || res.status !== 200) return res;
+
+        const clone = res.clone();
+
+        caches.open(CACHE_NAME).then(cache => {
+          cache.put(event.request, clone);
+        });
+
         return res;
-      });
-    })
+      })
+      .catch(() => caches.match('/Mission-app/index.html'))
   );
+});
+
+// SKIP WAITING
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
