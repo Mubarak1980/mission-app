@@ -12,20 +12,15 @@
     <!-- ===============================
          PWA CONFIG
     =============================== -->
-
     <link rel="manifest" href="./manifest.json" />
 
     <meta name="theme-color" content="#00d4ff" />
-    <meta name="background-color" content="#00d4ff" />
 
     <!-- Mobile App Behavior -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Mission App">
-
-    <!-- App Name -->
-    <meta name="application-name" content="Mission App" />
 
     <!-- Icons -->
     <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
@@ -77,24 +72,30 @@
     <script src="./main.js"></script>
 
     <!-- ===============================
-         SERVICE WORKER
+         SERVICE WORKER (IMPROVED RELIABILITY)
     =============================== -->
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js', { scope: './' })
-                    .then(reg => {
-                        console.log('Service Worker Registered:', reg.scope);
-                    })
-                    .catch(err => {
-                        console.log('SW Error:', err);
+            window.addEventListener('load', async () => {
+                try {
+                    const reg = await navigator.serviceWorker.register('./service-worker.js', {
+                        scope: './'
                     });
+
+                    console.log('Service Worker Registered:', reg.scope);
+
+                    // IMPORTANT: ensures SW is active sooner (improves install eligibility)
+                    await navigator.serviceWorker.ready;
+
+                } catch (err) {
+                    console.log('SW Error:', err);
+                }
             });
         }
     </script>
 
     <!-- ===============================
-         SPLASH CONTROLLER
+         SPLASH CONTROLLER (SAFE INIT)
     =============================== -->
     <script>
         window.addEventListener('load', () => {
@@ -116,4 +117,4 @@
     </script>
 
 </body>
-</html>
+        </html>
