@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mission-cache-v137';
+const CACHE_NAME = 'mission-cache-v138';
 
 const ASSETS = [
   './',
@@ -22,9 +22,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
 });
 
@@ -35,11 +33,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
+        keys.map((key) => key !== CACHE_NAME && caches.delete(key))
       )
     )
   );
@@ -48,7 +42,7 @@ self.addEventListener('activate', (event) => {
 });
 
 // ===============================
-// FETCH (OFFLINE-FIRST)
+// FETCH (OFFLINE-FIRST IMPROVED)
 // ===============================
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
@@ -56,12 +50,10 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       
-      // 1. If found in cache → return immediately
       if (cachedResponse) {
         return cachedResponse;
       }
 
-      // 2. Else try network (first time load)
       return fetch(event.request)
         .then((networkResponse) => {
           return caches.open(CACHE_NAME).then((cache) => {
@@ -70,7 +62,7 @@ self.addEventListener('fetch', (event) => {
           });
         })
         .catch(() => {
-          // 3. Final fallback
+          // IMPORTANT FIX: always return index.html explicitly
           return caches.match('./index.html');
         });
     })
