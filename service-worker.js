@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mission-cache-v133';
+const CACHE_NAME = 'mission-cache-v134';
 
 const ASSETS = [
   './',
@@ -29,46 +29,50 @@ self.addEventListener('install', (event) => {
 });
 
 // ===============================
-// ACTIVATE (clean old caches safely)
+// ACTIVATE
 // ===============================
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
+    caches.keys().then((keys) =>
+      Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
             return caches.delete(key);
           }
         })
-      );
-    })
+      )
+    )
   );
 
   self.clients.claim();
 });
 
 // ===============================
-// FETCH (NETWORK-FIRST + SAFE FALLBACK)
+// FETCH (OFFLINE-FIRST)
 // ===============================
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    fetch(event.request)
-      .then((networkResponse) => {
-        // Optional improvement: update cache in background
-        const responseClone = networkResponse.clone();
+    caches.match(event.request).then((cachedResponse) => {
+      
+      // 1. If found in cache → return immediately
+      if (cachedResponse) {
+        return cachedResponse;
+      }
 
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseClone);
+      // 2. Else try network (first time load)
+      return fetch(event.request)
+        .then((networkResponse) => {
+          return caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, networkResponse.clone());
+            return networkResponse;
+          });
+        })
+        .catch(() => {
+          // 3. Final fallback
+          return caches.match('./index.html');
         });
-
-        return networkResponse;
-      })
-      .catch(() => {
-        return caches.match(event.request).then((cachedResponse) => {
-          return cachedResponse || caches.match('./index.html');
-        });
-      })
+    })
   );
 });
