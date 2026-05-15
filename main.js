@@ -1,5 +1,3 @@
-"use strict";
-
 // ===============================
 // MAX PAGES DATA
 // ===============================
@@ -14,7 +12,7 @@ const TOTAL_DAYS = 90;
 const TOTAL_PAGES = 5705;
 
 // ===============================
-// SAFE STORAGE HELPERS (NEW)
+// SAFE STORAGE HELPERS
 // ===============================
 function safeJSON(key, fallback) {
   try {
@@ -288,9 +286,14 @@ function previousGrade() {
 }
 
 // ===============================
-// INIT
+// INIT (FIXED - NO DOUBLE RUN)
 // ===============================
-function initApp() {
+let initialized = false;
+
+function safeInit() {
+  if (initialized) return;
+  initialized = true;
+
   nav = document.getElementById("grade-nav");
   prevBtn = document.getElementById("prev-btn");
   nextBtn = document.getElementById("next-btn");
@@ -300,16 +303,8 @@ function initApp() {
   loadSection("study", currentGrade);
 }
 
-document.addEventListener("DOMContentLoaded", initApp);
-
-window.addEventListener("load", () => {
-  setTimeout(() => {
-    if (!document.body.dataset.initialized) {
-      document.body.dataset.initialized = "true";
-      initApp();
-    }
-  }, 300);
-});
+document.addEventListener("DOMContentLoaded", safeInit);
+window.addEventListener("load", () => setTimeout(safeInit, 300));
 
 // ===============================
 // EXPORTS
@@ -317,19 +312,6 @@ window.addEventListener("load", () => {
 window.nextGrade = nextGrade;
 window.previousGrade = previousGrade;
 window.loadSection = loadSection;
-
-// ===============================
-// UI STATE
-// ===============================
-function getUIState() {
-  return {
-    mode: currentSection,
-    grade: currentGrade,
-    system: getSystemSnapshot(),
-    status: getSystemStatus(),
-    smart: getSmartCycle()
-  };
-}
 
 // ===============================
 // SYNC SYSTEM
@@ -355,7 +337,7 @@ function getUIState() {
 })();
 
 // ===============================
-// INSTALL CONTROL
+// INSTALL CONTROL (SAFE)
 // ===============================
 let deferredPrompt = null;
 
@@ -364,20 +346,19 @@ window.addEventListener("beforeinstallprompt", (e) => {
   deferredPrompt = e;
 
   const installBtn = document.getElementById("install-btn");
+  if (!installBtn) return;
 
-  if (installBtn) {
-    installBtn.style.display = "block";
+  installBtn.style.display = "block";
 
-    installBtn.onclick = async () => {
-      if (!deferredPrompt) return;
+  installBtn.onclick = async () => {
+    if (!deferredPrompt) return;
 
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
+    deferredPrompt.prompt();
+    const result = await deferredPrompt.userChoice;
 
-      deferredPrompt = null;
-      installBtn.style.display = "none";
-    };
-  }
+    deferredPrompt = null;
+    installBtn.style.display = "none";
+  };
 });
 
 window.addEventListener("appinstalled", () => {
