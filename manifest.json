@@ -1,20 +1,14 @@
 {
   "name": "Mission App",
   "short_name": "Mission",
-
   "start_url": "./index.html",
   "scope": "./",
-
   "display": "standalone",
   "display_override": ["standalone", "fullscreen"],
-
   "orientation": "portrait-primary",
-
   "background_color": "#00d4ff",
   "theme_color": "#00d4ff",
-
   "description": "Mission App - Study tracking and productivity system",
-
   "icons": [
     {
       "src": "./icon-192.png",
