@@ -70,7 +70,6 @@ PROGRESS ENGINE
 =============================== */
 function getExpectedProgress() {
   const cycle = getCycleState();
-
   const expectedPages = (cycle.cycleDay / TOTAL_DAYS) * TOTAL_PAGES;
 
   return {
@@ -216,7 +215,6 @@ function getSmartCycle() {
   const baseDaily = TOTAL_PAGES / TOTAL_DAYS;
 
   let target = baseDaily + catchUpPerDay;
-
   target = Math.min(Math.max(target, 25), 85);
 
   return {
@@ -243,7 +241,7 @@ let currentSection = "study";
 let nav, prevBtn, nextBtn;
 
 /* ===============================
-NAV (FIXED)
+NAVIGATION (FIXED)
 =============================== */
 function updateNavButtons() {
   nav = document.getElementById("grade-nav");
@@ -251,8 +249,6 @@ function updateNavButtons() {
   nextBtn = document.getElementById("next-btn");
 
   if (!nav || !prevBtn || !nextBtn) return;
-
-  nav.style.display = "flex";
 
   prevBtn.disabled = currentGrade <= 9;
   nextBtn.disabled = currentGrade >= 12;
@@ -273,12 +269,13 @@ function loadSection(type, grade) {
 }
 
 /* ===============================
-NAVIGATION
+NAVIGATION ACTIONS (FIXED)
 =============================== */
 function nextGrade() {
   if (currentGrade < 12) {
     currentGrade++;
     loadSection("study", currentGrade);
+    updateNavButtons();
   }
 }
 
@@ -286,11 +283,12 @@ function previousGrade() {
   if (currentGrade > 9) {
     currentGrade--;
     loadSection("study", currentGrade);
+    updateNavButtons();
   }
 }
 
 /* ===============================
-INIT (FIXED CLEAN)
+INIT (FIXED - NO DUPLICATES)
 =============================== */
 let initialized = false;
 
@@ -304,10 +302,6 @@ function safeInit() {
 }
 
 document.addEventListener("DOMContentLoaded", safeInit);
-
-window.addEventListener("load", () => {
-  safeInit();
-});
 
 /* ===============================
 EXPORTS
@@ -339,42 +333,3 @@ SYNC SYSTEM
 
   setInterval(sync, 5000);
 })();
-
-/* ===============================
-INSTALL CONTROL
-=============================== */
-let deferredPrompt = null;
-
-window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  showInstallButton();
-});
-
-function showInstallButton() {
-  const installBtn = document.getElementById("install-btn");
-  if (!installBtn) return;
-
-  installBtn.style.display = "block";
-
-  installBtn.onclick = async () => {
-    if (!deferredPrompt) {
-      alert("App not ready to install yet.");
-      return;
-    }
-
-    deferredPrompt.prompt();
-    const choice = await deferredPrompt.userChoice;
-
-    console.log(choice.outcome);
-
-    deferredPrompt = null;
-    installBtn.style.display = "none";
-  };
-}
-
-window.addEventListener("appinstalled", () => {
-  deferredPrompt = null;
-  const installBtn = document.getElementById("install-btn");
-  if (installBtn) installBtn.style.display = "none";
-});
