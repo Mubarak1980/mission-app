@@ -1,6 +1,8 @@
-/* ===============================
-MAX PAGES DATA
-=============================== */
+"use strict";
+
+// ===============================
+// MAX PAGES DATA
+// ===============================
 window.maxPagesByGrade = {
   9: { Math: 363, Physics: 174, Chemistry: 175, Biology: 164, English: 223 },
   10: { Math: 385, Physics: 249, Chemistry: 298, Biology: 174, English: 316 },
@@ -11,9 +13,9 @@ window.maxPagesByGrade = {
 const TOTAL_DAYS = 90;
 const TOTAL_PAGES = 5705;
 
-/* ===============================
-SAFE STORAGE HELPERS
-=============================== */
+// ===============================
+// SAFE STORAGE HELPERS (NEW)
+// ===============================
 function safeJSON(key, fallback) {
   try {
     const value = localStorage.getItem(key);
@@ -27,9 +29,9 @@ function todayISO() {
   return new Date().toISOString().split("T")[0];
 }
 
-/* ===============================
-CYCLE ENGINE
-=============================== */
+// ===============================
+// CYCLE ENGINE
+// ===============================
 function getCycleState() {
   const todayStr = todayISO();
   const state = safeJSON("cycleState", {});
@@ -48,9 +50,9 @@ function getCycleState() {
   return state;
 }
 
-/* ===============================
-TODAY DATA
-=============================== */
+// ===============================
+// TODAY DATA
+// ===============================
 function getTodayKey() {
   return todayISO();
 }
@@ -65,11 +67,12 @@ function getTodayLog() {
   return logs[getTodayKey()] || {};
 }
 
-/* ===============================
-PROGRESS ENGINE
-=============================== */
+// ===============================
+// PROGRESS ENGINE
+// ===============================
 function getExpectedProgress() {
   const cycle = getCycleState();
+
   const expectedPages = (cycle.cycleDay / TOTAL_DAYS) * TOTAL_PAGES;
 
   return {
@@ -79,9 +82,9 @@ function getExpectedProgress() {
   };
 }
 
-/* ===============================
-ACTUAL PROGRESS
-=============================== */
+// ===============================
+// ACTUAL PROGRESS
+// ===============================
 function getActualProgress() {
   const grades = [9, 10, 11, 12];
   const subjects = ["Math", "Physics", "Chemistry", "Biology", "English"];
@@ -99,9 +102,9 @@ function getActualProgress() {
   return { actualPages: total };
 }
 
-/* ===============================
-DELAY ENGINE
-=============================== */
+// ===============================
+// DELAY ENGINE
+// ===============================
 function getDelayStatus() {
   const expected = getExpectedProgress();
   const actual = getActualProgress();
@@ -121,9 +124,9 @@ function getDelayStatus() {
   };
 }
 
-/* ===============================
-DAILY DELAY ENGINE
-=============================== */
+// ===============================
+// DAILY DELAY ENGINE
+// ===============================
 function getPlannedVsActual() {
   const plan = getTodayPlan();
   const todayLog = getTodayLog();
@@ -137,6 +140,7 @@ function getPlannedVsActual() {
     if (!p?.grade || !p?.subjects) continue;
 
     const actual = todayLog[p.grade] || {};
+
     const subjects = Object.keys(p.subjects);
 
     for (let j = 0; j < subjects.length; j++) {
@@ -158,9 +162,9 @@ function getPlannedVsActual() {
   return delays;
 }
 
-/* ===============================
-SYSTEM STATUS
-=============================== */
+// ===============================
+// SYSTEM STATUS
+// ===============================
 function getSystemStatus() {
   const cycle = getDelayStatus();
   const dailyDelays = getPlannedVsActual();
@@ -172,9 +176,9 @@ function getSystemStatus() {
   };
 }
 
-/* ===============================
-SNAPSHOT
-=============================== */
+// ===============================
+// SNAPSHOT
+// ===============================
 function getSystemSnapshot() {
   const status = getSystemStatus();
   const cycle = status.cycle;
@@ -197,9 +201,9 @@ function getSystemSnapshot() {
   };
 }
 
-/* ===============================
-SMART CYCLE
-=============================== */
+// ===============================
+// SMART CYCLE
+// ===============================
 function getSmartCycle() {
   const cycle = getDelayStatus();
   const actualTotal = getActualProgress().actualPages;
@@ -215,6 +219,7 @@ function getSmartCycle() {
   const baseDaily = TOTAL_PAGES / TOTAL_DAYS;
 
   let target = baseDaily + catchUpPerDay;
+
   target = Math.min(Math.max(target, 25), 85);
 
   return {
@@ -232,31 +237,28 @@ function getSmartCycle() {
   };
 }
 
-/* ===============================
-UI STATE
-=============================== */
+// ===============================
+// UI STATE
+// ===============================
 let currentGrade = 9;
 let currentSection = "study";
 
 let nav, prevBtn, nextBtn;
 
-/* ===============================
-NAVIGATION (FIXED)
-=============================== */
+// ===============================
+// NAV
+// ===============================
 function updateNavButtons() {
-  nav = document.getElementById("grade-nav");
-  prevBtn = document.getElementById("prev-btn");
-  nextBtn = document.getElementById("next-btn");
-
   if (!nav || !prevBtn || !nextBtn) return;
 
+  nav.style.display = "flex";
   prevBtn.disabled = currentGrade <= 9;
   nextBtn.disabled = currentGrade >= 12;
 }
 
-/* ===============================
-ROUTER
-=============================== */
+// ===============================
+// ROUTER
+// ===============================
 function loadSection(type, grade) {
   currentSection = type;
   currentGrade = grade;
@@ -268,14 +270,13 @@ function loadSection(type, grade) {
   else if (type === "dashboard") loadDashboard?.();
 }
 
-/* ===============================
-NAVIGATION ACTIONS (FIXED)
-=============================== */
+// ===============================
+// NAVIGATION
+// ===============================
 function nextGrade() {
   if (currentGrade < 12) {
     currentGrade++;
     loadSection("study", currentGrade);
-    updateNavButtons();
   }
 }
 
@@ -283,36 +284,56 @@ function previousGrade() {
   if (currentGrade > 9) {
     currentGrade--;
     loadSection("study", currentGrade);
-    updateNavButtons();
   }
 }
 
-/* ===============================
-INIT (FIXED - NO DUPLICATES)
-=============================== */
-let initialized = false;
+// ===============================
+// INIT
+// ===============================
+function initApp() {
+  nav = document.getElementById("grade-nav");
+  prevBtn = document.getElementById("prev-btn");
+  nextBtn = document.getElementById("next-btn");
 
-function safeInit() {
-  if (initialized) return;
-  initialized = true;
-
-  getCycleState();
   updateNavButtons();
+  getCycleState();
   loadSection("study", currentGrade);
 }
 
-document.addEventListener("DOMContentLoaded", safeInit);
+document.addEventListener("DOMContentLoaded", initApp);
 
-/* ===============================
-EXPORTS
-=============================== */
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    if (!document.body.dataset.initialized) {
+      document.body.dataset.initialized = "true";
+      initApp();
+    }
+  }, 300);
+});
+
+// ===============================
+// EXPORTS
+// ===============================
 window.nextGrade = nextGrade;
 window.previousGrade = previousGrade;
 window.loadSection = loadSection;
 
-/* ===============================
-SYNC SYSTEM
-=============================== */
+// ===============================
+// UI STATE
+// ===============================
+function getUIState() {
+  return {
+    mode: currentSection,
+    grade: currentGrade,
+    system: getSystemSnapshot(),
+    status: getSystemStatus(),
+    smart: getSmartCycle()
+  };
+}
+
+// ===============================
+// SYNC SYSTEM
+// ===============================
 (function initSmartSync() {
   function sync() {
     const lastUpdate = localStorage.getItem("study_last_update");
@@ -326,10 +347,39 @@ SYNC SYSTEM
   }
 
   window.addEventListener("focus", sync);
-
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) sync();
   });
 
   setInterval(sync, 5000);
 })();
+
+// ===============================
+// INSTALL CONTROL
+// ===============================
+let deferredPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  const installBtn = document.getElementById("install-btn");
+
+  if (installBtn) {
+    installBtn.style.display = "block";
+
+    installBtn.onclick = async () => {
+      if (!deferredPrompt) return;
+
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+
+      deferredPrompt = null;
+      installBtn.style.display = "none";
+    };
+  }
+});
+
+window.addEventListener("appinstalled", () => {
+  deferredPrompt = null;
+});
