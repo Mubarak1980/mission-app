@@ -1,4 +1,4 @@
-const CACHE_NAME = "mission-app-v4";
+const CACHE_NAME = "mission-app-v5";
 
 const urlsToCache = [
   "/",
@@ -18,9 +18,9 @@ const urlsToCache = [
 self.addEventListener("install", event => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(urlsToCache);
-    })
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(urlsToCache))
+      .catch(err => console.error("Cache failed:", err))
   );
 });
 
