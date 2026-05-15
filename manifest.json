@@ -1,36 +1,31 @@
 {
-"id": "mission-app",
+  "id": "/",
+  "name": "Mission App",
+  "short_name": "Mission",
 
-"name": "Mission App",
-"short_name": "Mission",
+  "start_url": "/index.html",
+  "scope": "/",
 
-"start_url": "./index.html",
-"scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
 
-"display": "standalone",
-"display_override": ["standalone", "minimal-ui"],
+  "background_color": "#00d4ff",
+  "theme_color": "#00d4ff",
 
-"orientation": "portrait-primary",
+  "description": "Mission App - Study tracking and productivity system",
 
-"background_color": "#00d4ff",
-"theme_color": "#00d4ff",
-
-"description": "Mission App - Study tracking and productivity system",
-
-"prefer_related_applications": false,
-
-"icons": [
-{
-"src": "./icon-192.png",
-"sizes": "192x192",
-"type": "image/png",
-"purpose": "any maskable"
-},
-{
-"src": "./icon-512.png",
-"sizes": "512x512",
-"type": "image/png",
-"purpose": "any maskable"
-}
-]
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }
