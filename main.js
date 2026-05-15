@@ -1,7 +1,5 @@
-"use strict";
-
 // ===============================
-// MAX PAGES DATA
+// Main.js
 // ===============================
 window.maxPagesByGrade = {
   9: { Math: 363, Physics: 174, Chemistry: 175, Biology: 164, English: 223 },
@@ -14,7 +12,7 @@ const TOTAL_DAYS = 90;
 const TOTAL_PAGES = 5705;
 
 // ===============================
-// SAFE STORAGE HELPERS (NEW)
+// SAFE STORAGE HELPERS
 // ===============================
 function safeJSON(key, fallback) {
   try {
@@ -41,7 +39,11 @@ function getCycleState() {
   const start = new Date(state.startDate);
   const now = new Date();
 
-  const diff = Math.floor((now - start) / 86400000);
+  // FIXED: timezone-safe calculation
+  const diff = Math.floor(
+    (Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) -
+     Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())) / 86400000
+  );
 
   state.cycleDay = Math.min(diff + 1, TOTAL_DAYS);
   state.remainingDays = Math.max(0, TOTAL_DAYS - state.cycleDay);
@@ -72,7 +74,6 @@ function getTodayLog() {
 // ===============================
 function getExpectedProgress() {
   const cycle = getCycleState();
-
   const expectedPages = (cycle.cycleDay / TOTAL_DAYS) * TOTAL_PAGES;
 
   return {
@@ -140,7 +141,6 @@ function getPlannedVsActual() {
     if (!p?.grade || !p?.subjects) continue;
 
     const actual = todayLog[p.grade] || {};
-
     const subjects = Object.keys(p.subjects);
 
     for (let j = 0; j < subjects.length; j++) {
@@ -246,6 +246,24 @@ let currentSection = "study";
 let nav, prevBtn, nextBtn;
 
 // ===============================
+// PERSIST UI STATE (NEW)
+// ===============================
+function saveUIState() {
+  localStorage.setItem("ui_state", JSON.stringify({
+    grade: currentGrade,
+    section: currentSection
+  }));
+}
+
+function loadUIState() {
+  const saved = safeJSON("ui_state", null);
+  if (!saved) return;
+
+  currentGrade = saved.grade || 9;
+  currentSection = saved.section || "study";
+}
+
+// ===============================
 // NAV
 // ===============================
 function updateNavButtons() {
@@ -262,6 +280,8 @@ function updateNavButtons() {
 function loadSection(type, grade) {
   currentSection = type;
   currentGrade = grade;
+
+  saveUIState();
 
   updateNavButtons();
 
@@ -288,28 +308,25 @@ function previousGrade() {
 }
 
 // ===============================
-// INIT
+// INIT (FIXED - NO DOUBLE RUN)
 // ===============================
 function initApp() {
+  if (document.body.dataset.initialized) return;
+
+  document.body.dataset.initialized = "true";
+
   nav = document.getElementById("grade-nav");
   prevBtn = document.getElementById("prev-btn");
   nextBtn = document.getElementById("next-btn");
+
+  loadUIState();
 
   updateNavButtons();
   getCycleState();
   loadSection("study", currentGrade);
 }
 
-document.addEventListener("DOMContentLoaded", initApp);
-
-window.addEventListener("load", () => {
-  setTimeout(() => {
-    if (!document.body.dataset.initialized) {
-      document.body.dataset.initialized = "true";
-      initApp();
-    }
-  }, 300);
-});
+window.addEventListener("load", initApp);
 
 // ===============================
 // EXPORTS
@@ -319,40 +336,38 @@ window.previousGrade = previousGrade;
 window.loadSection = loadSection;
 
 // ===============================
-// UI STATE
+// SYNC SYSTEM (OPTIMIZED)
 // ===============================
-function getUIState() {
-  return {
-    mode: currentSection,
-    grade: currentGrade,
-    system: getSystemSnapshot(),
-    status: getSystemStatus(),
-    smart: getSmartCycle()
-  };
+let syncInterval = null;
+
+function sync() {
+  const lastUpdate = localStorage.getItem("study_last_update");
+  if (!lastUpdate) return;
+
+  if (window.__syncLock === lastUpdate) return;
+  window.__syncLock = lastUpdate;
+
+  if (currentSection === "study") updateGradeSummary?.(currentGrade);
+  if (currentSection === "timetable") loadWeeklyTimetable?.();
 }
 
-// ===============================
-// SYNC SYSTEM
-// ===============================
-(function initSmartSync() {
-  function sync() {
-    const lastUpdate = localStorage.getItem("study_last_update");
-    if (!lastUpdate) return;
+function startSync() {
+  if (syncInterval) return;
+  syncInterval = setInterval(sync, 5000);
+}
 
-    if (window.__syncLock === lastUpdate) return;
-    window.__syncLock = lastUpdate;
+function stopSync() {
+  clearInterval(syncInterval);
+  syncInterval = null;
+}
 
-    if (currentSection === "study") updateGradeSummary?.(currentGrade);
-    if (currentSection === "timetable") loadWeeklyTimetable?.();
-  }
+window.addEventListener("focus", startSync);
+window.addEventListener("blur", stopSync);
 
-  window.addEventListener("focus", sync);
-  document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) sync();
-  });
-
-  setInterval(sync, 5000);
-})();
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) stopSync();
+  else startSync();
+});
 
 // ===============================
 // INSTALL CONTROL
