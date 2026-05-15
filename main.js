@@ -246,7 +246,7 @@ let currentSection = "study";
 let nav, prevBtn, nextBtn;
 
 // ===============================
-// PERSIST UI STATE (NEW)
+// PERSIST UI STATE
 // ===============================
 function saveUIState() {
   localStorage.setItem("ui_state", JSON.stringify({
@@ -308,7 +308,7 @@ function previousGrade() {
 }
 
 // ===============================
-// INIT (FIXED - NO DOUBLE RUN)
+// INIT
 // ===============================
 function initApp() {
   if (document.body.dataset.initialized) return;
@@ -336,7 +336,7 @@ window.previousGrade = previousGrade;
 window.loadSection = loadSection;
 
 // ===============================
-// SYNC SYSTEM (OPTIMIZED)
+// SYNC SYSTEM
 // ===============================
 let syncInterval = null;
 
@@ -367,34 +367,4 @@ window.addEventListener("blur", stopSync);
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) stopSync();
   else startSync();
-});
-
-// ===============================
-// INSTALL CONTROL
-// ===============================
-let deferredPrompt = null;
-
-window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-
-  const installBtn = document.getElementById("install-btn");
-
-  if (installBtn) {
-    installBtn.style.display = "block";
-
-    installBtn.onclick = async () => {
-      if (!deferredPrompt) return;
-
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-
-      deferredPrompt = null;
-      installBtn.style.display = "none";
-    };
-  }
-});
-
-window.addEventListener("appinstalled", () => {
-  deferredPrompt = null;
 });
