@@ -1,18 +1,18 @@
-const CACHE_NAME = 'mission-cache-v48';
+const CACHE_NAME = 'mission-cache-v49';
 
 const ASSETS = [
-  './',
-  './index.html',
-  './styles.css',
-  './main.js',
-  './Study-tracker.js',
-  './Sunnah-tracker.js',
-  './dashboard.js',
-  './weekly-timetable.js',
-  './top-student-mode.js',
-  './manifest.json',
-  './icon-192.png',
-  './icon-512.png'
+  '/Mission-app/',
+  '/Mission-app/index.html',
+  '/Mission-app/styles.css',
+  '/Mission-app/main.js',
+  '/Mission-app/Study-tracker.js',
+  '/Mission-app/Sunnah-tracker.js',
+  '/Mission-app/dashboard.js',
+  '/Mission-app/weekly-timetable.js',
+  '/Mission-app/top-student-mode.js',
+  '/Mission-app/manifest.json',
+  '/Mission-app/icon-192.png',
+  '/Mission-app/icon-512.png'
 ];
 
 // ===============================
@@ -22,12 +22,8 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 
   event.waitUntil(
-    caches.open(CACHE_NAME).then(async (cache) => {
-      try {
-        await cache.addAll(ASSETS);
-      } catch (e) {
-        console.warn("Cache install failed:", e);
-      }
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS);
     })
   );
 });
@@ -40,7 +36,9 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keys) =>
       Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_NAME) return caches.delete(key);
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
         })
       )
     )
@@ -61,12 +59,20 @@ self.addEventListener('fetch', (event) => {
 
       return fetch(event.request)
         .then((res) => {
-          return caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, res.clone());
+          // Only cache valid responses
+          if (!res || res.status !== 200 || res.type !== 'basic') {
             return res;
+          }
+
+          const resClone = res.clone();
+
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, resClone);
           });
+
+          return res;
         })
-        .catch(() => caches.match('./index.html'));
+        .catch(() => caches.match('/Mission-app/index.html'));
     })
   );
 });
