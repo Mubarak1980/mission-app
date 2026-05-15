@@ -6,35 +6,24 @@
 
     <title>Mission App</title>
 
-    <!-- CSS -->
     <link rel="stylesheet" href="./styles.css" />
 
-    <!-- PWA MANIFEST -->
-    <link rel="manifest" href="./manifest.json" />
+    <link rel="manifest" href="manifest.json" />
 
-    <!-- IMPORTANT FIX: FORCE PWA IDENTITY -->
     <meta name="theme-color" content="#00d4ff" />
-
     <meta name="application-name" content="Mission App">
 
-    <!-- PWA FLAGS -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Mission App">
 
-    <!-- ICONS -->
-    <link rel="icon" href="./icon-192.png">
-    <link rel="apple-touch-icon" href="./icon-192.png">
-
-    <!-- 🔥 CRITICAL FIX: ENSURE CORRECT ORIGIN MATCH -->
-    <meta name="scope" content="/Mission-app/">
-
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
 </head>
 
 <body>
 
-    <!-- SPLASH -->
     <div id="splash-screen">
         <div class="splash-content">
             <h1>📘 Mission App</h1>
@@ -43,13 +32,9 @@
         </div>
     </div>
 
-    <!-- APP -->
     <div id="app" style="visibility:hidden;">
 
         <h1>TIME</h1>
-
-        <!-- KEEP BUTTON (optional fallback only, NOT install logic) -->
-        <button id="install-btn" style="display:none;">Install App</button>
 
         <div class="section-buttons">
             <button onclick="loadSunnahTracker()">Sunnah Tracker</button>
@@ -69,7 +54,6 @@
 
     </div>
 
-    <!-- JS -->
     <script src="./Sunnah-tracker.js"></script>
     <script src="./Study-tracker.js"></script>
     <script src="./weekly-timetable.js"></script>
@@ -77,31 +61,20 @@
     <script src="./top-student-mode.js"></script>
     <script src="./main.js"></script>
 
-    <!-- ===============================
-         🔥 FIXED SERVICE WORKER (IMPORTANT)
-    =============================== -->
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', async () => {
-                try {
-                    const reg = await navigator.serviceWorker.register(
-                        './service-worker.js',
-                        { scope: '/Mission-app/' }
-                    );
-
-                    console.log('SW OK:', reg.scope);
-
-                    // IMPORTANT: wait until fully ready
-                    await navigator.serviceWorker.ready;
-
-                } catch (err) {
-                    console.error('SW ERROR:', err);
-                }
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                .then(reg => {
+                    console.log('Native SW Registered:', reg.scope);
+                })
+                .catch(err => {
+                    console.error('Registration failed:', err);
+                });
             });
         }
     </script>
 
-    <!-- SPLASH -->
     <script>
         window.addEventListener('load', () => {
             const splash = document.getElementById('splash-screen');
@@ -109,12 +82,10 @@
 
             setTimeout(() => {
                 splash.classList.add('hide');
-
                 setTimeout(() => {
                     splash.remove();
                     app.style.visibility = 'visible';
                 }, 500);
-
             }, 1000);
         });
     </script>
