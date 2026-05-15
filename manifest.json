@@ -2,8 +2,8 @@
   "name": "Mission App",
   "short_name": "Mission",
 
-  "start_url": "./index.html",
-  "scope": "./",
+  "start_url": "/Mission-app/",
+  "scope": "/Mission-app/",
 
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
