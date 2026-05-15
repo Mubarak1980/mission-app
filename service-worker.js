@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mission-cache-v62';
+const CACHE_NAME = 'mission-v1.0.0';
 
 const ASSETS = [
   '/Mission-app/',
@@ -18,7 +18,6 @@ const ASSETS = [
 // INSTALL
 self.addEventListener('install', (event) => {
   self.skipWaiting();
-
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
   );
@@ -30,47 +29,40 @@ self.addEventListener('activate', (event) => {
     caches.keys().then(keys =>
       Promise.all(
         keys.map(key => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
+          if (key !== CACHE_NAME) return caches.delete(key);
         })
       )
     )
   );
-
   self.clients.claim();
 });
 
-// FETCH
+// FETCH (NETWORK-FIRST FOR HTML = PROFESSIONAL RULE)
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
+  const req = event.request;
 
+  if (req.method !== 'GET') return;
+
+  const url = new URL(req.url);
+
+  // HTML → network-first (important for updates)
+  if (req.mode === 'navigate') {
+    event.respondWith(
+      fetch(req).catch(() => caches.match('/Mission-app/index.html'))
+    );
+    return;
+  }
+
+  // static assets → cache-first
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) return cached;
-
-      return fetch(event.request)
-        .then(res => {
-          if (!res || res.status !== 200 || res.type !== 'basic') {
-            return res;
-          }
-
+    caches.match(req).then(cached => {
+      return cached || fetch(req).then(res => {
+        if (res.status === 200) {
           const clone = res.clone();
-
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, clone);
-          });
-
-          return res;
-        })
-        .catch(() => caches.match('/Mission-app/index.html'));
+          caches.open(CACHE_NAME).then(cache => cache.put(req, clone));
+        }
+        return res;
+      });
     })
   );
-});
-
-// SKIP WAITING (IMPORTANT FOR INSTALL FIX)
-self.addEventListener('message', (event) => {
-  if (event.data?.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
 });
