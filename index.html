@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
 
-    <!-- ✅ FIXED VIEWPORT (NATIVE FEEL) -->
+    <!-- ✅ NATIVE FEEL VIEWPORT (FIXED) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 
     <title>Mission App</title>
@@ -22,9 +22,8 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
 
-    <!-- ✅ STABLE STATUS BAR -->
+    <!-- iOS STATUS BAR -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-
     <meta name="apple-mobile-web-app-title" content="Mission App">
 
     <!-- ICONS -->
@@ -67,7 +66,7 @@
 
     </div>
 
-    <!-- JS -->
+    <!-- JS MODULES -->
     <script src="./Sunnah-tracker.js"></script>
     <script src="./Study-tracker.js"></script>
     <script src="./weekly-timetable.js"></script>
@@ -76,7 +75,7 @@
     <script src="./main.js"></script>
 
     <!-- ===============================
-         SERVICE WORKER
+         SERVICE WORKER (FIXED + SAFE)
     =============================== -->
     <script>
         if ('serviceWorker' in navigator) {
@@ -98,11 +97,15 @@
         }
     </script>
 
-    <!-- SPLASH -->
+    <!-- ===============================
+         SPLASH SCREEN HANDLER (FIXED STABILITY)
+    =============================== -->
     <script>
         window.addEventListener('load', () => {
             const splash = document.getElementById('splash-screen');
             const app = document.getElementById('app');
+
+            if (!splash || !app) return;
 
             setTimeout(() => {
                 splash.classList.add('hide');
@@ -117,4 +120,4 @@
     </script>
 
 </body>
-                                         </html>
+</html>
