@@ -1,18 +1,18 @@
-const CACHE_NAME = 'mission-cache-v56';
+const CACHE_NAME = 'mission-cache-v57';
 
 const ASSETS = [
-  '/Mission-app/',
-  '/Mission-app/index.html',
-  '/Mission-app/styles.css',
-  '/Mission-app/main.js',
-  '/Mission-app/Study-tracker.js',
-  '/Mission-app/Sunnah-tracker.js',
-  '/Mission-app/dashboard.js',
-  '/Mission-app/weekly-timetable.js',
-  '/Mission-app/top-student-mode.js',
-  '/Mission-app/manifest.json',
-  '/Mission-app/icon-192.png',
-  '/Mission-app/icon-512.png'
+  './',
+  './index.html',
+  './styles.css',
+  './main.js',
+  './Study-tracker.js',
+  './Sunnah-tracker.js',
+  './dashboard.js',
+  './weekly-timetable.js',
+  './top-student-mode.js',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 // ===============================
@@ -22,9 +22,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
 });
 
@@ -35,11 +33,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
+        keys.map((key) => key !== CACHE_NAME && caches.delete(key))
       )
     )
   );
@@ -48,7 +42,7 @@ self.addEventListener('activate', (event) => {
 });
 
 // ===============================
-// FETCH (SAFE OFFLINE-FIRST)
+// FETCH
 // ===============================
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
@@ -59,20 +53,19 @@ self.addEventListener('fetch', (event) => {
 
       return fetch(event.request)
         .then((res) => {
-          // Only cache valid responses
           if (!res || res.status !== 200 || res.type !== 'basic') {
             return res;
           }
 
-          const resClone = res.clone();
+          const clone = res.clone();
 
           caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, resClone);
+            cache.put(event.request, clone);
           });
 
           return res;
         })
-        .catch(() => caches.match('/Mission-app/index.html'));
+        .catch(() => caches.match('./index.html'));
     })
   );
 });
