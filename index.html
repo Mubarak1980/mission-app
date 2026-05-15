@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
 
-    <!-- ✅ NATIVE FEEL VIEWPORT (FIXED) -->
+    <!-- ✅ NATIVE VIEWPORT -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 
     <title>Mission App</title>
@@ -11,7 +11,7 @@
     <!-- CSS -->
     <link rel="stylesheet" href="./styles.css" />
 
-    <!-- PWA MANIFEST -->
+    <!-- PWA MANIFEST (KEEP RELATIVE FOR GITHUB PAGES STABILITY) -->
     <link rel="manifest" href="./manifest.json" />
 
     <!-- THEME -->
@@ -22,7 +22,6 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
 
-    <!-- iOS STATUS BAR -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="Mission App">
 
@@ -75,15 +74,14 @@
     <script src="./main.js"></script>
 
     <!-- ===============================
-         SERVICE WORKER (FIXED + SAFE)
+         SERVICE WORKER (FIXED FOR INSTALL STABILITY)
     =============================== -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', async () => {
                 try {
                     const reg = await navigator.serviceWorker.register(
-                        './service-worker.js',
-                        { scope: '/Mission-app/' }
+                        './service-worker.js'
                     );
 
                     console.log('SW OK:', reg.scope);
@@ -97,9 +95,7 @@
         }
     </script>
 
-    <!-- ===============================
-         SPLASH SCREEN HANDLER (FIXED STABILITY)
-    =============================== -->
+    <!-- SPLASH -->
     <script>
         window.addEventListener('load', () => {
             const splash = document.getElementById('splash-screen');
