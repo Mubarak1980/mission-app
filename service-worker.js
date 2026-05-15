@@ -1,73 +1,46 @@
-const CACHE_NAME = "mission-app-v15";
+const CACHE_NAME = "mission-app-v16";
 
+// Removed the missing 512 icon to prevent installation failure
 const urlsToCache = [
-  "/Mission-app/",
-  "/Mission-app/index.html",
-  "/Mission-app/styles.css",
-  "/Mission-app/main.js",
-  "/Mission-app/Study-tracker.js",
-  "/Mission-app/Sunnah-tracker.js",
-  "/Mission-app/weekly-timetable.js",
-  "/Mission-app/dashboard.js",
-  "/Mission-app/top-student-mode.js",
-  "/Mission-app/icon-192.png",
-  "/Mission-app/icon-512.png"
+  "./",
+  "./index.html",
+  "./styles.css",
+  "./main.js",
+  "./Study-tracker.js",
+  "./Sunnah-tracker.js",
+  "./weekly-timetable.js",
+  "./dashboard.js",
+  "./top-student-mode.js",
+  "./icon-192.png",
+  "./manifest.json"
 ];
 
-// ===============================
-// INSTALL (SAFE VERSION)
-// ===============================
 self.addEventListener("install", event => {
   self.skipWaiting();
-
   event.waitUntil(
-    caches.open(CACHE_NAME).then(async cache => {
-      try {
-        await cache.addAll(urlsToCache);
-      } catch (err) {
-        console.error("Cache install failed:", err);
-
-        // IMPORTANT: prevent total install failure
-        for (const url of urlsToCache) {
-          try {
-            await cache.add(url);
-          } catch (e) {
-            console.warn("Skipped cache:", url);
-          }
-        }
-      }
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.addAll(urlsToCache);
     })
   );
 });
 
-// ===============================
-// ACTIVATE
-// ===============================
 self.addEventListener("activate", event => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cache => {
+          if (cache !== CACHE_NAME) return caches.delete(cache);
+        })
+      );
+    }).then(() => self.clients.claim())
+  );
 });
 
-// ===============================
-// FETCH (INSTALL-STABLE)
-// ===============================
+// MANDATORY FETCH EVENT FOR NATIVE INSTALL
 self.addEventListener("fetch", event => {
-  if (event.request.method !== "GET") return;
-
   event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        const clone = response.clone();
-
-        caches.open(CACHE_NAME).then(cache => {
-          cache.put(event.request, clone);
-        });
-
-        return response;
-      })
-      .catch(() => {
-        return caches.match(event.request).then(cached => {
-          return cached || caches.match("/Mission-app/index.html");
-        });
-      })
+    caches.match(event.request).then(response => {
+      return response || fetch(event.request);
+    })
   );
 });
