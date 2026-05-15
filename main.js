@@ -337,30 +337,65 @@ window.loadSection = loadSection;
 })();
 
 // ===============================
-// INSTALL CONTROL (SAFE)
+// INSTALL CONTROL (ROBUST)
 // ===============================
 let deferredPrompt = null;
 
 window.addEventListener("beforeinstallprompt", (e) => {
+  console.log("✅ Install prompt captured");
+
   e.preventDefault();
   deferredPrompt = e;
 
+  showInstallButton();
+});
+
+function showInstallButton() {
   const installBtn = document.getElementById("install-btn");
-  if (!installBtn) return;
+
+  if (!installBtn) {
+    console.warn("❌ install-btn not found in HTML");
+    return;
+  }
 
   installBtn.style.display = "block";
 
   installBtn.onclick = async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      alert("App is not ready to install yet. Please wait a few seconds.");
+      return;
+    }
 
     deferredPrompt.prompt();
-    const result = await deferredPrompt.userChoice;
+
+    const choice = await deferredPrompt.userChoice;
+
+    console.log("User choice:", choice.outcome);
+
+    if (choice.outcome === "accepted") {
+      console.log("✅ App installed");
+    } else {
+      console.log("❌ Install dismissed");
+    }
 
     deferredPrompt = null;
     installBtn.style.display = "none";
   };
+}
+
+// Fallback (important for Android)
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    if (!deferredPrompt) {
+      console.log("⚠️ Install not available yet");
+    }
+  }, 3000);
 });
 
 window.addEventListener("appinstalled", () => {
+  console.log("🎉 App installed successfully");
   deferredPrompt = null;
+
+  const installBtn = document.getElementById("install-btn");
+  if (installBtn) installBtn.style.display = "none";
 });
