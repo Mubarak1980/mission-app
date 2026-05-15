@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- ✅ FIXED VIEWPORT (NATIVE FEEL) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 
     <title>Mission App</title>
 
@@ -12,23 +14,22 @@
     <!-- PWA MANIFEST -->
     <link rel="manifest" href="./manifest.json" />
 
-    <!-- IMPORTANT FIX: FORCE PWA IDENTITY -->
+    <!-- THEME -->
     <meta name="theme-color" content="#00d4ff" />
-
     <meta name="application-name" content="Mission App">
 
     <!-- PWA FLAGS -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- ✅ STABLE STATUS BAR -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
     <meta name="apple-mobile-web-app-title" content="Mission App">
 
     <!-- ICONS -->
     <link rel="icon" href="./icon-192.png">
     <link rel="apple-touch-icon" href="./icon-192.png">
-
-    <!-- 🔥 CRITICAL FIX: ENSURE CORRECT ORIGIN MATCH -->
-    <meta name="scope" content="/Mission-app/">
 
 </head>
 
@@ -47,8 +48,6 @@
     <div id="app" style="visibility:hidden;">
 
         <h1>TIME</h1>
-
-        
 
         <div class="section-buttons">
             <button onclick="loadSunnahTracker()">Sunnah Tracker</button>
@@ -77,7 +76,7 @@
     <script src="./main.js"></script>
 
     <!-- ===============================
-         🔥 FIXED SERVICE WORKER (IMPORTANT)
+         SERVICE WORKER
     =============================== -->
     <script>
         if ('serviceWorker' in navigator) {
@@ -90,7 +89,6 @@
 
                     console.log('SW OK:', reg.scope);
 
-                    // IMPORTANT: wait until fully ready
                     await navigator.serviceWorker.ready;
 
                 } catch (err) {
@@ -119,4 +117,4 @@
     </script>
 
 </body>
-        </html>
+                                         </html>
