@@ -6,6 +6,7 @@
   "scope": "/Mission-app/",
 
   "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
 
   "orientation": "portrait-primary",
 
