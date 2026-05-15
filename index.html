@@ -9,69 +9,62 @@
     <!-- CSS -->
     <link rel="stylesheet" href="./styles.css" />
 
-    <!-- ===============================
-         PWA CONFIG
-    =============================== -->
+    <!-- PWA MANIFEST -->
     <link rel="manifest" href="./manifest.json" />
 
     <meta name="theme-color" content="#00d4ff" />
     <meta name="application-name" content="Mission App">
 
-    <!-- Mobile behavior -->
+    <!-- PWA FLAGS -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Mission App">
 
-    <!-- Icons -->
-    <link rel="icon" sizes="192x192" href="./icon-192.png" />
-    <link rel="icon" sizes="512x512" href="./icon-512.png" />
-    <link rel="apple-touch-icon" href="./icon-192.png" />
+    <!-- ICONS -->
+    <link rel="icon" href="./icon-192.png">
+    <link rel="apple-touch-icon" href="./icon-192.png">
 
 </head>
 
 <body>
 
-    <!-- 🌄 SPLASH SCREEN -->
+    <!-- SPLASH -->
     <div id="splash-screen">
         <div class="splash-content">
             <h1>📘 Mission App</h1>
-            <p>Loading your study system...</p>
+            <p>Loading...</p>
             <div class="loader"></div>
         </div>
     </div>
 
-    <!-- MAIN APP -->
-    <div id="app" style="visibility: hidden;">
+    <!-- APP -->
+    <div id="app" style="visibility:hidden;">
 
         <h1>TIME</h1>
 
-        <!-- ✅ INSTALL BUTTON (CRITICAL FIX) -->
-        <button id="install-btn" style="display:none;">
-            📲 Install App
-        </button>
+        <!-- KEEP BUTTON (safe but not required for install) -->
+        <button id="install-btn" style="display:none;">Install App</button>
 
         <div class="section-buttons">
             <button onclick="loadSunnahTracker()">Sunnah Tracker</button>
             <button onclick="loadSection('study', currentGrade)">Study Tracker</button>
-            <button onclick="loadSection('timetable', currentGrade)">📅 Weekly Timetable</button>
-            <button onclick="loadDashboard()">📊 Dashboard</button>
-            <button onclick="loadTopStudentMode()">🎓 Top Student Mode</button>
+            <button onclick="loadSection('timetable', currentGrade)">Weekly Timetable</button>
+            <button onclick="loadDashboard()">Dashboard</button>
+            <button onclick="loadTopStudentMode()">Top Student Mode</button>
         </div>
 
         <div id="grade-progress-bar"></div>
         <div id="main-content"></div>
 
-        <div class="nav-buttons" id="grade-nav">
+        <div id="grade-nav">
             <button onclick="previousGrade()" id="prev-btn">Previous</button>
             <button onclick="nextGrade()" id="next-btn">Next</button>
         </div>
 
     </div>
 
-    <!-- ===============================
-         JS FILES
-    =============================== -->
+    <!-- JS -->
     <script src="./Sunnah-tracker.js"></script>
     <script src="./Study-tracker.js"></script>
     <script src="./weekly-timetable.js"></script>
@@ -79,30 +72,22 @@
     <script src="./top-student-mode.js"></script>
     <script src="./main.js"></script>
 
-    <!-- ===============================
-         SERVICE WORKER (IMPROVED)
-    =============================== -->
+    <!-- SERVICE WORKER (IMPORTANT FIX HERE) -->
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./service-worker.js')
-                .then(reg => {
-                    console.log('SW Registered:', reg.scope);
-                })
-                .catch(err => {
-                    console.error('SW Failed:', err);
-                });
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(reg => console.log('SW OK:', reg.scope))
+                    .catch(err => console.error('SW ERROR:', err));
+            });
         }
     </script>
 
-    <!-- ===============================
-         SPLASH CONTROLLER
-    =============================== -->
+    <!-- SPLASH -->
     <script>
         window.addEventListener('load', () => {
             const splash = document.getElementById('splash-screen');
             const app = document.getElementById('app');
-
-            if (!splash || !app) return;
 
             setTimeout(() => {
                 splash.classList.add('hide');
@@ -110,7 +95,7 @@
                 setTimeout(() => {
                     splash.remove();
                     app.style.visibility = 'visible';
-                }, 600);
+                }, 500);
 
             }, 1000);
         });
