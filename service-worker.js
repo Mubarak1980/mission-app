@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mission-cache-v138';
+const CACHE_NAME = 'mission-cache-v139';
 
 const ASSETS = [
   './',
@@ -22,7 +22,13 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then(async (cache) => {
+      try {
+        await cache.addAll(ASSETS);
+      } catch (e) {
+        console.warn("Cache install failed:", e);
+      }
+    })
   );
 });
 
@@ -33,7 +39,9 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
-        keys.map((key) => key !== CACHE_NAME && caches.delete(key))
+        keys.map((key) => {
+          if (key !== CACHE_NAME) return caches.delete(key);
+        })
       )
     )
   );
@@ -42,29 +50,23 @@ self.addEventListener('activate', (event) => {
 });
 
 // ===============================
-// FETCH (OFFLINE-FIRST IMPROVED)
+// FETCH (SAFE OFFLINE-FIRST)
 // ===============================
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      
-      if (cachedResponse) {
-        return cachedResponse;
-      }
+    caches.match(event.request).then((cached) => {
+      if (cached) return cached;
 
       return fetch(event.request)
-        .then((networkResponse) => {
+        .then((res) => {
           return caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, networkResponse.clone());
-            return networkResponse;
+            cache.put(event.request, res.clone());
+            return res;
           });
         })
-        .catch(() => {
-          // IMPORTANT FIX: always return index.html explicitly
-          return caches.match('./index.html');
-        });
+        .catch(() => caches.match('./index.html'));
     })
   );
 });
