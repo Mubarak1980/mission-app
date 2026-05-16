@@ -2,32 +2,37 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+
+    <!-- FIXED: single correct viewport meta -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
 
     <title>Mission App</title>
 
     <link rel="stylesheet" href="./styles.css" />
     <link rel="manifest" href="/manifest.json" />
 
+    <!-- PWA CORE -->
     <meta name="theme-color" content="#00d4ff" />
     <meta name="application-name" content="Mission App">
 
+    <!-- Mobile App Mode -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Mission App">
 
+    <!-- ICON -->
     <link rel="icon" href="/icon-192.png">
     <link rel="apple-touch-icon" href="/icon-192.png">
 
-    <!-- FIXED -->
     <meta name="format-detection" content="telephone=no">
-    <meta name="viewport-fit" content="cover">
 </head>
 
 <body>
 
+<!-- ===================== -->
 <!-- SPLASH SCREEN -->
+<!-- ===================== -->
 <div id="splash-screen">
     <div class="splash-content">
         <h1>📘 Mission App</h1>
@@ -36,9 +41,11 @@
     </div>
 </div>
 
+<!-- ===================== -->
 <!-- APP -->
-<div id="app" style="display: none;">
-    <h1>TIME</h1>
+<!-- ===================== -->
+<div id="app" style="display:none;">
+    <h1>MISSION APP</h1>
 
     <div class="section-buttons">
         <button onclick="loadSection('study', currentGrade)">Study Tracker</button>
@@ -57,18 +64,20 @@
     </div>
 </div>
 
-<!-- JS FILES -->
-<script src="./Sunnah-tracker.js"></script>
-<script src="./Study-tracker.js"></script>
-<script src="./weekly-timetable.js"></script>
-<script src="./dashboard.js"></script>
-<script src="./top-student-mode.js"></script>
-<script src="./main.js"></script>
+<!-- ===================== -->
+<!-- JS (SAFE ORDER) -->
+<!-- ===================== -->
+<script src="./main.js" defer></script>
+<script src="./Study-tracker.js" defer></script>
+<script src="./Sunnah-tracker.js" defer></script>
+<script src="./weekly-timetable.js" defer></script>
+<script src="./dashboard.js" defer></script>
+<script src="./top-student-mode.js" defer></script>
 
+<!-- ===================== -->
+<!-- PWA SERVICE WORKER -->
+<!-- ===================== -->
 <script>
-// ===============================
-// SERVICE WORKER (STABLE PWA)
-// ===============================
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
         try {
@@ -76,19 +85,29 @@ if ('serviceWorker' in navigator) {
 
             console.log('SW registered:', reg.scope);
 
+            // force update check
             reg.update();
 
+            // NEW VERSION HANDLING (important for "native app feel")
             reg.addEventListener('updatefound', () => {
                 const newWorker = reg.installing;
 
-                if (newWorker) {
-                    newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            console.log("New version available (refresh to update)");
-                        }
-                    });
-                }
+                if (!newWorker) return;
+
+                newWorker.addEventListener('statechange', () => {
+                    if (
+                        newWorker.state === 'installed' &&
+                        navigator.serviceWorker.controller
+                    ) {
+                        console.log("Update ready — refresh app");
+                    }
+                });
             });
+
+            // allow SW to activate immediately when updated
+            if (reg.waiting) {
+                reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+            }
 
         } catch (err) {
             console.error('SW ERROR:', err);
@@ -96,9 +115,9 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// ===============================
-// SPLASH (SAFE + STABLE)
-// ===============================
+// =====================
+// SPLASH CONTROL (SAFE)
+// =====================
 window.addEventListener('load', () => {
     const splash = document.getElementById('splash-screen');
     const app = document.getElementById('app');
@@ -107,12 +126,13 @@ window.addEventListener('load', () => {
         if (splash) splash.classList.add('hide');
 
         setTimeout(() => {
-            if (splash) splash.remove();
+            splash?.remove();
             if (app) app.style.display = 'block';
-        }, 500);
-    }, 1000);
+        }, 450);
+
+    }, 900);
 });
 </script>
 
 </body>
-    </html>
+</html>
