@@ -51,7 +51,6 @@ function getCycleState() {
   try {
     localStorage.setItem("cycleState", JSON.stringify(state));
   } catch {}
-
   return state;
 }
 
@@ -174,7 +173,7 @@ function getSystemStatus() {
 }
 
 // ===============================
-// SNAPSHOT (FIXED BUG HERE)
+// SNAPSHOT (FIXED)
 // ===============================
 function getSystemSnapshot() {
   const status = getSystemStatus();
@@ -260,7 +259,7 @@ function loadUIState() {
 
 // ===============================
 function updateNavButtons() {
-  if (!nav) return;
+  if (!nav || !prevBtn || !nextBtn) return;
 
   if (currentSection === "study") {
     nav.style.display = "flex";
@@ -279,11 +278,11 @@ function loadSection(type, grade) {
   saveUIState();
   updateNavButtons();
 
-  if (type === "study") loadStudySection?.(currentGrade);
-  if (type === "timetable") loadWeeklyTimetable?.();
-  if (type === "dashboard") loadDashboard?.();
-  if (type === "top-student") loadTopStudentMode?.();
-  if (type === "sunnah") loadSunnahTracker?.();
+  if (type === "study") loadStudySection && loadStudySection(currentGrade);
+  if (type === "timetable") loadWeeklyTimetable && loadWeeklyTimetable();
+  if (type === "dashboard") loadDashboard && loadDashboard();
+  if (type === "top-student") loadTopStudentMode && loadTopStudentMode();
+  if (type === "sunnah") loadSunnahTracker && loadSunnahTracker();
 }
 
 // ===============================
