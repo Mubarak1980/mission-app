@@ -25,6 +25,23 @@
 
 <body>
 
+<!-- INSTALL BUTTON (NEW - REQUIRED FOR RELIABLE UX) -->
+<button id="installBtn" style="
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 16px;
+    border: none;
+    background: #00d4ff;
+    color: black;
+    font-weight: bold;
+    border-radius: 10px;
+    display: none;
+    z-index: 9999;
+">
+Install App
+</button>
+
 <!-- SPLASH -->
 <div id="splash-screen">
     <div class="splash-content">
@@ -66,26 +83,37 @@
 <!-- PWA FIXED SYSTEM -->
 <script>
 let deferredPrompt = null;
+const installBtn = document.getElementById("installBtn");
 
-// ✅ IMPORTANT: capture install event
+// Capture install event
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    console.log("Install prompt ready");
+
+    console.log("Install available");
+
+    // show install button
+    installBtn.style.display = "block";
 });
 
-// Optional: manual trigger function (you can use a button later)
-function showInstallPrompt() {
-    if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then(() => {
-            deferredPrompt = null;
-        });
+// Install button click
+installBtn?.addEventListener("click", async () => {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+
+    const choice = await deferredPrompt.userChoice;
+
+    if (choice.outcome === "accepted") {
+        console.log("App installed");
     }
-}
+
+    deferredPrompt = null;
+    installBtn.style.display = "none";
+});
 
 // ===============================
-// SERVICE WORKER (FIXED)
+// SERVICE WORKER (FIXED SAFE VERSION)
 // ===============================
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
@@ -96,16 +124,14 @@ if ('serviceWorker' in navigator) {
 
             console.log('SW registered:', reg.scope);
 
-            // ensure control ASAP
-            if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-
+            // ❌ REMOVED auto skipWaiting (it breaks install state)
             reg.addEventListener('updatefound', () => {
                 const newWorker = reg.installing;
 
                 if (newWorker) {
                     newWorker.addEventListener('statechange', () => {
                         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            console.log('New update available');
+                            console.log('Update available');
                         }
                     });
                 }
@@ -118,17 +144,17 @@ if ('serviceWorker' in navigator) {
 }
 
 // ===============================
-// SPLASH (SAFE)
+// SPLASH
 // ===============================
 window.addEventListener('load', () => {
     const splash = document.getElementById('splash-screen');
     const app = document.getElementById('app');
 
     setTimeout(() => {
-        if (splash) splash.classList.add('hide');
+        splash?.classList.add('hide');
 
         setTimeout(() => {
-            if (splash) splash.remove();
+            splash?.remove();
             if (app) app.style.display = 'block';
         }, 500);
 
