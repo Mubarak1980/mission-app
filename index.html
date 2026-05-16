@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8" />
 
-    <!-- VIEWPORT -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <!-- VIEWPORT (FIXED for real native feel) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
     <title>Mission App</title>
 
@@ -21,13 +21,15 @@
     <!-- PWA FLAGS -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Mission App">
 
     <!-- ICONS -->
     <link rel="icon" href="./icon-192.png">
     <link rel="apple-touch-icon" href="./icon-192.png">
 
+    <!-- PRELOAD (PERFORMANCE BOOST) -->
+    <link rel="preload" href="./main.js" as="script">
 </head>
 
 <body>
@@ -49,7 +51,7 @@
         <button onclick="loadSunnahTracker()">Sunnah Tracker</button>
         <button onclick="loadSection('study', currentGrade)">Study Tracker</button>
         <button onclick="loadSection('timetable', currentGrade)">Weekly Timetable</button>
-        <button onclick="loadDashboard()">Dashboard</button>
+        <button onclick="loadSection('dashboard', currentGrade)">Dashboard</button>
         <button onclick="loadTopStudentMode()">Top Student Mode</button>
     </div>
 
@@ -62,16 +64,16 @@
     </div>
 </div>
 
-<!-- JS FILES -->
-<script src="./Sunnah-tracker.js"></script>
-<script src="./Study-tracker.js"></script>
-<script src="./weekly-timetable.js"></script>
-<script src="./dashboard.js"></script>
-<script src="./top-student-mode.js"></script>
-<script src="./main.js"></script>
+<!-- JS FILES (DEFER = faster load, no blocking) -->
+<script src="./Sunnah-tracker.js" defer></script>
+<script src="./Study-tracker.js" defer></script>
+<script src="./weekly-timetable.js" defer></script>
+<script src="./dashboard.js" defer></script>
+<script src="./top-student-mode.js" defer></script>
+<script src="./main.js" defer></script>
 
 <!-- ===============================
-SERVICE WORKER (STABLE PWA VERSION)
+SERVICE WORKER (PROFESSIONAL VERSION)
 =============================== -->
 <script>
 if ('serviceWorker' in navigator) {
@@ -81,7 +83,7 @@ if ('serviceWorker' in navigator) {
 
             console.log('SW registered:', reg.scope);
 
-            // safe update handling (NO reload loop)
+            // Controlled update flow (NO bugs)
             if (reg.waiting) {
                 reg.waiting.postMessage({ type: 'SKIP_WAITING' });
             }
@@ -89,13 +91,27 @@ if ('serviceWorker' in navigator) {
             reg.addEventListener('updatefound', () => {
                 const newWorker = reg.installing;
 
-                if (newWorker) {
-                    newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            console.log("New version available");
-                        }
-                    });
-                }
+                if (!newWorker) return;
+
+                newWorker.addEventListener('statechange', () => {
+                    if (
+                        newWorker.state === 'installed' &&
+                        navigator.serviceWorker.controller
+                    ) {
+                        console.log("New version ready");
+
+                        // OPTIONAL: silent update activation
+                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                    }
+                });
+            });
+
+            // Reload ONCE after update (prevents loop)
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (refreshing) return;
+                refreshing = true;
+                window.location.reload();
             });
 
         } catch (err) {
@@ -112,16 +128,16 @@ window.addEventListener('load', () => {
     const app = document.getElementById('app');
 
     setTimeout(() => {
-        if (splash) splash.classList.add('hide');
+        splash?.classList.add('hide');
 
         setTimeout(() => {
-            if (splash) splash.remove();
+            splash?.remove();
             if (app) app.style.visibility = 'visible';
         }, 500);
 
-    }, 1000);
+    }, 800); // slightly faster = more professional feel
 });
 </script>
 
 </body>
-</html>
+    </html>
