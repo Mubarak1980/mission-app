@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mission-cache-v132';
+const CACHE_NAME = 'mission-cache-v133';
 
 const APP_SHELL = [
   '/',
@@ -11,33 +11,38 @@ const APP_SHELL = [
   '/weekly-timetable.js',
   '/top-student-mode.js',
   '/manifest.json',
-  '/icon-192.png'
+  '/icon-192.png',
+  '/icon-512.png'
 ];
 
 // ============================
-// INSTALL
+// INSTALL (STABLE PWA FIX)
 // ============================
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 
   event.waitUntil(
-    caches.open(CACHE_NAME).then(async (cache) => {
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+
       for (const file of APP_SHELL) {
         try {
           const res = await fetch(file, { cache: "reload" });
-          if (res && res.ok) {
+
+          // STRICT CHECK (IMPORTANT FOR INSTALL ELIGIBILITY)
+          if (res && res.ok && res.status === 200) {
             await cache.put(file, res.clone());
           }
         } catch (e) {
-          console.warn("Install skip:", file);
+          console.warn("Install skipped:", file);
         }
       }
-    })
+    })()
   );
 });
 
 // ============================
-// ACTIVATE (IMPORTANT FIX)
+// ACTIVATE (FORCE CONTROL)
 // ============================
 self.addEventListener('activate', (event) => {
   event.waitUntil(
@@ -50,48 +55,64 @@ self.addEventListener('activate', (event) => {
         })
       );
 
-      // CRITICAL FIX: ensures PWA becomes "controlled"
+      // CRITICAL: ensures app becomes controlled immediately
       await self.clients.claim();
     })()
   );
 });
 
 // ============================
-// FETCH (STABLE OFFLINE-FIRST)
+// FETCH (ROBUST OFFLINE FIRST)
 // ============================
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
-  const url = new URL(event.request.url);
+  const request = event.request;
 
   // ---------------------------
-  // NAVIGATION FIX (MOST IMPORTANT)
+  // NAVIGATION FIX (PWA CORE)
   // ---------------------------
-  if (event.request.mode === 'navigate') {
+  if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).catch(async () => {
-        const cached = await caches.match('/index.html');
-        return cached || new Response("Offline", {
-          headers: { "Content-Type": "text/html" }
-        });
-      })
+      fetch(request)
+        .then((res) => {
+          if (!res || res.status !== 200 || res.type !== 'basic') {
+            throw new Error("Bad response");
+          }
+
+          // update cache
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((c) => c.put('/index.html', copy));
+
+          return res;
+        })
+        .catch(async () => {
+          return (
+            (await caches.match('/index.html')) ||
+            new Response("<h1>Offline</h1>", {
+              headers: { "Content-Type": "text/html" }
+            })
+          );
+        })
     );
     return;
   }
 
   // ---------------------------
-  // STATIC FILES
+  // STATIC CACHE STRATEGY
   // ---------------------------
   event.respondWith(
-    caches.match(event.request).then((cached) => {
+    caches.match(request).then((cached) => {
       if (cached) return cached;
 
-      return fetch(event.request)
+      return fetch(request)
         .then((res) => {
-          if (!res || res.status !== 200) return res;
+          if (!res || res.status !== 200 || res.type !== "basic") {
+            return res;
+          }
 
           const copy = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
 
           return res;
         })
@@ -101,7 +122,7 @@ self.addEventListener('fetch', (event) => {
 });
 
 // ============================
-// UPDATE CONTROL
+// UPDATE HANDLER
 // ============================
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
