@@ -1,121 +1,107 @@
 // ==========================================
-// Service Worker - Mission App PWA Engine
+// Service Worker - Mission App (Final Fixed)
 // ==========================================
 
-const CACHE_NAME = 'mission-cache-v101';
+const CACHE_NAME = 'mission-cache-v102';
 
-// FIXED: Paths updated to relative formatting matching root deployment scope
+// Use ROOT paths (critical for PWA install)
 const ASSETS = [
-  './',
-  './index.html',
-  './styles.css',
-  './main.js',
-  './Study-tracker.js',
-  './Sunnah-tracker.js',
-  './dashboard.js',
-  './weekly-timetable.js',
-  './top-student-mode.js',
-  './manifest.json',
-  './icon-192.png'
+  '/',
+  '/index.html',
+  '/styles.css',
+  '/main.js',
+  '/Study-tracker.js',
+  '/Sunnah-tracker.js',
+  '/dashboard.js',
+  '/weekly-timetable.js',
+  '/top-student-mode.js',
+  '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png'
 ];
 
-// INSTALL STEP: Pre-caches core application files
+// INSTALL: Cache all core files (STRICT - will fail if any missing)
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache =>
-      Promise.allSettled(
-        ASSETS.map(url =>
-          fetch(url)
-            .then(res => { 
-              if (res.ok) return cache.put(url, res); 
-            })
-            .catch(() => console.warn('Pre-cache assignment deferred:', url))
-        )
-      )
-    )
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(ASSETS))
   );
 });
 
-// ACTIVATE STEP: Cleans up deprecated legacy caches
+// ACTIVATE: Remove old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.map(key => key !== CACHE_NAME && caches.delete(key)))
+      Promise.all(
+        keys.map(key => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      )
     )
   );
   self.clients.claim();
 });
 
-// FETCH ENGINE: Smart offline interceptor proxy
+// FETCH: Smart caching strategy
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
-  const url = new URL(event.request.url);
+  const request = event.request;
 
-  // 1. NAVIGATION REQUEST HANDLING (HTML Page Loads)
-  if (event.request.mode === 'navigate') {
+  // 1. Handle page navigation (HTML)
+  if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request)
-        .then(res => {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-          return res;
-        })
-        .catch(() => {
-          // FIXED: Intelligently fallback to cached index.html if offline instead of a missing offline.html file
-          return caches.match('./index.html') || caches.match(event.request);
-        })
+      fetch(request)
+        .catch(() => caches.match('/index.html'))
     );
     return;
   }
 
-  // 2. STATIC ASSETS CACHE-FIRST LOGIC (JS, CSS, Images, Manifests)
-  if (
-    url.pathname.endsWith('.js') ||
-    url.pathname.endsWith('.css') ||
-    url.pathname.endsWith('.png') ||
-    url.pathname.endsWith('.json')
-  ) {
-    event.respondWith(
-      caches.match(event.request).then(cached => {
-        return cached || fetch(event.request).then(res => {
-          if (!res || res.status !== 200 || res.type !== 'basic') return res;
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-          return res;
-        });
-      })
-    );
-    return;
-  }
-
-  // 3. GENERIC STRATEGY (Network-first with cache backup)
+  // 2. Cache-first for static assets
   event.respondWith(
-    fetch(event.request)
-      .then(res => {
-        if (!res || res.status !== 200 || res.type !== 'basic') return res;
-        const clone = res.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        return res;
-      })
-      .catch(() => caches.match(event.request))
+    caches.match(request).then(cached => {
+      if (cached) return cached;
+
+      return fetch(request).then(response => {
+        // Only cache valid responses
+        if (
+          !response ||
+          response.status !== 200 ||
+          response.type !== 'basic'
+        ) {
+          return response;
+        }
+
+        const clone = response.clone();
+
+        caches.open(CACHE_NAME)
+          .then(cache => cache.put(request, clone));
+
+        return response;
+      });
+    })
   );
 });
 
-// BACKGROUND SYNC EVENT
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-study-data') {
-    event.waitUntil(
-      self.clients.matchAll().then(clients =>
-        clients.forEach(client => client.postMessage({ type: 'SYNC_COMPLETE' }))
-      )
-    );
+// MESSAGE: Allow immediate update
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
   }
 });
 
-// SYSTEM MESSAGING SWITCH
-self.addEventListener('message', (event) => {
-  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+// OPTIONAL: Background sync (safe fallback)
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-study-data') {
+    event.waitUntil(
+      self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+          client.postMessage({ type: 'SYNC_COMPLETE' });
+        });
+      })
+    );
+  }
 });
-    
