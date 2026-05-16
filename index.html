@@ -3,36 +3,28 @@
 <head>
     <meta charset="UTF-8" />
 
-    <!-- VIEWPORT -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 
     <title>Mission App</title>
 
-    <!-- CSS -->
     <link rel="stylesheet" href="./styles.css" />
-
-    <!-- MANIFEST -->
     <link rel="manifest" href="./manifest.json" />
 
-    <!-- THEME -->
     <meta name="theme-color" content="#00d4ff" />
     <meta name="application-name" content="Mission App">
 
-    <!-- PWA FLAGS -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="Mission App">
 
-    <!-- ICONS -->
     <link rel="icon" href="./icon-192.png">
     <link rel="apple-touch-icon" href="./icon-192.png">
-
 </head>
 
 <body>
 
-<!-- SPLASH SCREEN -->
+<!-- SPLASH -->
 <div id="splash-screen">
     <div class="splash-content">
         <h1>📘 Mission App</h1>
@@ -62,7 +54,7 @@
     </div>
 </div>
 
-<!-- JS FILES -->
+<!-- JS -->
 <script src="./Sunnah-tracker.js"></script>
 <script src="./Study-tracker.js"></script>
 <script src="./weekly-timetable.js"></script>
@@ -71,7 +63,7 @@
 <script src="./main.js"></script>
 
 <!-- ===============================
-SERVICE WORKER (STABLE PWA VERSION)
+SERVICE WORKER (FIXED + STABLE INSTALL)
 =============================== -->
 <script>
 if ('serviceWorker' in navigator) {
@@ -81,22 +73,18 @@ if ('serviceWorker' in navigator) {
 
             console.log('SW registered:', reg.scope);
 
-            // safe update handling (NO reload loop)
+            // ensure SW activates fast
             if (reg.waiting) {
                 reg.waiting.postMessage({ type: 'SKIP_WAITING' });
             }
 
-            reg.addEventListener('updatefound', () => {
-                const newWorker = reg.installing;
+            await navigator.serviceWorker.ready;
 
-                if (newWorker) {
-                    newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            console.log("New version available");
-                        }
-                    });
-                }
-            });
+            // ensure page is controlled
+            if (!navigator.serviceWorker.controller) {
+                console.log("Reloading for SW control...");
+                window.location.reload();
+            }
 
         } catch (err) {
             console.error('SW ERROR:', err);
@@ -112,11 +100,11 @@ window.addEventListener('load', () => {
     const app = document.getElementById('app');
 
     setTimeout(() => {
-        if (splash) splash.classList.add('hide');
+        splash.classList.add('hide');
 
         setTimeout(() => {
-            if (splash) splash.remove();
-            if (app) app.style.visibility = 'visible';
+            splash.remove();
+            app.style.visibility = 'visible';
         }, 500);
 
     }, 1000);
