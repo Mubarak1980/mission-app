@@ -18,7 +18,7 @@ function safeJSON(key, fallback) {
   try {
     const value = localStorage.getItem(key);
     return value ? JSON.parse(value) : fallback;
-  } catch (e) {
+  } catch {
     return fallback;
   }
 }
@@ -39,7 +39,6 @@ function getCycleState() {
   const start = new Date(state.startDate);
   const now = new Date();
 
-  // FIXED: timezone-safe calculation
   const diff = Math.floor(
     (Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) -
      Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())) / 86400000
@@ -219,7 +218,6 @@ function getSmartCycle() {
   const baseDaily = TOTAL_PAGES / TOTAL_DAYS;
 
   let target = baseDaily + catchUpPerDay;
-
   target = Math.min(Math.max(target, 25), 85);
 
   return {
@@ -259,8 +257,8 @@ function loadUIState() {
   const saved = safeJSON("ui_state", null);
   if (!saved) return;
 
-  currentGrade = saved.grade || 9;
-  currentSection = saved.section || "study";
+  currentGrade = saved.grade ?? 9;
+  currentSection = saved.section ?? "study";
 }
 
 // ===============================
@@ -275,14 +273,13 @@ function updateNavButtons() {
 }
 
 // ===============================
-// ROUTER
+// ROUTER (FIXED)
 // ===============================
-function loadSection(type, grade) {
+function loadSection(type = currentSection, grade = currentGrade) {
   currentSection = type;
   currentGrade = grade;
 
   saveUIState();
-
   updateNavButtons();
 
   if (type === "study") loadStudySection?.(grade);
@@ -308,7 +305,7 @@ function previousGrade() {
 }
 
 // ===============================
-// INIT
+// INIT (FIXED HERE)
 // ===============================
 function initApp() {
   if (document.body.dataset.initialized) return;
@@ -319,11 +316,11 @@ function initApp() {
   prevBtn = document.getElementById("prev-btn");
   nextBtn = document.getElementById("next-btn");
 
-  loadUIState();
-
+  loadUIState();          // ✅ restore first
   updateNavButtons();
   getCycleState();
-  loadSection("study", currentGrade);
+
+  loadSection(currentSection, currentGrade); // ✅ FIXED
 }
 
 window.addEventListener("load", initApp);
