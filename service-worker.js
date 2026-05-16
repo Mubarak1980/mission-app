@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mission-cache-v113';
+const CACHE_NAME = 'mission-cache-v114';
 
 const APP_SHELL = [
   '/',
@@ -29,7 +29,7 @@ self.addEventListener('install', (event) => {
             await cache.put(file, res.clone());
           }
         } catch (err) {
-          console.warn("Cache skipped:", file, err);
+          console.warn("Cache skipped:", file);
         }
       }
     })
@@ -63,7 +63,9 @@ self.addEventListener('fetch', (event) => {
 
   const request = event.request;
 
-  // Navigation requests (HTML)
+  // ============================
+  // NAVIGATION (HTML pages)
+  // ============================
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
@@ -80,7 +82,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets (cache-first)
+  // ============================
+  // STATIC ASSETS
+  // ============================
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
       if (cachedResponse) return cachedResponse;
@@ -97,7 +101,10 @@ self.addEventListener('fetch', (event) => {
 
           return res;
         })
-        .catch(() => caches.match(request)); // FIXED SAFE FALLBACK
+        .catch(() => {
+          // FIXED: safer fallback (prevents undefined errors)
+          return cachedResponse || caches.match('/index.html');
+        });
     })
   );
 });
