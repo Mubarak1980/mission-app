@@ -95,8 +95,8 @@ let total = 0;
 for (let i = 0; i < grades.length; i++) {
 const saved = safeJSON(grade_${grades[i]}_progress, {});
 
-for (let j = 0; j < subjects.length; j++) {  
-  total += Number(saved[subjects[j]]) || 0;  
+for (let j = 0; j < subjects.length; j++) {
+total += Number(saved[subjects[j]]) || 0;
 }
 
 }
@@ -141,22 +141,22 @@ for (let i = 0; i < plan.length; i++) {
 const p = plan[i];
 if (!p?.grade || !p?.subjects) continue;
 
-const actual = todayLog[p.grade] || {};  
-const subjects = Object.keys(p.subjects);  
+const actual = todayLog[p.grade] || {};
+const subjects = Object.keys(p.subjects);
 
-for (let j = 0; j < subjects.length; j++) {  
-  const subject = subjects[j];  
+for (let j = 0; j < subjects.length; j++) {
+const subject = subjects[j];
 
-  const planned = Number(p.subjects[subject]) || 0;  
-  const done = Number(actual[subject]) || 0;  
+const planned = Number(p.subjects[subject]) || 0;
+const done = Number(actual[subject]) || 0;
 
-  if (done < planned) {  
-    delays.push({  
-      grade: p.grade,  
-      subject,  
-      missing: planned - done  
-    });  
-  }  
+if (done < planned) {
+delays.push({
+grade: p.grade,
+subject,
+missing: planned - done
+});
+}
 }
 
 }
@@ -385,14 +385,14 @@ const installBtn = document.getElementById("install-btn");
 if (installBtn) {
 installBtn.style.display = "block";
 
-installBtn.onclick = async () => {  
-  if (!deferredPrompt) return;  
+installBtn.onclick = async () => {
+if (!deferredPrompt) return;
 
-  deferredPrompt.prompt();  
-  await deferredPrompt.userChoice;  
+deferredPrompt.prompt();
+await deferredPrompt.userChoice;
 
-  deferredPrompt = null;  
-  installBtn.style.display = "none";  
+deferredPrompt = null;
+installBtn.style.display = "none";
 };
 
 }
@@ -401,3 +401,6 @@ installBtn.onclick = async () => {
 window.addEventListener("appinstalled", () => {
 deferredPrompt = null;
 });
+
+Current grade and
+Current section does working wjen i refresh the app
