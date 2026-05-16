@@ -3,31 +3,23 @@
 <head>
     <meta charset="UTF-8" />
 
-    <!-- VIEWPORT -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 
     <title>Mission App</title>
 
-    <!-- CSS -->
     <link rel="stylesheet" href="./styles.css" />
-
-    <!-- MANIFEST -->
     <link rel="manifest" href="./manifest.json" />
 
-    <!-- THEME -->
     <meta name="theme-color" content="#00d4ff" />
     <meta name="application-name" content="Mission App">
 
-    <!-- PWA FLAGS -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="Mission App">
 
-    <!-- ICONS -->
     <link rel="icon" href="./icon-192.png">
     <link rel="apple-touch-icon" href="./icon-192.png">
-
 </head>
 
 <body>
@@ -46,7 +38,6 @@
     <h1>TIME</h1>
 
     <div class="section-buttons">
-        <button onclick="loadSunnahTracker()">Sunnah Tracker</button>
         <button onclick="loadSection('study', currentGrade)">Study Tracker</button>
         <button onclick="loadSection('timetable', currentGrade)">Weekly Timetable</button>
         <button onclick="loadDashboard()">Dashboard</button>
@@ -62,17 +53,19 @@
     </div>
 </div>
 
-<!-- JS FILES -->
+<!-- ===============================
+JS FILES (IMPORTANT ORDER FIXED)
+=============================== -->
 <script src="./Sunnah-tracker.js"></script>
 <script src="./Study-tracker.js"></script>
 <script src="./weekly-timetable.js"></script>
 <script src="./dashboard.js"></script>
 <script src="./top-student-mode.js"></script>
+
+<!-- main MUST be last -->
 <script src="./main.js"></script>
 
-<!-- ===============================
-SERVICE WORKER (STABLE PWA VERSION)
-=============================== -->
+<!-- SERVICE WORKER -->
 <script>
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
@@ -81,7 +74,6 @@ if ('serviceWorker' in navigator) {
 
             console.log('SW registered:', reg.scope);
 
-            // safe update handling (NO reload loop)
             if (reg.waiting) {
                 reg.waiting.postMessage({ type: 'SKIP_WAITING' });
             }
@@ -105,7 +97,7 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 
-<!-- SPLASH HANDLER -->
+<!-- SPLASH -->
 <script>
 window.addEventListener('load', () => {
     const splash = document.getElementById('splash-screen');
