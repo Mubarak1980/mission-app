@@ -8,7 +8,7 @@
 
     <link rel="stylesheet" href="./styles.css" />
 
-    <!-- FIXED: absolute path improves PWA reliability -->
+    <!-- FIXED: absolute manifest path for PWA install reliability -->
     <link rel="manifest" href="/manifest.json" />
 
     <!-- PWA CORE META -->
@@ -21,13 +21,13 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Mission App">
 
-    <!-- FIXED: absolute paths improve icon loading in install flow -->
+    <!-- ICONS -->
     <link rel="icon" href="/icon-192.png">
     <link rel="apple-touch-icon" href="/icon-192.png">
 
-    <!-- OPTIONAL BUT GOOD: prevents iOS zoom issues -->
     <meta name="format-detection" content="telephone=no">
 </head>
+
 <body>
 
 <!-- SPLASH SCREEN -->
@@ -67,35 +67,41 @@
 <script src="./dashboard.js"></script>
 <script src="./top-student-mode.js"></script>
 
-<!-- main MUST be last -->
+<!-- MAIN APP -->
 <script src="./main.js"></script>
 
-<!-- SERVICE WORKER AND STATE LOGIC -->
+<!-- =============================== -->
+<!-- SERVICE WORKER (FIXED PWA CORE) -->
+<!-- =============================== -->
 <script>
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
         try {
 
-            // FIXED: safer relative registration improves install reliability in non-root hosting
-            const reg = await navigator.serviceWorker.register('./service-worker.js');
+            // FIXED: root scope is required for proper PWA install
+            const reg = await navigator.serviceWorker.register('/service-worker.js');
 
             console.log('SW registered:', reg.scope);
 
-            // FIXED: proper update lifecycle handling
+            // Force update check
+            reg.update();
+
+            // Handle new SW install
             reg.addEventListener('updatefound', () => {
                 const newWorker = reg.installing;
 
                 if (newWorker) {
                     newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed' && reg.waiting) {
-                            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                        if (
+                            newWorker.state === 'installed' &&
+                            navigator.serviceWorker.controller
+                        ) {
+                            console.log("New version available");
+                            reg.waiting?.postMessage({ type: 'SKIP_WAITING' });
                         }
                     });
                 }
             });
-
-            // optional update check (safe)
-            reg.update();
 
         } catch (err) {
             console.error('SW ERROR:', err);
@@ -103,7 +109,9 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// Splash execution
+// ===============================
+// SPLASH SCREEN LOGIC
+// ===============================
 window.addEventListener('load', () => {
     const splash = document.getElementById('splash-screen');
     const app = document.getElementById('app');
