@@ -1,5 +1,3 @@
-"use strict";
-
 // ===============================
 // Main.js - Core Application Engine (Production Fixed)
 // ===============================
@@ -407,7 +405,7 @@ document.addEventListener("visibilitychange", () => {
 let deferredPrompt = null;
 
 window.addEventListener("beforeinstallprompt", (e) => {
-  deferredPrompt = e;
+  deferredPrompt = e; // FIXED: do NOT block default install behavior
 });
 
 window.addEventListener("appinstalled", () => {
@@ -415,7 +413,7 @@ window.addEventListener("appinstalled", () => {
 });
 
 // ===============================
-// BACKGROUND SYNC
+// BACKGROUND SYNC REGISTRATION
 // ===============================
 async function registerBackgroundSync() {
   try {
@@ -426,7 +424,7 @@ async function registerBackgroundSync() {
   } catch (e) {
     console.warn("Background sync failed:", e);
   }
-});
+}
 
 const _originalSetItem = localStorage.setItem.bind(localStorage);
 localStorage.setItem = function(key, value) {
