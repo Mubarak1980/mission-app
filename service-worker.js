@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mission-cache-v119';
+const CACHE_NAME = 'mission-cache-v120';
 
 const APP_SHELL = [
   '/',
@@ -15,24 +15,28 @@ const APP_SHELL = [
 ];
 
 // ============================
-// INSTALL (SAFE VERSION)
+// INSTALL (ROBUST PWA SAFE)
 // ============================
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 
   event.waitUntil(
-    caches.open(CACHE_NAME).then(async (cache) => {
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+
       for (const file of APP_SHELL) {
         try {
           const res = await fetch(file, { cache: "reload" });
+
+          // IMPORTANT: do not block install if missing
           if (res && res.ok) {
             await cache.put(file, res.clone());
           }
         } catch (err) {
-          console.warn("Cache skipped:", file, err);
+          console.warn("Skipped during install (safe):", file);
         }
       }
-    })
+    })()
   );
 });
 
@@ -63,41 +67,30 @@ self.addEventListener('fetch', (event) => {
 
   const request = event.request;
 
-  // Navigation requests (HTML)
+  // Navigation
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-          return res;
-        })
-        .catch(async () => {
-          const cached = await caches.match('/index.html');
-          return cached || new Response("Offline", { status: 200 });
-        })
+      fetch(request).catch(() => caches.match('/index.html'))
     );
     return;
   }
 
-  // Static assets (cache-first)
+  // Assets
   event.respondWith(
-    caches.match(request).then((cachedResponse) => {
-      if (cachedResponse) return cachedResponse;
+    caches.match(request).then((cached) => {
+      return (
+        cached ||
+        fetch(request)
+          .then((res) => {
+            if (!res || res.status !== 200) return res;
 
-      return fetch(request)
-        .then((res) => {
-          if (!res || res.status !== 200) return res;
+            const copy = res.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
 
-          const copy = res.clone();
-
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, copy);
-          });
-
-          return res;
-        })
-        .catch(() => caches.match(request)); // FIXED SAFE FALLBACK
+            return res;
+          })
+          .catch(() => cached)
+      );
     })
   );
 });
