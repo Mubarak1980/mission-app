@@ -2,26 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-
     <title>Mission App</title>
 
     <link rel="stylesheet" href="./styles.css" />
-    <link rel="manifest" href="./manifest.json" />
+    <!-- Point precisely to the relative path matching your manifest configuration -->
+    <link rel="manifest" href="manifest.json" />
 
     <meta name="theme-color" content="#00d4ff" />
     <meta name="application-name" content="Mission App">
 
+    <!-- Mobile capabilities for iOS standalone mode -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Mission App">
 
     <link rel="icon" href="./icon-192.png">
     <link rel="apple-touch-icon" href="./icon-192.png">
 </head>
-
 <body>
 
 <!-- SPLASH SCREEN -->
@@ -34,7 +33,8 @@
 </div>
 
 <!-- APP -->
-<div id="app" style="visibility:hidden;">
+<!-- Changed style format to display:none for better initial rendering containment -->
+<div id="app" style="display: none;">
     <h1>TIME</h1>
 
     <div class="section-buttons">
@@ -66,13 +66,13 @@
 <!-- main MUST be last -->
 <script src="./main.js"></script>
 
-<!-- SERVICE WORKER -->
+<!-- SERVICE WORKER AND STATE LOGIC -->
 <script>
+// Combined layout load logic to keep runtime tracking clean
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
         try {
             const reg = await navigator.serviceWorker.register('./service-worker.js');
-
             console.log('SW registered:', reg.scope);
 
             if (reg.waiting) {
@@ -81,7 +81,6 @@ if ('serviceWorker' in navigator) {
 
             reg.addEventListener('updatefound', () => {
                 const newWorker = reg.installing;
-
                 if (newWorker) {
                     newWorker.addEventListener('statechange', () => {
                         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
@@ -90,16 +89,13 @@ if ('serviceWorker' in navigator) {
                     });
                 }
             });
-
         } catch (err) {
             console.error('SW ERROR:', err);
         }
     });
 }
-</script>
 
-<!-- SPLASH -->
-<script>
+// Splash execution handles seamless layout swapping
 window.addEventListener('load', () => {
     const splash = document.getElementById('splash-screen');
     const app = document.getElementById('app');
@@ -109,9 +105,10 @@ window.addEventListener('load', () => {
 
         setTimeout(() => {
             if (splash) splash.remove();
-            if (app) app.style.visibility = 'visible';
+            if (app) {
+                app.style.display = 'block';
+            }
         }, 500);
-
     }, 1000);
 });
 </script>
