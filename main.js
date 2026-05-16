@@ -402,5 +402,3 @@ window.addEventListener("appinstalled", () => {
 deferredPrompt = null;
 });
 
-Current grade and
-Current section does working wjen i refresh the app
