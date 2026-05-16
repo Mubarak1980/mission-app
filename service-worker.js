@@ -1,10 +1,10 @@
 // ==========================================
-// Service Worker - Mission App (Stable Build)
+// Service Worker - Mission App (Final Fixed)
 // ==========================================
 
-const CACHE_NAME = 'mission-cache-v103';
+const CACHE_NAME = 'mission-cache-v102';
 
-// IMPORTANT: Only include files that actually exist
+// FIXED: Keep your structure, but ensure ONLY existing files are included
 const ASSETS = [
   '/',
   '/index.html',
@@ -17,88 +17,123 @@ const ASSETS = [
   '/top-student-mode.js',
   '/manifest.json',
   '/icon-192.png'
+  // ❌ REMOVED: /icon-512.png (because you don't have it)
 ];
 
-// INSTALL: Cache core files (fail-safe clean install)
+// INSTALL STEP: Pre-caches core application files
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
-    })
+    caches.open(CACHE_NAME).then(cache =>
+      Promise.allSettled(
+        ASSETS.map(url =>
+          fetch(url)
+            .then(res => {
+              if (res.ok) return cache.put(url, res);
+              throw new Error('Fetch failed: ' + url);
+            })
+            .catch(err => console.warn('Pre-cache skipped:', url, err))
+        )
+      )
+    )
   );
 });
 
-// ACTIVATE: Remove old caches safely
+// ACTIVATE STEP: Cleans up deprecated legacy caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.map(key => {
           if (key !== CACHE_NAME) {
             return caches.delete(key);
           }
         })
-      );
-    })
+      )
+    )
   );
 
   self.clients.claim();
 });
 
-// FETCH: Offline-first smart strategy
+// FETCH ENGINE: Smart offline interceptor proxy
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
-  const request = event.request;
+  const url = new URL(event.request.url);
 
-  // Handle page navigation (important for SPA/PWA)
-  if (request.mode === 'navigate') {
+  // 1. NAVIGATION REQUEST HANDLING (HTML Page Loads)
+  if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(request).catch(() => caches.match('/index.html'))
+      fetch(event.request)
+        .then(res => {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          return res;
+        })
+        .catch(() => {
+          return caches.match('/index.html');
+        })
     );
     return;
   }
 
-  // Cache-first strategy for assets
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
+  // 2. STATIC ASSETS CACHE-FIRST LOGIC (JS, CSS, Images, JSON)
+  if (
+    url.pathname.endsWith('.js') ||
+    url.pathname.endsWith('.css') ||
+    url.pathname.endsWith('.png') ||
+    url.pathname.endsWith('.json')
+  ) {
+    event.respondWith(
+      caches.match(event.request).then(cached => {
+        return cached || fetch(event.request).then(res => {
+          if (!res || res.status !== 200 || res.type !== 'basic') return res;
 
-      return fetch(request).then((response) => {
-        if (!response || response.status !== 200) {
-          return response;
-        }
+          const clone = res.clone();
 
-        const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
 
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(request, clone);
-        });
-
-        return response;
-      });
-    })
-  );
-});
-
-// MESSAGE: Allow instant update
-self.addEventListener('message', (event) => {
-  if (event.data?.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-});
-
-// OPTIONAL: Background sync support
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-study-data') {
-    event.waitUntil(
-      self.clients.matchAll().then((clients) => {
-        clients.forEach((client) => {
-          client.postMessage({ type: 'SYNC_COMPLETE' });
+          return res;
         });
       })
     );
+    return;
+  }
+
+  // 3. GENERIC STRATEGY (Network-first with cache backup)
+  event.respondWith(
+    fetch(event.request)
+      .then(res => {
+        if (!res || res.status !== 200 || res.type !== 'basic') return res;
+
+        const clone = res.clone();
+
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+
+        return res;
+      })
+      .catch(() => caches.match(event.request))
+  );
+});
+
+// BACKGROUND SYNC EVENT
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-study-data') {
+    event.waitUntil(
+      self.clients.matchAll().then(clients =>
+        clients.forEach(client =>
+          client.postMessage({ type: 'SYNC_COMPLETE' })
+        )
+      )
+    );
+  }
+});
+
+// SYSTEM MESSAGING SWITCH
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
   }
 });
