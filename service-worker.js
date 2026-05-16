@@ -2,7 +2,7 @@
 // Service Worker - Mission App PWA Engine
 // ==========================================
 
-const CACHE_NAME = 'mission-cache-v98';
+const CACHE_NAME = 'mission-cache-v99';
 
 // FIXED: Paths updated to relative formatting matching root deployment scope
 const ASSETS = [
