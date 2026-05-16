@@ -8,7 +8,7 @@
 
     <link rel="stylesheet" href="./styles.css" />
 
-    <!-- PWA MANIFEST -->
+    <!-- FIXED: absolute manifest path for PWA install reliability -->
     <link rel="manifest" href="/manifest.json" />
 
     <!-- PWA CORE META -->
@@ -21,7 +21,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Mission App">
 
-    <!-- ICONS (single icon setup - correct for your case) -->
+    <!-- ICONS -->
     <link rel="icon" href="/icon-192.png">
     <link rel="apple-touch-icon" href="/icon-192.png">
 
@@ -71,7 +71,7 @@
 <script src="./main.js"></script>
 
 <!-- =============================== -->
-<!-- SERVICE WORKER (PWA CORE FIXED) -->
+<!-- SERVICE WORKER (FIXED PWA CORE) -->
 <!-- =============================== -->
 <script>
 if ('serviceWorker' in navigator) {
@@ -82,10 +82,19 @@ if ('serviceWorker' in navigator) {
 
             console.log('SW registered:', reg.scope);
 
-            // Ensure update check runs safely
-            await reg.update();
+            // IMPORTANT FIX: ensure SW becomes controller before install decision
+            if (navigator.serviceWorker.controller) {
+                console.log("PWA already controlled");
+            } else {
+                navigator.serviceWorker.addEventListener("controllerchange", () => {
+                    console.log("SW controller acquired");
+                });
+            }
 
-            // Handle new service worker
+            // Force update check
+            reg.update();
+
+            // Handle new SW install
             reg.addEventListener('updatefound', () => {
                 const newWorker = reg.installing;
 
@@ -96,21 +105,11 @@ if ('serviceWorker' in navigator) {
                             navigator.serviceWorker.controller
                         ) {
                             console.log("New version available");
-
-                            if (reg.waiting) {
-                                reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-                            }
+                            reg.waiting?.postMessage({ type: 'SKIP_WAITING' });
                         }
                     });
                 }
             });
-
-            // controller fallback safety
-            if (!navigator.serviceWorker.controller) {
-                navigator.serviceWorker.addEventListener("controllerchange", () => {
-                    console.log("SW controller activated");
-                });
-            }
 
         } catch (err) {
             console.error('SW ERROR:', err);
@@ -130,9 +129,10 @@ window.addEventListener('load', () => {
 
         setTimeout(() => {
             if (splash) splash.remove();
-            if (app) app.style.display = 'block';
+            if (app) {
+                app.style.display = 'block';
+            }
         }, 500);
-
     }, 1000);
 });
 </script>
