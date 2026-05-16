@@ -1,102 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
+<meta charset="UTF-8" />
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 
-    <title>Mission App</title>
+<title>Mission App</title>
 
-    <link rel="stylesheet" href="./styles.css" />
-    <link rel="manifest" href="./manifest.json" />
+<link rel="stylesheet" href="./styles.css" />
+<link rel="manifest" href="./manifest.json" />
 
-    <meta name="theme-color" content="#00d4ff" />
+<meta name="theme-color" content="#00d4ff" />
+<meta name="application-name" content="Mission App">
 
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Mission App">
 
-    <link rel="icon" href="./icon-192.png">
-    <link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
 </head>
 
 <body>
 
 <!-- SPLASH -->
 <div id="splash-screen">
-    <div class="splash-content">
-        <h1>📘 Mission App</h1>
-        <p>Loading...</p>
-        <div class="loader"></div>
-    </div>
+  <div class="splash-content">
+    <h1>📘 Mission App</h1>
+    <p>Loading...</p>
+    <div class="loader"></div>
+  </div>
 </div>
 
 <!-- APP -->
 <div id="app" style="visibility:hidden;">
-    <h1>TIME</h1>
 
-    <div class="section-buttons">
-        <button onclick="loadSunnahTracker()">Sunnah Tracker</button>
-        <button onclick="loadSection('study', currentGrade)">Study Tracker</button>
-        <button onclick="loadSection('timetable', currentGrade)">Weekly Timetable</button>
-        <button onclick="loadSection('dashboard', currentGrade)">Dashboard</button>
-        <button onclick="loadTopStudentMode()">Top Student Mode</button>
-    </div>
+  <div class="section-buttons">
+    <button data-section="study" onclick="loadSection('study')">Study</button>
+    <button data-section="dashboard" onclick="loadSection('dashboard')">Dashboard</button>
+    <button data-section="timetable" onclick="loadSection('timetable')">Timetable</button>
+    <button data-section="sunnah" onclick="loadSection('sunnah')">Sunnah</button>
+    <button data-section="top" onclick="loadSection('top')">Top Student</button>
+  </div>
 
-    <div id="grade-progress-bar"></div>
-    <div id="main-content"></div>
+  <div id="main-content"></div>
 
-    <div id="grade-nav">
-        <button onclick="previousGrade()" id="prev-btn">Previous</button>
-        <button onclick="nextGrade()" id="next-btn">Next</button>
-    </div>
 </div>
 
-<!-- ===============================
-JS FILES (IMPORTANT FIX: defer)
-=============================== -->
-<script src="./Sunnah-tracker.js" defer></script>
-<script src="./Study-tracker.js" defer></script>
-<script src="./weekly-timetable.js" defer></script>
-<script src="./dashboard.js" defer></script>
-<script src="./top-student-mode.js" defer></script>
-<script src="./main.js" defer></script>
+<!-- JS -->
+<script src="./Sunnah-tracker.js"></script>
+<script src="./Study-tracker.js"></script>
+<script src="./weekly-timetable.js"></script>
+<script src="./dashboard.js"></script>
+<script src="./top-student-mode.js"></script>
+<script src="./main.js"></script>
 
-<!-- ===============================
-SERVICE WORKER (FIXED)
-=============================== -->
+<!-- SERVICE WORKER -->
 <script>
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', async () => {
-        try {
-            const reg = await navigator.serviceWorker.register('./service-worker.js');
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('./service-worker.js');
 
-            console.log('SW registered:', reg.scope);
+      if (reg.waiting) {
+        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      }
 
-            await navigator.serviceWorker.ready;
-
-        } catch (err) {
-            console.error('SW ERROR:', err);
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log("New version available");
+            }
+          });
         }
-    });
+      });
+
+    } catch (err) {
+      console.error('SW ERROR:', err);
+    }
+  });
 }
 </script>
 
-<!-- SPLASH HANDLER -->
+<!-- SPLASH CONTROL -->
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const splash = document.getElementById('splash-screen');
-    const app = document.getElementById('app');
+window.addEventListener('load', () => {
+  const splash = document.getElementById('splash-screen');
+  const app = document.getElementById('app');
+
+  setTimeout(() => {
+    splash?.classList.add('hide');
 
     setTimeout(() => {
-        splash?.classList.add('hide');
+      splash?.remove();
+      if (app) app.style.visibility = 'visible';
+    }, 400);
 
-        setTimeout(() => {
-            splash?.remove();
-            if (app) app.style.visibility = 'visible';
-        }, 400);
-
-    }, 800);
+  }, 800);
 });
 </script>
 
