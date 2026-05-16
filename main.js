@@ -39,7 +39,6 @@ if (!state.startDate) state.startDate = todayStr;
 const start = new Date(state.startDate);
 const now = new Date();
 
-// FIXED: timezone-safe calculation
 const diff = Math.floor(
 (Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) -
 Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())) / 86400000
@@ -84,7 +83,7 @@ expectedPages: Math.round(expectedPages)
 }
 
 // ===============================
-// ACTUAL PROGRESS
+// ACTUAL PROGRESS (FIXED)
 // ===============================
 function getActualProgress() {
 const grades = [9, 10, 11, 12];
@@ -93,12 +92,11 @@ const subjects = ["Math", "Physics", "Chemistry", "Biology", "English"];
 let total = 0;
 
 for (let i = 0; i < grades.length; i++) {
-const saved = safeJSON(grade_${grades[i]}_progress, {});
+const saved = safeJSON(`grade_${grades[i]}_progress`, {});
 
 for (let j = 0; j < subjects.length; j++) {
 total += Number(saved[subjects[j]]) || 0;
 }
-
 }
 
 return { actualPages: total };
@@ -248,7 +246,7 @@ let currentSection = "study";
 let nav, prevBtn, nextBtn;
 
 // ===============================
-// PERSIST UI STATE (NEW)
+// PERSIST UI STATE
 // ===============================
 function saveUIState() {
 localStorage.setItem("ui_state", JSON.stringify({
@@ -310,7 +308,7 @@ loadSection("study", currentGrade);
 }
 
 // ===============================
-// INIT (FIXED - NO DOUBLE RUN)
+// INIT
 // ===============================
 function initApp() {
 if (document.body.dataset.initialized) return;
@@ -325,6 +323,7 @@ loadUIState();
 
 updateNavButtons();
 getCycleState();
+
 loadSection("study", currentGrade);
 }
 
@@ -338,7 +337,7 @@ window.previousGrade = previousGrade;
 window.loadSection = loadSection;
 
 // ===============================
-// SYNC SYSTEM (OPTIMIZED)
+// SYNC SYSTEM
 // ===============================
 let syncInterval = null;
 
@@ -394,11 +393,9 @@ await deferredPrompt.userChoice;
 deferredPrompt = null;
 installBtn.style.display = "none";
 };
-
 }
 });
 
 window.addEventListener("appinstalled", () => {
 deferredPrompt = null;
 });
-
