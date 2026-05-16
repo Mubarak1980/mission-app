@@ -157,7 +157,7 @@ progress::-moz-progress-bar {
 }
 
 /* ===============================
-   NAV BUTTONS (FIXED - MATCH JS/HTML)
+   NAV BUTTONS
 =============================== */
 #grade-nav {
   display: flex;
@@ -214,7 +214,6 @@ table {
   min-width: 650px;
 }
 
-/* optional wrapper fix */
 .table-wrapper {
   overflow-x: auto;
 }
@@ -452,8 +451,9 @@ tr:nth-child(even) {
   animation: spin 0.9s linear infinite;
 }
 
+/* FIXED */
 @keyframes spin {
   to {
     transform: rotate(360deg);
   }
-  }
+   }
