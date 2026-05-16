@@ -82,8 +82,8 @@ self.addEventListener('fetch', (event) => {
 
   // Static assets (cache-first)
   event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
+    caches.match(request).then((cachedResponse) => {
+      if (cachedResponse) return cachedResponse;
 
       return fetch(request)
         .then((res) => {
@@ -97,7 +97,7 @@ self.addEventListener('fetch', (event) => {
 
           return res;
         })
-        .catch(() => cached);
+        .catch(() => caches.match(request)); // FIXED SAFE FALLBACK
     })
   );
 });
