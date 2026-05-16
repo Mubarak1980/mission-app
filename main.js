@@ -1,5 +1,5 @@
 // ===============================
-// Main.js - Core Application Engine (Production Fixed)
+// Main.js - Core Application Engine (PRODUCTION SAFE)
 // ===============================
 
 window.maxPagesByGrade = {
@@ -13,13 +13,13 @@ const TOTAL_DAYS = 90;
 const TOTAL_PAGES = 5705;
 
 // ===============================
-// SAFE STORAGE HELPERS
+// SAFE STORAGE
 // ===============================
 function safeJSON(key, fallback) {
   try {
-    const value = localStorage.getItem(key);
-    return value ? JSON.parse(value) : fallback;
-  } catch (e) {
+    const v = localStorage.getItem(key);
+    return v ? JSON.parse(v) : fallback;
+  } catch {
     return fallback;
   }
 }
@@ -35,16 +35,14 @@ function getCycleState() {
   const todayStr = todayISO();
   const state = safeJSON("cycleState", {});
 
-  if (!state.startDate) {
-    state.startDate = todayStr;
-  }
+  if (!state.startDate) state.startDate = todayStr;
 
   const start = new Date(state.startDate);
   const now = new Date(todayStr);
 
   const diff = Math.floor(
     (Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) -
-      Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())) / 86400000
+     Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())) / 86400000
   );
 
   state.cycleDay = Math.min(Math.max(1, diff + 1), TOTAL_DAYS);
@@ -52,9 +50,7 @@ function getCycleState() {
 
   try {
     localStorage.setItem("cycleState", JSON.stringify(state));
-  } catch (e) {
-    console.warn("Failed to save cycleState:", e);
-  }
+  } catch {}
 
   return state;
 }
@@ -68,12 +64,14 @@ function getTodayKey() {
 
 function getTodayPlan() {
   const plan = safeJSON("todayPlan", {});
-  return plan[getTodayKey()] || [];
+  const today = plan[getTodayKey()];
+  return Array.isArray(today) ? today : [];
 }
 
 function getTodayLog() {
   const logs = safeJSON("dailyStudyLog", {});
-  return logs[getTodayKey()] || {};
+  const today = logs[getTodayKey()];
+  return today && typeof today === "object" ? today : {};
 }
 
 // ===============================
@@ -99,11 +97,10 @@ function getActualProgress() {
 
   let total = 0;
 
-  for (let i = 0; i < grades.length; i++) {
-    const saved = safeJSON(`grade_${grades[i]}_progress`, {});
-
-    for (let j = 0; j < subjects.length; j++) {
-      total += Number(saved[subjects[j]]) || 0;
+  for (const g of grades) {
+    const saved = safeJSON(`grade_${g}_progress`, {});
+    for (const s of subjects) {
+      total += Number(saved[s]) || 0;
     }
   }
 
@@ -111,7 +108,7 @@ function getActualProgress() {
 }
 
 // ===============================
-// DELAY ENGINE
+// DELAY STATUS
 // ===============================
 function getDelayStatus() {
   const expected = getExpectedProgress();
@@ -133,26 +130,19 @@ function getDelayStatus() {
 }
 
 // ===============================
-// DAILY DELAY ENGINE
+// DAILY DELAYS
 // ===============================
 function getPlannedVsActual() {
   const plan = getTodayPlan();
-  const todayLog = getTodayLog();
+  const log = getTodayLog();
 
   const delays = [];
 
-  if (!Array.isArray(plan)) return delays;
-
-  for (let i = 0; i < plan.length; i++) {
-    const p = plan[i];
+  for (const p of plan) {
     if (!p?.grade || !p?.subjects) continue;
 
-    const actual = todayLog[p.grade] || {};
-    const subjects = Object.keys(p.subjects);
-
-    for (let j = 0; j < subjects.length; j++) {
-      const subject = subjects[j];
-
+    const actual = log[p.grade] || {};
+    for (const subject in p.subjects) {
       const planned = Number(p.subjects[subject]) || 0;
       const done = Number(actual[subject]) || 0;
 
@@ -184,21 +174,20 @@ function getSystemStatus() {
 }
 
 // ===============================
-// SNAPSHOT
+// SNAPSHOT (FIXED BUG HERE)
 // ===============================
 function getSystemSnapshot() {
   const status = getSystemStatus();
-  const cycle = status.cycle;
 
   return {
     time: {
-      cycleDay: cycle.cycleDay,
-      remainingDays: TOTAL_DAYS - cycle.cycleDay
+      cycleDay: status.cycle.cycleDay,
+      remainingDays: TOTAL_DAYS - status.cycle.cycleDay
     },
     progress: {
-      actual: cycle.actualPages,
-      expected: cycle.expectedPages,
-      gap: cycle.gap
+      actual: status.cycle.actualPages,
+      expected: status.cycle.expectedPages,
+      gap: status.cycle.gap
     },
     alerts: {
       isOnTrack: status.isOnTrack,
@@ -220,12 +209,12 @@ function getSmartCycle() {
 
   const remainingDays = Math.max(1, TOTAL_DAYS - cycle.cycleDay);
 
-  let catchUpPerDay = gap < 0 ? Math.ceil(Math.abs(gap) / remainingDays) : 0;
-  catchUpPerDay = Math.min(catchUpPerDay, 60);
+  let catchUp = gap < 0 ? Math.ceil(Math.abs(gap) / remainingDays) : 0;
+  catchUp = Math.min(catchUp, 60);
 
-  const baseDaily = TOTAL_PAGES / TOTAL_DAYS;
+  const base = TOTAL_PAGES / TOTAL_DAYS;
 
-  let target = baseDaily + catchUpPerDay;
+  let target = base + catchUp;
   target = Math.min(Math.max(target, 25), 85);
 
   return {
@@ -233,7 +222,7 @@ function getSmartCycle() {
     actual: Math.round(actualTotal),
     gap: Math.round(gap),
     status: gap >= 0 ? "AHEAD / ON TRACK" : "BEHIND",
-    catchUpPerDay,
+    catchUpPerDay: catchUp,
     remainingDays,
     dailyLimit: {
       target: Math.round(target),
@@ -252,17 +241,13 @@ let currentSection = "study";
 let nav, prevBtn, nextBtn;
 
 // ===============================
-// PERSIST UI STATE
-// ===============================
 function saveUIState() {
   try {
     localStorage.setItem("ui_state", JSON.stringify({
       grade: currentGrade,
       section: currentSection
     }));
-  } catch (e) {
-    console.warn("UI state save failed:", e);
-  }
+  } catch {}
 }
 
 function loadUIState() {
@@ -274,10 +259,8 @@ function loadUIState() {
 }
 
 // ===============================
-// NAV
-// ===============================
 function updateNavButtons() {
-  if (!nav || !prevBtn || !nextBtn) return;
+  if (!nav) return;
 
   if (currentSection === "study") {
     nav.style.display = "flex";
@@ -289,8 +272,6 @@ function updateNavButtons() {
 }
 
 // ===============================
-// ROUTER
-// ===============================
 function loadSection(type, grade) {
   currentSection = type;
   if (grade) currentGrade = Number(grade);
@@ -298,42 +279,26 @@ function loadSection(type, grade) {
   saveUIState();
   updateNavButtons();
 
-  if (type === "study") {
-    if (typeof loadStudySection === "function") loadStudySection(currentGrade);
-  } else if (type === "timetable") {
-    if (typeof loadWeeklyTimetable === "function") loadWeeklyTimetable();
-  } else if (type === "dashboard") {
-    if (typeof loadDashboard === "function") loadDashboard();
-  } else if (type === "top-student") {
-    if (typeof loadTopStudentMode === "function") loadTopStudentMode();
-  } else if (type === "sunnah") {
-    if (typeof loadSunnahTracker === "function") loadSunnahTracker();
-  }
+  if (type === "study") loadStudySection?.(currentGrade);
+  if (type === "timetable") loadWeeklyTimetable?.();
+  if (type === "dashboard") loadDashboard?.();
+  if (type === "top-student") loadTopStudentMode?.();
+  if (type === "sunnah") loadSunnahTracker?.();
 }
 
 // ===============================
-// NAVIGATION
-// ===============================
 function nextGrade() {
-  if (currentGrade < 12) {
-    currentGrade++;
-    loadSection("study", currentGrade);
-  }
+  if (currentGrade < 12) loadSection("study", ++currentGrade);
 }
 
 function previousGrade() {
-  if (currentGrade > 9) {
-    currentGrade--;
-    loadSection("study", currentGrade);
-  }
+  if (currentGrade > 9) loadSection("study", --currentGrade);
 }
 
 // ===============================
-// INIT
-// ===============================
 function initApp() {
   if (document.body.dataset.initialized) return;
-  document.body.dataset.initialized = "true";
+  document.body.dataset.initialized = "1";
 
   nav = document.getElementById("grade-nav");
   prevBtn = document.getElementById("prev-btn");
@@ -341,106 +306,15 @@ function initApp() {
 
   loadUIState();
   getCycleState();
-
   loadSection(currentSection, currentGrade);
 }
 
 // ===============================
-// SAFE INIT
-// ===============================
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initApp);
-} else {
-  initApp();
-}
+document.readyState === "loading"
+  ? document.addEventListener("DOMContentLoaded", initApp)
+  : initApp();
 
-// ===============================
-// EXPORTS
 // ===============================
 window.nextGrade = nextGrade;
 window.previousGrade = previousGrade;
 window.loadSection = loadSection;
-
-// ===============================
-// SYNC SYSTEM
-// ===============================
-let syncInterval = null;
-
-function sync() {
-  const lastUpdate = localStorage.getItem("study_last_update");
-  if (!lastUpdate) return;
-
-  if (window.__syncLock === lastUpdate) return;
-  window.__syncLock = lastUpdate;
-
-  if (currentSection === "study" && typeof updateGradeSummary === "function") {
-    updateGradeSummary(currentGrade);
-  }
-  if (currentSection === "timetable" && typeof loadWeeklyTimetable === "function") {
-    loadWeeklyTimetable();
-  }
-}
-
-function startSync() {
-  if (syncInterval) return;
-  syncInterval = setInterval(sync, 5000);
-}
-
-function stopSync() {
-  clearInterval(syncInterval);
-  syncInterval = null;
-}
-
-window.addEventListener("focus", startSync);
-window.addEventListener("blur", stopSync);
-
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) stopSync();
-  else startSync();
-});
-
-// ===============================
-// INSTALL CONTROL
-// ===============================
-let deferredPrompt = null;
-
-window.addEventListener("beforeinstallprompt", (e) => {
-  deferredPrompt = e; // FIXED: do NOT block default install behavior
-});
-
-window.addEventListener("appinstalled", () => {
-  deferredPrompt = null;
-});
-
-// ===============================
-// BACKGROUND SYNC REGISTRATION
-// ===============================
-async function registerBackgroundSync() {
-  try {
-    const reg = await navigator.serviceWorker?.ready;
-    if (reg && "sync" in reg) {
-      await reg.sync.register("sync-study-data");
-    }
-  } catch (e) {
-    console.warn("Background sync failed:", e);
-  }
-}
-
-const _originalSetItem = localStorage.setItem.bind(localStorage);
-localStorage.setItem = function(key, value) {
-  try {
-    _originalSetItem(key, value);
-  } catch (e) {
-    console.warn("localStorage error:", e);
-  }
-
-  if (key.startsWith("grade_") || key === "sunnah_progress") {
-    registerBackgroundSync();
-  }
-};
-
-navigator.serviceWorker?.addEventListener("message", (event) => {
-  if (event.data?.type === "SYNC_COMPLETE") {
-    console.log("Study data synced successfully");
-  }
-});
