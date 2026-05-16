@@ -1,5 +1,5 @@
 // ===============================
-// Main.js
+// Main.js - Core Application Engine
 // ===============================
 window.maxPagesByGrade = {
   9:  { Math: 363, Physics: 174, Chemistry: 175, Biology: 164, English: 223 },
@@ -34,17 +34,19 @@ function getCycleState() {
   const todayStr = todayISO();
   const state = safeJSON("cycleState", {});
 
-  if (!state.startDate) state.startDate = todayStr;
+  if (!state.startDate) {
+    state.startDate = todayStr;
+  }
 
   const start = new Date(state.startDate);
-  const now = new Date();
+  const now = new Date(todayStr); // FIXED: Strips timezone offsets preventing daytime cycle skips
 
   const diff = Math.floor(
     (Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) -
       Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())) / 86400000
   );
 
-  state.cycleDay = Math.min(diff + 1, TOTAL_DAYS);
+  state.cycleDay = Math.min(Math.max(1, diff + 1), TOTAL_DAYS);
   state.remainingDays = Math.max(0, TOTAL_DAYS - state.cycleDay);
 
   localStorage.setItem("cycleState", JSON.stringify(state));
@@ -253,11 +255,12 @@ function saveUIState() {
   }));
 }
 
+// FIXED: Clean initialization fallback handler prevents script parsing dead-ends
 function loadUIState() {
   const saved = safeJSON("ui_state", null);
   if (!saved) return;
 
-  currentGrade = saved.grade || 9;
+  currentGrade = Number(saved.grade) || 9;
   currentSection = saved.section || "study";
 }
 
@@ -267,9 +270,14 @@ function loadUIState() {
 function updateNavButtons() {
   if (!nav || !prevBtn || !nextBtn) return;
 
-  nav.style.display = "flex";
-  prevBtn.disabled = currentGrade <= 9;
-  nextBtn.disabled = currentGrade >= 12;
+  // FIXED: Auto-hides grade toggles completely if viewing dashboards/timetable pages
+  if (currentSection === "study") {
+    nav.style.display = "flex";
+    prevBtn.disabled = currentGrade <= 9;
+    nextBtn.disabled = currentGrade >= 12;
+  } else {
+    nav.style.display = "none";
+  }
 }
 
 // ===============================
@@ -277,14 +285,23 @@ function updateNavButtons() {
 // ===============================
 function loadSection(type, grade) {
   currentSection = type;
-  currentGrade = grade;
+  if (grade) currentGrade = Number(grade);
 
   saveUIState();
   updateNavButtons();
 
-  if (type === "study") loadStudySection?.(grade);
-  else if (type === "timetable") loadWeeklyTimetable?.();
-  else if (type === "dashboard") loadDashboard?.();
+  // FIXED: Explicitly added safely wrapped interface links to execution points
+  if (type === "study") {
+    if (typeof loadStudySection === "function") loadStudySection(currentGrade);
+  } else if (type === "timetable") {
+    if (typeof loadWeeklyTimetable === "function") loadWeeklyTimetable();
+  } else if (type === "dashboard") {
+    if (typeof loadDashboard === "function") loadDashboard();
+  } else if (type === "top-student") {
+    if (typeof loadTopStudentMode === "function") loadTopStudentMode();
+  } else if (type === "sunnah") {
+    if (typeof loadSunnahTracker === "function") loadSunnahTracker();
+  }
 }
 
 // ===============================
@@ -309,7 +326,6 @@ function previousGrade() {
 // ===============================
 function initApp() {
   if (document.body.dataset.initialized) return;
-
   document.body.dataset.initialized = "true";
 
   nav = document.getElementById("grade-nav");
@@ -317,13 +333,18 @@ function initApp() {
   nextBtn = document.getElementById("next-btn");
 
   loadUIState();
-  updateNavButtons();
   getCycleState();
-
-  loadSection("study", currentGrade);
+  
+  // Launch straight to persistent state
+  loadSection(currentSection, currentGrade);
 }
 
-window.addEventListener("load", initApp);
+// FIXED: Dom parsing fallback handler if DOMContentLoaded clears before window loop completes
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initApp);
+} else {
+  initApp();
+}
 
 // ===============================
 // EXPORTS
@@ -344,8 +365,12 @@ function sync() {
   if (window.__syncLock === lastUpdate) return;
   window.__syncLock = lastUpdate;
 
-  if (currentSection === "study") updateGradeSummary?.(currentGrade);
-  if (currentSection === "timetable") loadWeeklyTimetable?.();
+  if (currentSection === "study" && typeof updateGradeSummary === "function") {
+    updateGradeSummary(currentGrade);
+  }
+  if (currentSection === "timetable" && typeof loadWeeklyTimetable === "function") {
+    loadWeeklyTimetable();
+  }
 }
 
 function startSync() {
@@ -385,12 +410,13 @@ window.addEventListener("appinstalled", () => {
 // ===============================
 async function registerBackgroundSync() {
   try {
-    const reg = await navigator.serviceWorker.ready;
-    if ('sync' in reg) {
+    // FIXED: Ensured optional chaining safety check patterns prevent crashing standalone iOS webkit
+    const reg = await navigator.serviceWorker?.ready;
+    if (reg && 'sync' in reg) {
       await reg.sync.register('sync-study-data');
     }
   } catch (e) {
-    console.warn('Background sync not supported:', e);
+    console.warn('Background sync assignment deferred:', e);
   }
 }
 
@@ -407,3 +433,4 @@ navigator.serviceWorker?.addEventListener('message', (event) => {
     console.log('Study data synced successfully');
   }
 });
+  
