@@ -1,24 +1,25 @@
-const CACHE_NAME = 'mission-cache-v141';
+const CACHE_NAME = 'mission-cache-v142';
 
 const APP_SHELL = [
-  '/',
-  '/index.html',
-  '/styles.css',
-  '/main.js',
-  '/Study-tracker.js',
-  '/Sunnah-tracker.js',
-  '/dashboard.js',
-  '/weekly-timetable.js',
-  '/top-student-mode.js',
-  '/manifest.json',
-  '/icon-192.png'
-  // ❌ REMOVED icon-512.png (you don't have it → breaks install)
+  './',
+  './index.html',
+  './styles.css',
+  './main.js',
+  './Study-tracker.js',
+  './Sunnah-tracker.js',
+  './dashboard.js',
+  './weekly-timetable.js',
+  './top-student-mode.js',
+  './manifest.json',
+  './icon-192.png'
 ];
 
 // ============================
-// INSTALL (SAFE + REQUIRED FOR PWA)
+// INSTALL (FIXED)
 // ============================
 self.addEventListener('install', (event) => {
+  self.skipWaiting(); // ✅ IMPORTANT
+
   event.waitUntil(
     (async () => {
       const cache = await caches.open(CACHE_NAME);
@@ -27,7 +28,6 @@ self.addEventListener('install', (event) => {
         try {
           const res = await fetch(file, { cache: "reload" });
 
-          // ✅ STRICT: only cache valid responses
           if (res && res.status === 200) {
             await cache.put(file, res.clone());
           }
@@ -40,7 +40,7 @@ self.addEventListener('install', (event) => {
 });
 
 // ============================
-// ACTIVATE (CRITICAL FOR NATIVE INSTALL)
+// ACTIVATE
 // ============================
 self.addEventListener('activate', (event) => {
   event.waitUntil(
@@ -55,14 +55,13 @@ self.addEventListener('activate', (event) => {
         })
       );
 
-      // ✅ REQUIRED: ensures app is controlled immediately
-      await self.clients.claim();
+      await self.clients.claim(); // ✅ REQUIRED
     })()
   );
 });
 
 // ============================
-// FETCH (PWA SAFE STRATEGY)
+// FETCH (STABLE)
 // ============================
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
@@ -70,7 +69,7 @@ self.addEventListener('fetch', (event) => {
   const request = event.request;
 
   // ---------------------------
-  // NAVIGATION (MOST IMPORTANT)
+  // NAVIGATION (CRITICAL)
   // ---------------------------
   if (request.mode === 'navigate') {
     event.respondWith(
@@ -80,14 +79,14 @@ self.addEventListener('fetch', (event) => {
 
           if (network && network.status === 200) {
             const cache = await caches.open(CACHE_NAME);
-            cache.put('/index.html', network.clone());
+            cache.put('./index.html', network.clone());
             return network;
           }
 
           throw new Error("Bad response");
         } catch (err) {
           return (
-            (await caches.match('/index.html')) ||
+            (await caches.match('./index.html')) ||
             new Response("<h1>Offline</h1>", {
               headers: { "Content-Type": "text/html" }
             })
@@ -123,7 +122,7 @@ self.addEventListener('fetch', (event) => {
 });
 
 // ============================
-// UPDATE CONTROL (SAFE)
+// UPDATE CONTROL
 // ============================
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
