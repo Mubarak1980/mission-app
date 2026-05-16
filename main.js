@@ -18,7 +18,7 @@ function safeJSON(key, fallback) {
   try {
     const value = localStorage.getItem(key);
     return value ? JSON.parse(value) : fallback;
-  } catch (e) {
+  } catch {
     return fallback;
   }
 }
@@ -39,10 +39,11 @@ function getCycleState() {
   const start = new Date(state.startDate);
   const now = new Date();
 
-  // FIXED: timezone-safe calculation
+  // FIX: stable date diff (timezone-safe)
   const diff = Math.floor(
     (Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) -
-     Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())) / 86400000
+      Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())) /
+      86400000
   );
 
   state.cycleDay = Math.min(diff + 1, TOTAL_DAYS);
@@ -74,12 +75,11 @@ function getTodayLog() {
 // ===============================
 function getExpectedProgress() {
   const cycle = getCycleState();
-  const expectedPages = (cycle.cycleDay / TOTAL_DAYS) * TOTAL_PAGES;
 
   return {
     cycleDay: cycle.cycleDay,
     remainingDays: cycle.remainingDays,
-    expectedPages: Math.round(expectedPages)
+    expectedPages: Math.round((cycle.cycleDay / TOTAL_DAYS) * TOTAL_PAGES)
   };
 }
 
@@ -92,11 +92,10 @@ function getActualProgress() {
 
   let total = 0;
 
-  for (let i = 0; i < grades.length; i++) {
-    const saved = safeJSON(`grade_${grades[i]}_progress`, {});
-
-    for (let j = 0; j < subjects.length; j++) {
-      total += Number(saved[subjects[j]]) || 0;
+  for (const g of grades) {
+    const saved = safeJSON(`grade_${g}_progress`, {});
+    for (const s of subjects) {
+      total += Number(saved[s]) || 0;
     }
   }
 
@@ -126,7 +125,7 @@ function getDelayStatus() {
 }
 
 // ===============================
-// DAILY DELAY ENGINE
+// DAILY DELAYS
 // ===============================
 function getPlannedVsActual() {
   const plan = getTodayPlan();
@@ -136,16 +135,13 @@ function getPlannedVsActual() {
 
   if (!Array.isArray(plan)) return delays;
 
-  for (let i = 0; i < plan.length; i++) {
-    const p = plan[i];
+  for (const p of plan) {
     if (!p?.grade || !p?.subjects) continue;
 
     const actual = todayLog[p.grade] || {};
     const subjects = Object.keys(p.subjects);
 
-    for (let j = 0; j < subjects.length; j++) {
-      const subject = subjects[j];
-
+    for (const subject of subjects) {
       const planned = Number(p.subjects[subject]) || 0;
       const done = Number(actual[subject]) || 0;
 
@@ -219,7 +215,6 @@ function getSmartCycle() {
   const baseDaily = TOTAL_PAGES / TOTAL_DAYS;
 
   let target = baseDaily + catchUpPerDay;
-
   target = Math.min(Math.max(target, 25), 85);
 
   return {
@@ -246,7 +241,7 @@ let currentSection = "study";
 let nav, prevBtn, nextBtn;
 
 // ===============================
-// PERSIST UI STATE
+// SAVE STATE
 // ===============================
 function saveUIState() {
   localStorage.setItem("ui_state", JSON.stringify({
@@ -264,7 +259,7 @@ function loadUIState() {
 }
 
 // ===============================
-// NAV
+// NAV BUTTONS
 // ===============================
 function updateNavButtons() {
   if (!nav || !prevBtn || !nextBtn) return;
@@ -282,7 +277,6 @@ function loadSection(type, grade) {
   currentGrade = grade;
 
   saveUIState();
-
   updateNavButtons();
 
   if (type === "study") loadStudySection?.(grade);
@@ -308,11 +302,10 @@ function previousGrade() {
 }
 
 // ===============================
-// INIT
+// INIT (SAFE SINGLE RUN)
 // ===============================
 function initApp() {
   if (document.body.dataset.initialized) return;
-
   document.body.dataset.initialized = "true";
 
   nav = document.getElementById("grade-nav");
@@ -320,7 +313,6 @@ function initApp() {
   nextBtn = document.getElementById("next-btn");
 
   loadUIState();
-
   updateNavButtons();
   getCycleState();
   loadSection("study", currentGrade);
@@ -367,4 +359,34 @@ window.addEventListener("blur", stopSync);
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) stopSync();
   else startSync();
+});
+
+// ===============================
+// INSTALL PROMPT
+// ===============================
+let deferredPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  const installBtn = document.getElementById("install-btn");
+
+  if (installBtn) {
+    installBtn.style.display = "block";
+
+    installBtn.onclick = async () => {
+      if (!deferredPrompt) return;
+
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+
+      deferredPrompt = null;
+      installBtn.style.display = "none";
+    };
+  }
+});
+
+window.addEventListener("appinstalled", () => {
+  deferredPrompt = null;
 });
