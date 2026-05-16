@@ -25,23 +25,6 @@
 
 <body>
 
-<!-- INSTALL BUTTON (NEW - REQUIRED FOR RELIABLE UX) -->
-<button id="installBtn" style="
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    padding: 12px 16px;
-    border: none;
-    background: #00d4ff;
-    color: black;
-    font-weight: bold;
-    border-radius: 10px;
-    display: none;
-    z-index: 9999;
-">
-Install App
-</button>
-
 <!-- SPLASH -->
 <div id="splash-screen">
     <div class="splash-content">
@@ -80,40 +63,10 @@ Install App
 <script src="./top-student-mode.js"></script>
 <script src="./main.js"></script>
 
-<!-- PWA FIXED SYSTEM -->
+<!-- PWA SYSTEM (CLEAN + CORRECT) -->
 <script>
-let deferredPrompt = null;
-const installBtn = document.getElementById("installBtn");
-
-// Capture install event
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-
-    console.log("Install available");
-
-    // show install button
-    installBtn.style.display = "block";
-});
-
-// Install button click
-installBtn?.addEventListener("click", async () => {
-    if (!deferredPrompt) return;
-
-    deferredPrompt.prompt();
-
-    const choice = await deferredPrompt.userChoice;
-
-    if (choice.outcome === "accepted") {
-        console.log("App installed");
-    }
-
-    deferredPrompt = null;
-    installBtn.style.display = "none";
-});
-
 // ===============================
-// SERVICE WORKER (FIXED SAFE VERSION)
+// SERVICE WORKER
 // ===============================
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
@@ -124,7 +77,6 @@ if ('serviceWorker' in navigator) {
 
             console.log('SW registered:', reg.scope);
 
-            // ❌ REMOVED auto skipWaiting (it breaks install state)
             reg.addEventListener('updatefound', () => {
                 const newWorker = reg.installing;
 
