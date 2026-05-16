@@ -16,7 +16,7 @@ const APP_SHELL = [
 ];
 
 // ============================
-// INSTALL (STABLE PWA FIX)
+// INSTALL (SAFE)
 // ============================
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -29,8 +29,7 @@ self.addEventListener('install', (event) => {
         try {
           const res = await fetch(file, { cache: "reload" });
 
-          // STRICT CHECK (IMPORTANT FOR INSTALL ELIGIBILITY)
-          if (res && res.ok && res.status === 200) {
+          if (res && res.ok) {
             await cache.put(file, res.clone());
           }
         } catch (e) {
@@ -42,7 +41,7 @@ self.addEventListener('install', (event) => {
 });
 
 // ============================
-// ACTIVATE (FORCE CONTROL)
+// ACTIVATE (CONTROL FIX)
 // ============================
 self.addEventListener('activate', (event) => {
   event.waitUntil(
@@ -51,18 +50,19 @@ self.addEventListener('activate', (event) => {
 
       await Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_NAME) return caches.delete(key);
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
         })
       );
 
-      // CRITICAL: ensures app becomes controlled immediately
       await self.clients.claim();
     })()
   );
 });
 
 // ============================
-// FETCH (ROBUST OFFLINE FIRST)
+// FETCH (STABLE OFFLINE-FIRST)
 // ============================
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
@@ -70,59 +70,60 @@ self.addEventListener('fetch', (event) => {
   const request = event.request;
 
   // ---------------------------
-  // NAVIGATION FIX (PWA CORE)
+  // NAVIGATION (CRITICAL FIX)
   // ---------------------------
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
         .then((res) => {
-          if (!res || res.status !== 200 || res.type !== 'basic') {
-            throw new Error("Bad response");
+          // Always accept valid responses
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE_NAME).then((c) => c.put('/index.html', copy));
+            return res;
           }
 
-          // update cache
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((c) => c.put('/index.html', copy));
-
-          return res;
+          throw new Error("Network response invalid");
         })
         .catch(async () => {
-          return (
-            (await caches.match('/index.html')) ||
-            new Response("<h1>Offline</h1>", {
-              headers: { "Content-Type": "text/html" }
-            })
+          const cached = await caches.match('/index.html');
+
+          return cached || new Response(
+            "<h1>Offline</h1><p>Please reconnect</p>",
+            { headers: { "Content-Type": "text/html" } }
           );
         })
     );
+
     return;
   }
 
   // ---------------------------
-  // STATIC CACHE STRATEGY
+  // STATIC FILES (CACHE-FIRST + UPDATE SAFE)
   // ---------------------------
   event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
+    (async () => {
+      const cached = await caches.match(request);
 
-      return fetch(request)
-        .then((res) => {
-          if (!res || res.status !== 200 || res.type !== "basic") {
-            return res;
-          }
+      try {
+        const network = await fetch(request);
 
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+        if (network && network.ok) {
+          const cache = await caches.open(CACHE_NAME);
+          cache.put(request, network.clone());
+          return network;
+        }
 
-          return res;
-        })
-        .catch(() => cached);
-    })
+        return cached || network;
+      } catch (err) {
+        return cached;
+      }
+    })()
   );
 });
 
 // ============================
-// UPDATE HANDLER
+// UPDATE CONTROL
 // ============================
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
