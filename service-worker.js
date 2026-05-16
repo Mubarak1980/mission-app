@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mission-cache-v91';
+const CACHE_NAME = 'mission-cache-v92';
 
 const ASSETS = [
   '/Mission-app/',
@@ -11,7 +11,7 @@ const ASSETS = [
   '/Mission-app/weekly-timetable.js',
   '/Mission-app/top-student-mode.js',
   '/Mission-app/manifest.json',
-  '/Mission-app/icon-192.png',
+  '/Mission-app/icon-192.png'
 ];
 
 // ===============================
