@@ -78,18 +78,10 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
         try {
 
+            // FIXED: root scope is required for proper PWA install
             const reg = await navigator.serviceWorker.register('/service-worker.js');
 
             console.log('SW registered:', reg.scope);
-
-            // IMPORTANT FIX: ensure SW becomes controller before install decision
-            if (navigator.serviceWorker.controller) {
-                console.log("PWA already controlled");
-            } else {
-                navigator.serviceWorker.addEventListener("controllerchange", () => {
-                    console.log("SW controller acquired");
-                });
-            }
 
             // Force update check
             reg.update();
