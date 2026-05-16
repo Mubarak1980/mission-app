@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mission-cache-v127';
+const CACHE_NAME = 'mission-cache-v128';
 
 const APP_SHELL = [
   '/',
@@ -15,7 +15,7 @@ const APP_SHELL = [
 ];
 
 // ============================
-// INSTALL (ROBUST PWA SAFE)
+// INSTALL
 // ============================
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -28,12 +28,11 @@ self.addEventListener('install', (event) => {
         try {
           const res = await fetch(file, { cache: "reload" });
 
-          // IMPORTANT: do not block install if missing
-          if (res && res.ok) {
+          if (res && res.ok && res.status === 200) {
             await cache.put(file, res.clone());
           }
         } catch (err) {
-          console.warn("Skipped during install (safe):", file);
+          console.warn("Skipped (safe install):", file);
         }
       }
     })()
@@ -45,52 +44,78 @@ self.addEventListener('install', (event) => {
 // ============================
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
+    (async () => {
+      const keys = await caches.keys();
+
+      await Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
             return caches.delete(key);
           }
         })
-      )
-    )
+      );
+    })()
   );
 
   self.clients.claim();
 });
 
 // ============================
-// FETCH (offline-first)
+// FETCH (OFFLINE-FIRST + SAFE FALLBACK)
 // ============================
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const request = event.request;
 
-  // Navigation
+  // ----------------------------
+  // NAVIGATION (CRITICAL FIX)
+  // ----------------------------
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request).catch(() => caches.match('/index.html'))
+      fetch(request)
+        .then((res) => {
+          // cache latest index.html
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((c) => c.put('/index.html', copy));
+          return res;
+        })
+        .catch(async () => {
+          // SAFE OFFLINE FALLBACK
+          const cached = await caches.match('/index.html');
+          return (
+            cached ||
+            new Response(
+              `<h1>Offline</h1><p>Please reconnect to use Mission App.</p>`,
+              { headers: { 'Content-Type': 'text/html' } }
+            )
+          );
+        })
     );
     return;
   }
 
-  // Assets
+  // ----------------------------
+  // STATIC ASSETS
+  // ----------------------------
   event.respondWith(
     caches.match(request).then((cached) => {
-      return (
-        cached ||
-        fetch(request)
-          .then((res) => {
-            if (!res || res.status !== 200) return res;
+      if (cached) return cached;
 
-            const copy = res.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-
+      return fetch(request)
+        .then((res) => {
+          if (!res || res.status !== 200 || res.type !== "basic") {
             return res;
-          })
-          .catch(() => cached)
-      );
+          }
+
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, copy);
+          });
+
+          return res;
+        })
+        .catch(() => cached);
     })
   );
 });
