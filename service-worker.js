@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mission-cache-v93';
+const CACHE_NAME = 'mission-cache-v94';
 const OFFLINE_URL = '/Mission-app/offline.html';
 
 const ASSETS = [
