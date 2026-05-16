@@ -10,8 +10,8 @@
 
     <link rel="stylesheet" href="./styles.css" />
 
-    <!-- ✅ FIX: manifest must be absolute -->
-    <link rel="manifest" href="/manifest.json" />
+    <!-- ✅ FIXED: relative path (CRITICAL for GitHub Pages) -->
+    <link rel="manifest" href="./manifest.json" />
 
     <meta name="theme-color" content="#00d4ff" />
     <meta name="application-name" content="Mission App" />
@@ -21,9 +21,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Mission App" />
 
-    <!-- ✅ FIX: force correct icon loading -->
-    <link rel="icon" href="/icon-192.png" />
-    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <!-- ✅ FIXED: relative paths -->
+    <link rel="icon" href="./icon-192.png" />
+    <link rel="apple-touch-icon" href="./icon-192.png" />
 </head>
 
 <body>
@@ -89,7 +89,7 @@ let deferredPrompt = null;
 const installBtn = document.getElementById("installBtn");
 
 // ===============================
-// INSTALL PROMPT (FIXED)
+// INSTALL PROMPT
 // ===============================
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
@@ -100,14 +100,12 @@ window.addEventListener('beforeinstallprompt', (e) => {
     if (installBtn) installBtn.style.display = "block";
 });
 
-// ✅ FIX: hide button after install
 window.addEventListener('appinstalled', () => {
     console.log("App installed successfully");
     deferredPrompt = null;
     if (installBtn) installBtn.style.display = "none";
 });
 
-// INSTALL CLICK
 installBtn?.addEventListener("click", async () => {
     if (!deferredPrompt) return;
 
@@ -117,8 +115,6 @@ installBtn?.addEventListener("click", async () => {
 
     if (choice.outcome === "accepted") {
         console.log("User accepted install");
-    } else {
-        console.log("User dismissed install");
     }
 
     deferredPrompt = null;
@@ -126,33 +122,19 @@ installBtn?.addEventListener("click", async () => {
 });
 
 // ===============================
-// SERVICE WORKER (CRITICAL FIXES)
+// SERVICE WORKER (FIXED PATH)
 // ===============================
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
         try {
-            const reg = await navigator.serviceWorker.register('/service-worker.js', {
-                scope: '/'
-            });
+            const reg = await navigator.serviceWorker.register('./service-worker.js');
 
             console.log('SW registered:', reg.scope);
 
-            // ✅ FIX: ensure page is controlled (important for install eligibility)
+            // ensure control (important)
             if (!navigator.serviceWorker.controller) {
                 window.location.reload();
             }
-
-            reg.addEventListener('updatefound', () => {
-                const newWorker = reg.installing;
-
-                if (newWorker) {
-                    newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            console.log('Update available');
-                        }
-                    });
-                }
-            });
 
         } catch (err) {
             console.error('SW ERROR:', err);
@@ -161,7 +143,7 @@ if ('serviceWorker' in navigator) {
 }
 
 // ===============================
-// SPLASH (SAFE)
+// SPLASH
 // ===============================
 window.addEventListener('load', () => {
     const splash = document.getElementById('splash-screen');
