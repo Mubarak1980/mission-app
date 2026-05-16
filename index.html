@@ -40,8 +40,11 @@
     <div class="section-buttons">
         <button onclick="loadSection('study', currentGrade)">Study Tracker</button>
         <button onclick="loadSection('timetable', currentGrade)">Weekly Timetable</button>
-        <button onclick="loadDashboard()">Dashboard</button>
-        <button onclick="loadTopStudentMode()">Top Student Mode</button>
+
+        <!-- SAFETY WRAPPED CALLS -->
+        <button onclick="window.loadDashboard?.()">Dashboard</button>
+        <button onclick="window.loadTopStudentMode?.()">Top Student Mode</button>
+        <button onclick="window.loadSunnahTracker?.()">Sunnah Tracker</button>
     </div>
 
     <div id="grade-progress-bar"></div>
@@ -53,9 +56,7 @@
     </div>
 </div>
 
-<!-- ===============================
-JS FILES (IMPORTANT ORDER FIXED)
-=============================== -->
+<!-- JS FILES -->
 <script src="./Sunnah-tracker.js"></script>
 <script src="./Study-tracker.js"></script>
 <script src="./weekly-timetable.js"></script>
