@@ -29,13 +29,13 @@
       "purpose": "maskable"
     },
     {
-      "src": "/Mission-app/icon-512.png",
+      "src": "/Mission-app/icon-192.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/Mission-app/icon-512.png",
+      "src": "/Mission-app/icon-192.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
