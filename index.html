@@ -63,8 +63,30 @@
 <script src="./top-student-mode.js"></script>
 <script src="./main.js"></script>
 
-<!-- PWA -->
+<!-- PWA FIXED SYSTEM -->
 <script>
+let deferredPrompt = null;
+
+// ✅ IMPORTANT: capture install event
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    console.log("Install prompt ready");
+});
+
+// Optional: manual trigger function (you can use a button later)
+function showInstallPrompt() {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => {
+            deferredPrompt = null;
+        });
+    }
+}
+
+// ===============================
+// SERVICE WORKER (FIXED)
+// ===============================
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
         try {
@@ -73,6 +95,9 @@ if ('serviceWorker' in navigator) {
             });
 
             console.log('SW registered:', reg.scope);
+
+            // ensure control ASAP
+            if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
 
             reg.addEventListener('updatefound', () => {
                 const newWorker = reg.installing;
@@ -92,7 +117,9 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// Splash system (safe)
+// ===============================
+// SPLASH (SAFE)
+// ===============================
 window.addEventListener('load', () => {
     const splash = document.getElementById('splash-screen');
     const app = document.getElementById('app');
@@ -105,7 +132,7 @@ window.addEventListener('load', () => {
             if (app) app.style.display = 'block';
         }, 500);
 
-    }, 1000);
+    }, 1200);
 });
 </script>
 
