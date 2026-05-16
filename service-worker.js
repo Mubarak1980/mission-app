@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mission-cache-v89';
+const CACHE_NAME = 'mission-cache-v90';
 
 const ASSETS = [
   '/Mission-app/',
@@ -12,7 +12,7 @@ const ASSETS = [
   '/Mission-app/top-student-mode.js',
   '/Mission-app/manifest.json',
   '/Mission-app/icon-192.png',
-  '/Mission-app/icon-512.png'
+  '/Mission-app/icon-192.png'
 ];
 
 // ===============================
