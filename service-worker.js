@@ -1,8 +1,10 @@
-const CACHE_NAME = 'mission-cache-v92';
+const CACHE_NAME = 'mission-cache-v93';
+const OFFLINE_URL = '/Mission-app/offline.html';
 
 const ASSETS = [
   '/Mission-app/',
   '/Mission-app/index.html',
+  '/Mission-app/offline.html',
   '/Mission-app/styles.css',
   '/Mission-app/main.js',
   '/Mission-app/Study-tracker.js',
@@ -14,61 +16,48 @@ const ASSETS = [
   '/Mission-app/icon-192.png'
 ];
 
-// ===============================
-// INSTALL — resilient, won't fail if one file is missing
-// ===============================
 self.addEventListener('install', (event) => {
   self.skipWaiting();
-
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return Promise.allSettled(
+    caches.open(CACHE_NAME).then(cache =>
+      Promise.allSettled(
         ASSETS.map(url =>
           fetch(url)
-            .then(res => {
-              if (res.ok) return cache.put(url, res);
-            })
-            .catch(() => {
-              console.warn('Failed to cache:', url);
-            })
+            .then(res => { if (res.ok) return cache.put(url, res); })
+            .catch(() => console.warn('Failed to cache:', url))
         )
-      );
-    })
-  );
-});
-
-// ===============================
-// ACTIVATE — clear old caches
-// ===============================
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys.map(key => key !== CACHE_NAME && caches.delete(key))
       )
     )
   );
+});
 
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.map(key => key !== CACHE_NAME && caches.delete(key)))
+    )
+  );
   self.clients.claim();
 });
 
-// ===============================
-// FETCH — hybrid strategy
-// ===============================
 self.addEventListener('fetch', (event) => {
-
   if (event.request.method !== 'GET') return;
 
-  // 1. NAVIGATION → APP SHELL (instant load)
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      caches.match('/Mission-app/index.html')
-        .then(cached => cached || fetch(event.request))
+      fetch(event.request)
+        .then(res => {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          return res;
+        })
+        .catch(() =>
+          caches.match(event.request).then(cached => cached || caches.match(OFFLINE_URL))
+        )
     );
     return;
   }
 
-  // 2. STATIC FILES → CACHE FIRST (fast)
   if (
     event.request.url.includes('.js') ||
     event.request.url.includes('.css') ||
@@ -79,7 +68,6 @@ self.addEventListener('fetch', (event) => {
       caches.match(event.request).then(cached => {
         return cached || fetch(event.request).then(res => {
           if (!res || res.status !== 200 || res.type !== 'basic') return res;
-
           const clone = res.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
           return res;
@@ -89,25 +77,28 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 3. DEFAULT → NETWORK FIRST (safe)
   event.respondWith(
     fetch(event.request)
       .then(res => {
         if (!res || res.status !== 200 || res.type !== 'basic') return res;
-
         const clone = res.clone();
         caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         return res;
       })
-      .catch(() => caches.match('/Mission-app/index.html'))
+      .catch(() => caches.match(event.request))
   );
 });
 
-// ===============================
-// SKIP WAITING (from page message)
-// ===============================
-self.addEventListener('message', (event) => {
-  if (event.data?.type === 'SKIP_WAITING') {
-    self.skipWaiting();
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-study-data') {
+    event.waitUntil(
+      self.clients.matchAll().then(clients =>
+        clients.forEach(client => client.postMessage({ type: 'SYNC_COMPLETE' }))
+      )
+    );
   }
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
 });
