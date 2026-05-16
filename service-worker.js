@@ -3,8 +3,8 @@
 // Offline-first + Safe Updates + Stable Cache
 // ==========================================
 
-const CACHE_NAME = 'mission-cache-v105';
-const APP_SHELL_CACHE = 'mission-shell-v105';
+const CACHE_NAME = 'mission-cache-v106';
+const APP_SHELL_CACHE = 'mission-shell-v106';
 
 // Core app shell (must ALWAYS exist)
 const APP_SHELL = [
