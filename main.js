@@ -379,3 +379,31 @@ window.addEventListener("beforeinstallprompt", (e) => {
 window.addEventListener("appinstalled", () => {
   deferredPrompt = null;
 });
+
+// ===============================
+// BACKGROUND SYNC REGISTRATION
+// ===============================
+async function registerBackgroundSync() {
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    if ('sync' in reg) {
+      await reg.sync.register('sync-study-data');
+    }
+  } catch (e) {
+    console.warn('Background sync not supported:', e);
+  }
+}
+
+const _originalSetItem = localStorage.setItem.bind(localStorage);
+localStorage.setItem = function(key, value) {
+  _originalSetItem(key, value);
+  if (key.startsWith('grade_') || key === 'sunnah_progress') {
+    registerBackgroundSync();
+  }
+};
+
+navigator.serviceWorker?.addEventListener('message', (event) => {
+  if (event.data?.type === 'SYNC_COMPLETE') {
+    console.log('Study data synced successfully');
+  }
+});
