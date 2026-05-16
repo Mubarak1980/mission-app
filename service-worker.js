@@ -15,14 +15,23 @@ const APP_SHELL = [
 ];
 
 // ============================
-// INSTALL
+// INSTALL (SAFE VERSION)
 // ============================
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(APP_SHELL);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      for (const file of APP_SHELL) {
+        try {
+          const res = await fetch(file, { cache: "reload" });
+          if (res && res.ok) {
+            await cache.put(file, res.clone());
+          }
+        } catch (err) {
+          console.warn("Cache skipped:", file, err);
+        }
+      }
     })
   );
 });
@@ -63,7 +72,10 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
           return res;
         })
-        .catch(() => caches.match('/index.html'))
+        .catch(async () => {
+          const cached = await caches.match('/index.html');
+          return cached || new Response("Offline", { status: 200 });
+        })
     );
     return;
   }
@@ -85,7 +97,7 @@ self.addEventListener('fetch', (event) => {
 
           return res;
         })
-        .catch(() => caches.match('/index.html'));
+        .catch(() => cached);
     })
   );
 });
