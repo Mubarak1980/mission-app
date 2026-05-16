@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mission-cache-v137';
+const CACHE_NAME = 'mission-cache-v138';
 
 const APP_SHELL = [
   '/',
@@ -11,16 +11,14 @@ const APP_SHELL = [
   '/weekly-timetable.js',
   '/top-student-mode.js',
   '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png'
+  '/icon-192.png'
+  // ❌ REMOVED icon-512.png (you don't have it → breaks install)
 ];
 
 // ============================
-// INSTALL (SAFE)
+// INSTALL (SAFE + REQUIRED FOR PWA)
 // ============================
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
-
   event.waitUntil(
     (async () => {
       const cache = await caches.open(CACHE_NAME);
@@ -29,7 +27,8 @@ self.addEventListener('install', (event) => {
         try {
           const res = await fetch(file, { cache: "reload" });
 
-          if (res && res.ok) {
+          // ✅ STRICT: only cache valid responses
+          if (res && res.status === 200) {
             await cache.put(file, res.clone());
           }
         } catch (e) {
@@ -41,7 +40,7 @@ self.addEventListener('install', (event) => {
 });
 
 // ============================
-// ACTIVATE (CONTROL FIX)
+// ACTIVATE (CRITICAL FOR NATIVE INSTALL)
 // ============================
 self.addEventListener('activate', (event) => {
   event.waitUntil(
@@ -56,13 +55,14 @@ self.addEventListener('activate', (event) => {
         })
       );
 
+      // ✅ REQUIRED: ensures app is controlled immediately
       await self.clients.claim();
     })()
   );
 });
 
 // ============================
-// FETCH (STABLE OFFLINE-FIRST)
+// FETCH (PWA SAFE STRATEGY)
 // ============================
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
@@ -70,36 +70,36 @@ self.addEventListener('fetch', (event) => {
   const request = event.request;
 
   // ---------------------------
-  // NAVIGATION (CRITICAL FIX)
+  // NAVIGATION (MOST IMPORTANT)
   // ---------------------------
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
-        .then((res) => {
-          // Always accept valid responses
-          if (res && res.ok) {
-            const copy = res.clone();
-            caches.open(CACHE_NAME).then((c) => c.put('/index.html', copy));
-            return res;
+      (async () => {
+        try {
+          const network = await fetch(request);
+
+          if (network && network.status === 200) {
+            const cache = await caches.open(CACHE_NAME);
+            cache.put('/index.html', network.clone());
+            return network;
           }
 
-          throw new Error("Network response invalid");
-        })
-        .catch(async () => {
-          const cached = await caches.match('/index.html');
-
-          return cached || new Response(
-            "<h1>Offline</h1><p>Please reconnect</p>",
-            { headers: { "Content-Type": "text/html" } }
+          throw new Error("Bad response");
+        } catch (err) {
+          return (
+            (await caches.match('/index.html')) ||
+            new Response("<h1>Offline</h1>", {
+              headers: { "Content-Type": "text/html" }
+            })
           );
-        })
+        }
+      })()
     );
-
     return;
   }
 
   // ---------------------------
-  // STATIC FILES (CACHE-FIRST + UPDATE SAFE)
+  // STATIC FILES
   // ---------------------------
   event.respondWith(
     (async () => {
@@ -108,7 +108,7 @@ self.addEventListener('fetch', (event) => {
       try {
         const network = await fetch(request);
 
-        if (network && network.ok) {
+        if (network && network.status === 200) {
           const cache = await caches.open(CACHE_NAME);
           cache.put(request, network.clone());
           return network;
@@ -123,7 +123,7 @@ self.addEventListener('fetch', (event) => {
 });
 
 // ============================
-// UPDATE CONTROL
+// UPDATE CONTROL (SAFE)
 // ============================
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
