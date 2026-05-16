@@ -75,32 +75,27 @@
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
         try {
-            // FIXED: root scope improves install reliability
-            const reg = await navigator.serviceWorker.register('/service-worker.js');
+
+            // FIXED: safer relative registration improves install reliability in non-root hosting
+            const reg = await navigator.serviceWorker.register('./service-worker.js');
 
             console.log('SW registered:', reg.scope);
 
-            // FIXED: force update check (helps install + updates)
-            reg.update();
-
-            if (reg.waiting) {
-                reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-            }
-
+            // FIXED: proper update lifecycle handling
             reg.addEventListener('updatefound', () => {
                 const newWorker = reg.installing;
 
                 if (newWorker) {
                     newWorker.addEventListener('statechange', () => {
-                        if (
-                            newWorker.state === 'installed' &&
-                            navigator.serviceWorker.controller
-                        ) {
-                            console.log("New version available");
+                        if (newWorker.state === 'installed' && reg.waiting) {
+                            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
                         }
                     });
                 }
             });
+
+            // optional update check (safe)
+            reg.update();
 
         } catch (err) {
             console.error('SW ERROR:', err);
