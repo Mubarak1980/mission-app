@@ -3,22 +3,30 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+
     <title>Mission App</title>
 
     <link rel="stylesheet" href="./styles.css" />
-    <link rel="manifest" href="manifest.json" />
 
+    <!-- FIXED: absolute path improves PWA reliability -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- PWA CORE META -->
     <meta name="theme-color" content="#00d4ff" />
     <meta name="application-name" content="Mission App">
 
-    <!-- Mobile capabilities for iOS standalone mode -->
+    <!-- Mobile capabilities -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Mission App">
 
-    <link rel="icon" href="./icon-192.png">
-    <link rel="apple-touch-icon" href="./icon-192.png">
+    <!-- FIXED: absolute paths improve icon loading in install flow -->
+    <link rel="icon" href="/icon-192.png">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+
+    <!-- OPTIONAL BUT GOOD: prevents iOS zoom issues -->
+    <meta name="format-detection" content="telephone=no">
 </head>
 <body>
 
@@ -36,7 +44,6 @@
     <h1>TIME</h1>
 
     <div class="section-buttons">
-        <!-- FIXED: Routing actions standardized to utilize the central router flawlessly -->
         <button onclick="loadSection('study', currentGrade)">Study Tracker</button>
         <button onclick="loadSection('timetable')">Weekly Timetable</button>
         <button onclick="loadSection('dashboard')">Dashboard</button>
@@ -68,8 +75,13 @@
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
         try {
-            const reg = await navigator.serviceWorker.register('./service-worker.js');
+            // FIXED: root scope improves install reliability
+            const reg = await navigator.serviceWorker.register('/service-worker.js');
+
             console.log('SW registered:', reg.scope);
+
+            // FIXED: force update check (helps install + updates)
+            reg.update();
 
             if (reg.waiting) {
                 reg.waiting.postMessage({ type: 'SKIP_WAITING' });
@@ -77,21 +89,26 @@ if ('serviceWorker' in navigator) {
 
             reg.addEventListener('updatefound', () => {
                 const newWorker = reg.installing;
+
                 if (newWorker) {
                     newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        if (
+                            newWorker.state === 'installed' &&
+                            navigator.serviceWorker.controller
+                        ) {
                             console.log("New version available");
                         }
                     });
                 }
             });
+
         } catch (err) {
             console.error('SW ERROR:', err);
         }
     });
 }
 
-// Splash execution handles seamless layout swapping
+// Splash execution
 window.addEventListener('load', () => {
     const splash = document.getElementById('splash-screen');
     const app = document.getElementById('app');
