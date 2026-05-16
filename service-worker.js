@@ -1,10 +1,10 @@
 // ==========================================
-// Service Worker - Mission App (Final Fixed)
+// Service Worker - Mission App (Stable Build)
 // ==========================================
 
-const CACHE_NAME = 'mission-cache-v102';
+const CACHE_NAME = 'mission-cache-v103';
 
-// Use ROOT paths (critical for PWA install)
+// IMPORTANT: Only include files that actually exist
 const ASSETS = [
   '/',
   '/index.html',
@@ -16,69 +16,66 @@ const ASSETS = [
   '/weekly-timetable.js',
   '/top-student-mode.js',
   '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png'
+  '/icon-192.png'
 ];
 
-// INSTALL: Cache all core files (STRICT - will fail if any missing)
+// INSTALL: Cache core files (fail-safe clean install)
 self.addEventListener('install', (event) => {
   self.skipWaiting();
+
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS);
+    })
   );
 });
 
-// ACTIVATE: Remove old caches
+// ACTIVATE: Remove old caches safely
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys.map(key => {
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.map((key) => {
           if (key !== CACHE_NAME) {
             return caches.delete(key);
           }
         })
-      )
-    )
+      );
+    })
   );
+
   self.clients.claim();
 });
 
-// FETCH: Smart caching strategy
+// FETCH: Offline-first smart strategy
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const request = event.request;
 
-  // 1. Handle page navigation (HTML)
+  // Handle page navigation (important for SPA/PWA)
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
-        .catch(() => caches.match('/index.html'))
+      fetch(request).catch(() => caches.match('/index.html'))
     );
     return;
   }
 
-  // 2. Cache-first for static assets
+  // Cache-first strategy for assets
   event.respondWith(
-    caches.match(request).then(cached => {
+    caches.match(request).then((cached) => {
       if (cached) return cached;
 
-      return fetch(request).then(response => {
-        // Only cache valid responses
-        if (
-          !response ||
-          response.status !== 200 ||
-          response.type !== 'basic'
-        ) {
+      return fetch(request).then((response) => {
+        if (!response || response.status !== 200) {
           return response;
         }
 
         const clone = response.clone();
 
-        caches.open(CACHE_NAME)
-          .then(cache => cache.put(request, clone));
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(request, clone);
+        });
 
         return response;
       });
@@ -86,19 +83,19 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// MESSAGE: Allow immediate update
+// MESSAGE: Allow instant update
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
 });
 
-// OPTIONAL: Background sync (safe fallback)
+// OPTIONAL: Background sync support
 self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-study-data') {
     event.waitUntil(
-      self.clients.matchAll().then(clients => {
-        clients.forEach(client => {
+      self.clients.matchAll().then((clients) => {
+        clients.forEach((client) => {
           client.postMessage({ type: 'SYNC_COMPLETE' });
         });
       })
