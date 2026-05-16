@@ -1,11 +1,5 @@
-// ==========================================
-// Mission App - Production PWA Service Worker
-// Single Cache (Stable + Native-like)
-// ==========================================
-
 const CACHE_NAME = 'mission-cache-v110';
 
-// App shell (core files)
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -60,7 +54,7 @@ self.addEventListener('fetch', (event) => {
 
   const request = event.request;
 
-  // Navigation
+  // Navigation requests (HTML)
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
@@ -74,7 +68,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache-first assets
+  // Static assets (cache-first)
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached;
@@ -85,11 +79,13 @@ self.addEventListener('fetch', (event) => {
 
           const copy = res.clone();
 
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, copy);
+          });
 
           return res;
         })
-        .catch(() => cached);
+        .catch(() => caches.match('/index.html'));
     })
   );
 });
