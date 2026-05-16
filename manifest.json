@@ -4,7 +4,6 @@
   "description": "Mission App - Study tracking system",
   "start_url": "/",
   "scope": "/",
-  "id": "mission-app-pwa",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#00d4ff",
@@ -13,12 +12,14 @@
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
