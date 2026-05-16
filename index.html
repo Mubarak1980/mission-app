@@ -6,7 +6,6 @@
     <title>Mission App</title>
 
     <link rel="stylesheet" href="./styles.css" />
-    <!-- Point precisely to the relative path matching your manifest configuration -->
     <link rel="manifest" href="manifest.json" />
 
     <meta name="theme-color" content="#00d4ff" />
@@ -33,18 +32,16 @@
 </div>
 
 <!-- APP -->
-<!-- Changed style format to display:none for better initial rendering containment -->
 <div id="app" style="display: none;">
     <h1>TIME</h1>
 
     <div class="section-buttons">
+        <!-- FIXED: Routing actions standardized to utilize the central router flawlessly -->
         <button onclick="loadSection('study', currentGrade)">Study Tracker</button>
-        <button onclick="loadSection('timetable', currentGrade)">Weekly Timetable</button>
-
-        <!-- SAFETY WRAPPED CALLS -->
-        <button onclick="window.loadDashboard?.()">Dashboard</button>
-        <button onclick="window.loadTopStudentMode?.()">Top Student Mode</button>
-        <button onclick="window.loadSunnahTracker?.()">Sunnah Tracker</button>
+        <button onclick="loadSection('timetable')">Weekly Timetable</button>
+        <button onclick="loadSection('dashboard')">Dashboard</button>
+        <button onclick="loadSection('top-student')">Top Student Mode</button>
+        <button onclick="loadSection('sunnah')">Sunnah Tracker</button>
     </div>
 
     <div id="grade-progress-bar"></div>
@@ -68,7 +65,6 @@
 
 <!-- SERVICE WORKER AND STATE LOGIC -->
 <script>
-// Combined layout load logic to keep runtime tracking clean
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
         try {
