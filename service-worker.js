@@ -2,7 +2,7 @@
 // Service Worker - Mission App (Fixed Stable)
 // ==========================================
 
-const CACHE_NAME = 'mission-cache-v104';
+const CACHE_NAME = 'mission-cache-v105';
 
 // IMPORTANT: ONLY real existing files
 const ASSETS = [
