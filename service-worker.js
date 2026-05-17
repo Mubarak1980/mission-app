@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mission-cache-v188';
+const CACHE_NAME = 'mission-cache-v189';
 
 // ============================
 // APP SHELL
@@ -18,7 +18,7 @@ const APP_SHELL = [
 ];
 
 // ============================
-// INSTALL (FIXED)
+// INSTALL
 // ============================
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
@@ -28,22 +28,21 @@ self.addEventListener('install', (event) => {
       try {
         const res = await fetch(file, { cache: "reload" });
 
-        // FIX: accept ANY valid response (not just 200 strict)
         if (res && res.ok) {
-          await cache.put(file, res.clone());
+          await cache.put(file, res);
         }
       } catch (e) {
-        console.warn("Install skipped:", file);
+        console.warn("Cache skipped:", file);
       }
     }
 
-    // IMPORTANT FIX: only activate AFTER cache finishes
-    await self.skipWaiting();
+    // IMPORTANT: DO NOT await this
+    self.skipWaiting();
   })());
 });
 
 // ============================
-// ACTIVATE (FIXED)
+// ACTIVATE
 // ============================
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
@@ -62,16 +61,14 @@ self.addEventListener('activate', (event) => {
 });
 
 // ============================
-// FETCH (IMPROVED)
+// FETCH
 // ============================
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const request = event.request;
 
-  // ============================
   // NAVIGATION FIX
-  // ============================
   if (request.mode === 'navigate') {
     event.respondWith((async () => {
       try {
@@ -80,13 +77,13 @@ self.addEventListener('fetch', (event) => {
         if (network && network.ok) {
           const cache = await caches.open(CACHE_NAME);
 
-          // FIX: unify key
+          // FIX: always normalize key
           cache.put('./index.html', network.clone());
 
           return network;
         }
 
-        throw new Error("Network failed");
+        throw new Error("Offline fallback");
       } catch (err) {
         const cache = await caches.open(CACHE_NAME);
 
@@ -102,11 +99,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // ============================
-  // STATIC CACHE STRATEGY
-  // ============================
+  // STATIC CACHE
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
+
     const cached = await cache.match(request);
 
     try {
