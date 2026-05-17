@@ -313,14 +313,15 @@ function initApp() {
 
   loadUIState();
 
-  // ✅ FIX: break blocking startup work
+  // ✅ FIRST: show UI instantly
   requestAnimationFrame(() => {
-    getCycleState();
-
-    setTimeout(() => {
-      loadSection(currentSection, currentGrade);
-    }, 0);
+    loadSection(currentSection, currentGrade);
   });
+
+  // ✅ THEN: run background logic (non-blocking)
+  setTimeout(() => {
+    getCycleState();
+  }, 50);
 }
 
 // ===============================
