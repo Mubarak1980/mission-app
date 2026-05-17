@@ -82,43 +82,59 @@ Install App
 <script src="./main.js"></script>
 
 <!-- ===============================
-     PWA FIXED CORE SYSTEM
+     PWA FIXED CORE SYSTEM (FINAL STABLE)
 =============================== -->
 <script>
 let deferredPrompt = null;
-const installBtn = document.getElementById("installBtn");
 
-// INSTALL PROMPT
+function getInstallButton() {
+    return document.getElementById("installBtn");
+}
+
+/* INSTALL AVAILABLE */
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
 
     console.log("Install available");
 
-    if (installBtn) installBtn.style.display = "block";
+    const btn = getInstallButton();
+    if (btn) btn.style.display = "block";
 });
 
-// INSTALL CLICK
-installBtn?.addEventListener("click", async () => {
-    if (!deferredPrompt) return;
+/* INSTALL CLICK */
+window.addEventListener('load', () => {
+    const btn = getInstallButton();
 
-    deferredPrompt.prompt();
+    if (btn) {
+        btn.addEventListener('click', async () => {
+            if (!deferredPrompt) {
+                console.log("Install not available yet");
+                return;
+            }
 
-    const choice = await deferredPrompt.userChoice;
+            deferredPrompt.prompt();
 
-    console.log("Install result:", choice.outcome);
+            const choice = await deferredPrompt.userChoice;
 
-    deferredPrompt = null;
-    installBtn.style.display = "none";
+            console.log("Install result:", choice?.outcome);
+
+            deferredPrompt = null;
+            btn.style.display = "none";
+        });
+    }
 });
 
-// INSTALLED EVENT (IMPORTANT)
+/* INSTALLED EVENT */
 window.addEventListener('appinstalled', () => {
     console.log("PWA installed successfully");
     deferredPrompt = null;
+
+    const btn = getInstallButton();
+    if (btn) btn.style.display = "none";
 });
 
-// SERVICE WORKER
+/* SERVICE WORKER */
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
         try {
@@ -142,7 +158,7 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// SPLASH (SAFE & FAST)
+/* SPLASH (SAFE FAST BOOT) */
 window.addEventListener('DOMContentLoaded', () => {
     const splash = document.getElementById('splash-screen');
     const app = document.getElementById('app');
