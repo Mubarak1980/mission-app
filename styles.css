@@ -12,6 +12,13 @@
 }
 
 /* ===============================
+   GLOBAL (FIX: PREVENT ICON FLASH)
+=============================== */
+html, body {
+  background: var(--bg); /* 🔥 FIX: removes white/icon flash on launch */
+}
+
+/* ===============================
    GLOBAL
 =============================== */
 * {
@@ -404,7 +411,8 @@ tr:nth-child(even) {
   z-index: 99999;
   opacity: 1;
   visibility: visible;
-  transition: opacity 0.5s ease, visibility 0.5s ease;
+  transition: opacity 0.2s ease, visibility 0.2s ease; /* 🔥 faster fade */
+  will-change: opacity;
 }
 
 #splash-screen.hide {
