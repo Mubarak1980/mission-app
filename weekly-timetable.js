@@ -13,34 +13,41 @@ function loadWeeklyTimetable() {
   if (!container) return;
 
   // ===============================
-  // 🧠 SMART SYSTEM (SAFE)
+  // 🧠 SAFE STATE HANDLING
   // ===============================
   const today = new Date();
   const todayStr = today.toISOString().split("T")[0];
 
-  let state = JSON.parse(localStorage.getItem("studyState") || "{}");
+  let state = {};
+
+  try {
+    state = JSON.parse(localStorage.getItem("studyState") || "{}");
+  } catch {
+    state = {};
+  }
 
   if (!state.startDate) {
     state.startDate = todayStr;
-    state.lastVisit = todayStr;
     state.missedDays = 0;
   }
 
-  function daysBetween(a, b) {
-    return Math.floor((new Date(b) - new Date(a)) / (1000 * 60 * 60 * 24));
-  }
+  const daysBetween = (a, b) =>
+    Math.floor((new Date(b) - new Date(a)) / (1000 * 60 * 60 * 24));
 
-  const missed = daysBetween(state.lastVisit, todayStr);
+  const missed = daysBetween(state.lastVisit || todayStr, todayStr);
 
   if (missed > 1) {
-    state.missedDays += (missed - 1);
+    state.missedDays = (state.missedDays || 0) + (missed - 1);
   }
 
   state.lastVisit = todayStr;
-  localStorage.setItem("studyState", JSON.stringify(state));
+
+  try {
+    localStorage.setItem("studyState", JSON.stringify(state));
+  } catch {}
 
   const BASE_TARGET = 64;
-  const DAILY_TARGET = BASE_TARGET + (state.missedDays * 8);
+  const DAILY_TARGET = BASE_TARGET + ((state.missedDays || 0) * 8);
 
   // ===============================
   // UI START
@@ -50,7 +57,7 @@ function loadWeeklyTimetable() {
 
     <div class="weekly-info">
       <p>📅 Today: ${today.toDateString()}</p>
-      <p>🔥 Catch-up Level: ${state.missedDays}</p>
+      <p>🔥 Catch-up Level: ${state.missedDays || 0}</p>
       <p>📈 Daily Target: ${DAILY_TARGET} pages</p>
     </div>
 
@@ -73,34 +80,45 @@ function loadWeeklyTimetable() {
   `;
 
   // ===============================
-  // TABLE LOGIC (UNCHANGED CORE)
+  // SAFE TABLE LOGIC
   // ===============================
   [9, 10, 11, 12].forEach(g => {
 
-    const d = pages[g];
+    const d = pages?.[g];
     if (!d) return;
 
-    const days = gradeDays[g];
+    const days = gradeDays[g] || 0;
 
-    const total =
-      d.Math + d.Physics + d.Chemistry + d.Biology + d.English;
+    const math = Number(d.Math) || 0;
+    const physics = Number(d.Physics) || 0;
+    const chemistry = Number(d.Chemistry) || 0;
+    const biology = Number(d.Biology) || 0;
+    const englishRaw = Number(d.English) || 0;
 
-    const math = Math.round((d.Math / total) * DAILY_TARGET);
-    const physics = Math.round((d.Physics / total) * DAILY_TARGET);
-    const chemistry = Math.round((d.Chemistry / total) * DAILY_TARGET);
-    const biology = Math.round((d.Biology / total) * DAILY_TARGET);
+    const total = math + physics + chemistry + biology + englishRaw;
 
-    const english = DAILY_TARGET - (math + physics + chemistry + biology);
+    if (total === 0) return;
+
+    const mathP = Math.round((math / total) * DAILY_TARGET);
+    const physicsP = Math.round((physics / total) * DAILY_TARGET);
+    const chemistryP = Math.round((chemistry / total) * DAILY_TARGET);
+    const biologyP = Math.round((biology / total) * DAILY_TARGET);
+
+    let englishP =
+      DAILY_TARGET - (mathP + physicsP + chemistryP + biologyP);
+
+    // FIX: prevent negative or unrealistic values
+    if (englishP < 0) englishP = 0;
 
     html += `
       <tr>
         <td><b>${g}</b></td>
         <td>${days}</td>
-        <td>${math}</td>
-        <td>${physics}</td>
-        <td>${chemistry}</td>
-        <td>${biology}</td>
-        <td>${english}</td>
+        <td>${mathP}</td>
+        <td>${physicsP}</td>
+        <td>${chemistryP}</td>
+        <td>${biologyP}</td>
+        <td>${englishP}</td>
         <td><b>${DAILY_TARGET}</b></td>
         <td><b>${total}</b></td>
       </tr>
@@ -114,4 +132,4 @@ function loadWeeklyTimetable() {
   `;
 
   container.innerHTML = html;
-}
+                         }
