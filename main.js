@@ -51,6 +51,7 @@ function getCycleState() {
   try {
     localStorage.setItem("cycleState", JSON.stringify(state));
   } catch {}
+
   return state;
 }
 
@@ -173,7 +174,7 @@ function getSystemStatus() {
 }
 
 // ===============================
-// SNAPSHOT (FIXED)
+// SNAPSHOT
 // ===============================
 function getSystemSnapshot() {
   const status = getSystemStatus();
@@ -239,7 +240,6 @@ let currentSection = "study";
 
 let nav, prevBtn, nextBtn;
 
-// ===============================
 function saveUIState() {
   try {
     localStorage.setItem("ui_state", JSON.stringify({
@@ -258,6 +258,8 @@ function loadUIState() {
 }
 
 // ===============================
+// NAV BUTTONS
+// ===============================
 function updateNavButtons() {
   if (!nav || !prevBtn || !nextBtn) return;
 
@@ -270,6 +272,8 @@ function updateNavButtons() {
   }
 }
 
+// ===============================
+// SECTION LOADER (UNCHANGED LOGIC)
 // ===============================
 function loadSection(type, grade) {
   currentSection = type;
@@ -286,6 +290,8 @@ function loadSection(type, grade) {
 }
 
 // ===============================
+// NAVIGATION
+// ===============================
 function nextGrade() {
   if (currentGrade < 12) loadSection("study", ++currentGrade);
 }
@@ -294,6 +300,8 @@ function previousGrade() {
   if (currentGrade > 9) loadSection("study", --currentGrade);
 }
 
+// ===============================
+// 🚀 FIXED INIT (THIS IS THE IMPORTANT PART)
 // ===============================
 function initApp() {
   if (document.body.dataset.initialized) return;
@@ -304,10 +312,19 @@ function initApp() {
   nextBtn = document.getElementById("next-btn");
 
   loadUIState();
-  getCycleState();
-  loadSection(currentSection, currentGrade);
+
+  // ✅ FIX: break blocking startup work
+  requestAnimationFrame(() => {
+    getCycleState();
+
+    setTimeout(() => {
+      loadSection(currentSection, currentGrade);
+    }, 0);
+  });
 }
 
+// ===============================
+// BOOT
 // ===============================
 document.readyState === "loading"
   ? document.addEventListener("DOMContentLoaded", initApp)
