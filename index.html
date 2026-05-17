@@ -8,6 +8,19 @@
 
     <title>Mission App</title>
 
+    <!-- ✅ FIX: prevent white flash before PWA loads -->
+    <style>
+        html, body {
+            margin: 0;
+            background: #0b0f14;
+        }
+
+        #app {
+            opacity: 1;
+            transition: opacity 0.15s ease;
+        }
+    </style>
+
     <link rel="stylesheet" href="./styles.css" />
 
     <!-- MANIFEST -->
@@ -26,8 +39,6 @@
 </head>
 
 <body>
-
-
 
 <!-- SPLASH -->
 <div id="splash-screen">
@@ -121,29 +132,33 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-/* SPLASH (FAST + CLEAN) */
+/* SPLASH (FIXED FAST BOOT - NO ICON DELAY FEELING) */
 window.addEventListener('DOMContentLoaded', () => {
     const splash = document.getElementById('splash-screen');
     const app = document.getElementById('app');
 
-    // show app immediately (prevents icon "waiting screen")
-    if (app) app.style.display = 'block';
+    // Show app immediately behind splash
+    if (app) {
+        app.style.display = 'block';
+        app.style.opacity = '0';
+    }
 
-    // remove splash instantly after first paint
     requestAnimationFrame(() => {
+        if (app) app.style.opacity = '1';
+
         setTimeout(() => {
             if (splash) {
+                splash.style.transition = "opacity 0.15s ease";
                 splash.style.opacity = "0";
-                splash.style.transition = "opacity 0.2s ease";
             }
 
             setTimeout(() => {
                 splash?.remove();
-            }, 200);
-        }, 100);
+            }, 150);
+        }, 120);
     });
 });
 </script>
 
 </body>
-</html>
+    </html>
