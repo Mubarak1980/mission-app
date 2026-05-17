@@ -137,19 +137,25 @@ if ('serviceWorker' in navigator) {
 }
 
 // SPLASH
-window.addEventListener('load', () => {
+window.addEventListener('DOMContentLoaded', () => {
     const splash = document.getElementById('splash-screen');
     const app = document.getElementById('app');
 
-    setTimeout(() => {
-        splash?.classList.add('hide');
+    // Show app immediately (no waiting for full load)
+    if (app) app.style.display = 'block';
 
+    // Remove splash as soon as UI is ready
+    requestAnimationFrame(() => {
         setTimeout(() => {
-            splash?.remove();
-            if (app) app.style.display = 'block';
-        }, 500);
+            splash?.classList.add('hide');
 
-    }, 1200);
+            setTimeout(() => {
+                splash?.remove();
+            }, 120);
+        }, 200);
+    });
+});
+    
 });
 </script>
 
