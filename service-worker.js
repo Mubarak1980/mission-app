@@ -4,7 +4,7 @@ const CACHE_NAME = 'mission-cache-v189';
 // APP SHELL
 // ============================
 const APP_SHELL = [
-  './',
+  ''./index.html',',
   './index.html',
   './styles.css',
   './main.js',
