@@ -8,15 +8,17 @@
 
     <title>Mission App</title>
 
-    <!-- ✅ FIX: prevent white flash before PWA loads -->
+    <!-- FIX: prevent white flash before PWA loads -->
     <style>
         html, body {
             margin: 0;
             background: #0b0f14;
         }
 
+        /* FIX: avoid flicker before JS runs */
         #app {
-            opacity: 1;
+            display: none;
+            opacity: 0;
             transition: opacity 0.15s ease;
         }
     </style>
@@ -26,7 +28,7 @@
     <!-- MANIFEST -->
     <link rel="manifest" href="./manifest.json">
 
-    <meta name="theme-color" content="#00d4ff" />
+    <meta name="theme-color" content="#0b0f14" />
     <meta name="application-name" content="Mission App" />
 
     <meta name="mobile-web-app-capable" content="yes" />
@@ -50,7 +52,7 @@
 </div>
 
 <!-- APP -->
-<div id="app" style="display:none;">
+<div id="app">
     <h1>TIME</h1>
 
     <div class="section-buttons">
@@ -81,84 +83,47 @@
 <!-- PWA SCRIPT -->
 <script>
 let deferredPrompt = null;
-const installBtn = document.getElementById("installBtn");
 
 /* INSTALL PROMPT */
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-
-    console.log("Install available");
-
-    if (installBtn) installBtn.style.display = "block";
-});
-
-/* INSTALL CLICK */
-installBtn?.addEventListener("click", async () => {
-    if (!deferredPrompt) return;
-
-    deferredPrompt.prompt();
-    const choice = await deferredPrompt.userChoice;
-
-    if (choice.outcome === "accepted") {
-        console.log("Installed");
-    }
-
-    deferredPrompt = null;
-    installBtn.style.display = "none";
 });
 
 /* SERVICE WORKER */
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
         try {
-            const reg = await navigator.serviceWorker.register('./service-worker.js');
-
-            console.log('SW registered:', reg.scope);
-
-            reg.addEventListener('updatefound', () => {
-                const newWorker = reg.installing;
-
-                newWorker?.addEventListener('statechange', () => {
-                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        console.log('Update available');
-                    }
-                });
-            });
-
+            await navigator.serviceWorker.register('./service-worker.js');
         } catch (err) {
             console.error('SW ERROR:', err);
         }
     });
 }
 
-/* SPLASH (FIXED FAST BOOT - NO ICON DELAY FEELING) */
+/* SPLASH CONTROL (OPTIMIZED) */
 window.addEventListener('DOMContentLoaded', () => {
     const splash = document.getElementById('splash-screen');
     const app = document.getElementById('app');
 
-    // Show app immediately behind splash
-    if (app) {
-        app.style.display = 'block';
-        app.style.opacity = '0';
-    }
+    // IMPORTANT FIX:
+    // show app immediately so system splash blends smoothly
+    app.style.display = 'block';
 
     requestAnimationFrame(() => {
-        if (app) app.style.opacity = '1';
+        app.style.opacity = '1';
 
-        setTimeout(() => {
-            if (splash) {
-                splash.style.transition = "opacity 0.15s ease";
-                splash.style.opacity = "0";
-            }
+        if (splash) {
+            splash.style.transition = "opacity 0.15s ease";
+            splash.style.opacity = "0";
 
             setTimeout(() => {
-                splash?.remove();
+                splash.remove();
             }, 150);
-        }, 120);
+        }
     });
 });
 </script>
 
 </body>
-    </html>
+</html>
