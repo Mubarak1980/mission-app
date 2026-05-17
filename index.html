@@ -27,7 +27,7 @@
 
 <body>
 
-<!-- ✅ SAFE ADDITION: install button (fixes your JS bug) -->
+<!-- INSTALL BUTTON -->
 <button id="installBtn" style="
     position: fixed;
     bottom: 20px;
@@ -74,7 +74,7 @@ Install App
     </div>
 </div>
 
-<!-- JS -->
+<!-- JS FILES -->
 <script src="./Sunnah-tracker.js"></script>
 <script src="./Study-tracker.js"></script>
 <script src="./weekly-timetable.js"></script>
@@ -82,11 +82,12 @@ Install App
 <script src="./top-student-mode.js"></script>
 <script src="./main.js"></script>
 
+<!-- PWA SCRIPT -->
 <script>
 let deferredPrompt = null;
 const installBtn = document.getElementById("installBtn");
 
-// INSTALL PROMPT
+/* INSTALL PROMPT */
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
@@ -96,7 +97,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
     if (installBtn) installBtn.style.display = "block";
 });
 
-// INSTALL CLICK
+/* INSTALL CLICK */
 installBtn?.addEventListener("click", async () => {
     if (!deferredPrompt) return;
 
@@ -111,8 +112,7 @@ installBtn?.addEventListener("click", async () => {
     installBtn.style.display = "none";
 });
 
-// SERVICE WORKER (SAFE IMPROVEMENT)
-// - removed potential reload loops
+/* SERVICE WORKER */
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
         try {
@@ -136,15 +136,13 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// SPLASH
+/* SPLASH (FAST + CLEAN) */
 window.addEventListener('DOMContentLoaded', () => {
     const splash = document.getElementById('splash-screen');
     const app = document.getElementById('app');
 
-    // Show app immediately (no waiting for full load)
     if (app) app.style.display = 'block';
 
-    // Remove splash as soon as UI is ready
     requestAnimationFrame(() => {
         setTimeout(() => {
             splash?.classList.add('hide');
@@ -154,8 +152,6 @@ window.addEventListener('DOMContentLoaded', () => {
             }, 120);
         }, 200);
     });
-});
-    
 });
 </script>
 
