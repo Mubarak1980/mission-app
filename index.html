@@ -82,99 +82,97 @@ Install App
 <script src="./main.js"></script>
 
 <!-- ===============================
-     PWA FIXED CORE SYSTEM (FINAL)
+     PWA FIXED CORE SYSTEM (STABLE)
 =============================== -->
 <script>
 (() => {
   let deferredPrompt = null;
+  const installBtn = document.getElementById("installBtn");
 
-  function initInstallButton() {
-    const installBtn = document.getElementById("installBtn");
-    if (!installBtn) return;
+  if (!installBtn) return;
 
-    // Install prompt becomes available
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
+  // Show install button when available
+  window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
 
-        console.log("PWA install available");
+      console.log("PWA install available");
 
-        installBtn.style.display = "block";
-    });
+      installBtn.style.display = "block";
+  });
 
-    // Install click
-    installBtn.addEventListener("click", async () => {
-        if (!deferredPrompt) return;
+  // Install click
+  installBtn.addEventListener("click", async () => {
+      if (!deferredPrompt) {
+          console.log("Install not ready (deferredPrompt null)");
+          return;
+      }
 
-        deferredPrompt.prompt();
+      try {
+          deferredPrompt.prompt();
 
-        const choice = await deferredPrompt.userChoice;
+          const result = await deferredPrompt.userChoice;
 
-        console.log("Install result:", choice.outcome);
+          console.log("Install result:", result.outcome);
 
-        deferredPrompt = null;
-        installBtn.style.display = "none";
-    });
+          if (result.outcome === "accepted") {
+              installBtn.style.display = "none";
+          }
 
-    // Installed event
-    window.addEventListener('appinstalled', () => {
-        console.log("PWA installed successfully");
-        deferredPrompt = null;
-        installBtn.style.display = "none";
-    });
+          deferredPrompt = null;
+
+      } catch (err) {
+          console.error("Install error:", err);
+      }
+  });
+
+  // Installed event
+  window.addEventListener('appinstalled', () => {
+      console.log("PWA installed successfully");
+      deferredPrompt = null;
+      installBtn.style.display = "none";
+  });
+
+  // SERVICE WORKER (IMPORTANT: FORCE CLEAN REGISTRATION)
+  if ('serviceWorker' in navigator) {
+      window.addEventListener('load', async () => {
+          try {
+              const reg = await navigator.serviceWorker.register('./service-worker.js', {
+                  updateViaCache: "none"
+              });
+
+              console.log('SW registered:', reg.scope);
+
+              // force update check
+              reg.update();
+
+          } catch (err) {
+              console.error('SW ERROR:', err);
+          }
+      });
   }
 
-  function registerSW() {
-    if (!('serviceWorker' in navigator)) return;
+  // SPLASH SCREEN
+  window.addEventListener('DOMContentLoaded', () => {
+      const splash = document.getElementById('splash-screen');
+      const app = document.getElementById('app');
 
-    window.addEventListener('load', async () => {
-        try {
-            const reg = await navigator.serviceWorker.register('./service-worker.js');
+      if (app) {
+          app.style.display = 'block';
+          app.style.opacity = '0';
+      }
 
-            console.log('SW registered:', reg.scope);
+      requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+              if (app) app.style.opacity = '1';
 
-            reg.addEventListener('updatefound', () => {
-                const newWorker = reg.installing;
-
-                newWorker?.addEventListener('statechange', () => {
-                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        console.log('Update available');
-                    }
-                });
-            });
-
-        } catch (err) {
-            console.error('SW ERROR:', err);
-        }
-    });
-  }
-
-  function splash() {
-    window.addEventListener('DOMContentLoaded', () => {
-        const splash = document.getElementById('splash-screen');
-        const app = document.getElementById('app');
-
-        if (app) {
-            app.style.display = 'block';
-            app.style.opacity = '0';
-        }
-
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                if (app) app.style.opacity = '1';
-
-                setTimeout(() => {
-                    splash?.classList.add('hide');
-                    setTimeout(() => splash?.remove(), 300);
-                }, 150);
-            });
-        });
-    });
-  }
-
-  initInstallButton();
-  registerSW();
-  splash();
+              setTimeout(() => {
+                  splash?.classList.add('hide');
+                  setTimeout(() => splash?.remove(), 300);
+              }, 150);
+          });
+      });
+  });
 
 })();
 </script>
