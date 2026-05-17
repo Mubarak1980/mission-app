@@ -273,7 +273,7 @@ function updateNavButtons() {
 }
 
 // ===============================
-// SECTION LOADER (UNCHANGED LOGIC)
+// SECTION LOADER (FIXED SAFELY)
 // ===============================
 function loadSection(type, grade) {
   currentSection = type;
@@ -282,11 +282,30 @@ function loadSection(type, grade) {
   saveUIState();
   updateNavButtons();
 
-  if (type === "study") loadStudySection && loadStudySection(currentGrade);
-  if (type === "timetable") loadWeeklyTimetable && loadWeeklyTimetable();
-  if (type === "dashboard") loadDashboard && loadDashboard();
-  if (type === "top-student") loadTopStudentMode && loadTopStudentMode();
-  if (type === "sunnah") loadSunnahTracker && loadSunnahTracker();
+  try {
+    if (type === "study" && typeof loadStudySection === "function") {
+      loadStudySection(currentGrade);
+    }
+
+    if (type === "timetable" && typeof loadWeeklyTimetable === "function") {
+      loadWeeklyTimetable();
+    }
+
+    if (type === "dashboard" && typeof loadDashboard === "function") {
+      loadDashboard();
+    }
+
+    if (type === "top-student" && typeof loadTopStudentMode === "function") {
+      loadTopStudentMode();
+    }
+
+    if (type === "sunnah" && typeof loadSunnahTracker === "function") {
+      loadSunnahTracker();
+    }
+
+  } catch (err) {
+    console.error("Section load error:", type, err);
+  }
 }
 
 // ===============================
@@ -301,7 +320,7 @@ function previousGrade() {
 }
 
 // ===============================
-// 🚀 FIXED INIT (THIS IS THE IMPORTANT PART)
+// FIXED INIT (PWA SAFE)
 // ===============================
 function initApp() {
   if (document.body.dataset.initialized) return;
@@ -313,15 +332,23 @@ function initApp() {
 
   loadUIState();
 
-  // ✅ FIRST: show UI instantly
-  requestAnimationFrame(() => {
-    loadSection(currentSection, currentGrade);
-  });
+  const start = () => {
+    try {
+      loadSection(currentSection, currentGrade);
+    } catch (err) {
+      console.error("Init load error:", err);
+    }
 
-  // ✅ THEN: run background logic (non-blocking)
-  setTimeout(() => {
-    getCycleState();
-  }, 50);
+    setTimeout(() => {
+      getCycleState();
+    }, 50);
+  };
+
+  if (document.readyState === "complete") {
+    start();
+  } else {
+    window.addEventListener("load", start);
+  }
 }
 
 // ===============================
