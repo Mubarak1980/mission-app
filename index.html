@@ -21,13 +21,28 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Mission App" />
 
-    <!-- ICON (ONLY ONE SOURCE) -->
     <link rel="icon" href="./icon-192.png" />
     <link rel="apple-touch-icon" href="./icon-192.png" />
 </head>
 
 <body>
 
+<!-- ✅ SAFE ADDITION: install button (fixes your JS bug) -->
+<button id="installBtn" style="
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 16px;
+    border: none;
+    background: #00d4ff;
+    color: black;
+    font-weight: bold;
+    border-radius: 10px;
+    display: none;
+    z-index: 9999;
+">
+Install App
+</button>
 
 <!-- SPLASH -->
 <div id="splash-screen">
@@ -77,7 +92,8 @@ window.addEventListener('beforeinstallprompt', (e) => {
     deferredPrompt = e;
 
     console.log("Install available");
-    installBtn.style.display = "block";
+
+    if (installBtn) installBtn.style.display = "block";
 });
 
 // INSTALL CLICK
@@ -95,7 +111,8 @@ installBtn?.addEventListener("click", async () => {
     installBtn.style.display = "none";
 });
 
-// SERVICE WORKER (FIXED - NO RELOAD LOOP)
+// SERVICE WORKER (SAFE IMPROVEMENT)
+// - removed potential reload loops
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
         try {
