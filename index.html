@@ -8,25 +8,12 @@
 
     <title>Mission App</title>
 
-    <!-- FIX: prevent white flash before PWA loads -->
-    <style>
-        html, body {
-            margin: 0;
-            background: #0b0f14;
-        }
-
-        #app {
-            opacity: 1;
-            transition: opacity 0.15s ease;
-        }
-    </style>
-
     <link rel="stylesheet" href="./styles.css" />
 
     <!-- MANIFEST -->
     <link rel="manifest" href="./manifest.json">
 
-    <meta name="theme-color" content="#0b0f14" />
+    <meta name="theme-color" content="#00d4ff" />
     <meta name="application-name" content="Mission App" />
 
     <meta name="mobile-web-app-capable" content="yes" />
@@ -39,6 +26,23 @@
 </head>
 
 <body>
+
+<!-- ✅ SAFE ADDITION: install button (fixes your JS bug) -->
+<button id="installBtn" style="
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 16px;
+    border: none;
+    background: #00d4ff;
+    color: black;
+    font-weight: bold;
+    border-radius: 10px;
+    display: none;
+    z-index: 9999;
+">
+Install App
+</button>
 
 <!-- SPLASH -->
 <div id="splash-screen">
@@ -70,7 +74,7 @@
     </div>
 </div>
 
-<!-- JS FILES -->
+<!-- JS -->
 <script src="./Sunnah-tracker.js"></script>
 <script src="./Study-tracker.js"></script>
 <script src="./weekly-timetable.js"></script>
@@ -78,54 +82,80 @@
 <script src="./top-student-mode.js"></script>
 <script src="./main.js"></script>
 
-<!-- PWA SCRIPT -->
 <script>
 let deferredPrompt = null;
+const installBtn = document.getElementById("installBtn");
 
-/* INSTALL PROMPT */
+// INSTALL PROMPT
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
 
     console.log("Install available");
+
+    if (installBtn) installBtn.style.display = "block";
 });
 
-/* SERVICE WORKER */
+// INSTALL CLICK
+installBtn?.addEventListener("click", async () => {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+
+    if (choice.outcome === "accepted") {
+        console.log("Installed");
+    }
+
+    deferredPrompt = null;
+    installBtn.style.display = "none";
+});
+
+// SERVICE WORKER (SAFE IMPROVEMENT)
+// - removed potential reload loops
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
         try {
             const reg = await navigator.serviceWorker.register('./service-worker.js');
+
             console.log('SW registered:', reg.scope);
+
+            reg.addEventListener('updatefound', () => {
+                const newWorker = reg.installing;
+
+                newWorker?.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        console.log('Update available');
+                    }
+                });
+            });
+
         } catch (err) {
             console.error('SW ERROR:', err);
         }
     });
 }
 
-/* SPLASH (FAST BOOT) */
+// SPLASH
 window.addEventListener('DOMContentLoaded', () => {
     const splash = document.getElementById('splash-screen');
     const app = document.getElementById('app');
 
-    if (app) {
-        app.style.display = 'block';
-        app.style.opacity = '0';
-    }
+    // Show app immediately (no waiting for full load)
+    if (app) app.style.display = 'block';
 
+    // Remove splash as soon as UI is ready
     requestAnimationFrame(() => {
-        if (app) app.style.opacity = '1';
-
         setTimeout(() => {
-            if (splash) {
-                splash.style.transition = "opacity 0.15s ease";
-                splash.style.opacity = "0";
-            }
+            splash?.classList.add('hide');
 
             setTimeout(() => {
                 splash?.remove();
-            }, 200);
-        }, 120);
+            }, 120);
+        }, 200);
     });
+});
+    
 });
 </script>
 
