@@ -1,24 +1,24 @@
-const CACHE_NAME = 'mission-cache-v145';
+const CACHE_NAME = 'mission-cache-v146';
 
 const APP_SHELL = [
-  './',
-  './index.html',
-  './styles.css',
-  './main.js',
-  './Study-tracker.js',
-  './Sunnah-tracker.js',
-  './dashboard.js',
-  './weekly-timetable.js',
-  './top-student-mode.js',
-  './manifest.json',
-  './icon-192.png'
+  '/',
+  '/index.html',
+  '/styles.css',
+  '/main.js',
+  '/Study-tracker.js',
+  '/Sunnah-tracker.js',
+  '/dashboard.js',
+  '/weekly-timetable.js',
+  '/top-student-mode.js',
+  '/manifest.json',
+  '/icon-192.png'
 ];
 
 // ============================
-// INSTALL (FIXED)
+// INSTALL
 // ============================
 self.addEventListener('install', (event) => {
-  self.skipWaiting(); // ✅ IMPORTANT
+  self.skipWaiting();
 
   event.waitUntil(
     (async () => {
@@ -55,13 +55,13 @@ self.addEventListener('activate', (event) => {
         })
       );
 
-      await self.clients.claim(); // ✅ REQUIRED
+      await self.clients.claim();
     })()
   );
 });
 
 // ============================
-// FETCH (STABLE)
+// FETCH
 // ============================
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
@@ -79,14 +79,14 @@ self.addEventListener('fetch', (event) => {
 
           if (network && network.status === 200) {
             const cache = await caches.open(CACHE_NAME);
-            cache.put('./index.html', network.clone());
+            cache.put('/index.html', network.clone()); // ✅ FIXED
             return network;
           }
 
           throw new Error("Bad response");
         } catch (err) {
           return (
-            (await caches.match('./index.html')) ||
+            (await caches.match('/index.html')) ||
             new Response("<h1>Offline</h1>", {
               headers: { "Content-Type": "text/html" }
             })
