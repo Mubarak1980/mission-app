@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mission-cache-v178';
+const CACHE_NAME = 'mission-cache-v179';
 
 // ============================
 // APP SHELL (FIXED FOR GITHUB PAGES)
