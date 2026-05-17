@@ -1,7 +1,7 @@
-const CACHE_NAME = 'mission-cache-v191';
+const CACHE_NAME = 'mission-cache-v192';
 
 // ============================
-// APP SHELL (FIXED)
+// CORE APP SHELL
 // ============================
 const APP_SHELL = [
   './index.html',
@@ -17,32 +17,39 @@ const APP_SHELL = [
 ];
 
 // ============================
-// INSTALL
+// INSTALL (CHROME STABLE)
 // ============================
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
 
-    await Promise.allSettled(
-      APP_SHELL.map(async (file) => {
-        try {
-          const res = await fetch(file, { cache: "reload" });
+    // Chrome-friendly: fail-safe caching
+    for (const file of APP_SHELL) {
+      try {
+        const res = await fetch(file, {
+          cache: "reload",
+          credentials: "same-origin"
+        });
 
-          if (res && res.ok) {
-            await cache.put(file, res.clone());
-          }
-        } catch (e) {
-          console.warn("Cache skipped:", file);
+        if (!res || !res.ok) {
+          console.warn("Skipping:", file);
+          continue;
         }
-      })
-    );
 
+        await cache.put(file, res.clone());
+
+      } catch (err) {
+        console.warn("Fetch failed:", file);
+      }
+    }
+
+    // IMPORTANT: force immediate activation
     self.skipWaiting();
   })());
 });
 
 // ============================
-// ACTIVATE
+// ACTIVATE (CLEAN + FAST)
 // ============================
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
@@ -57,11 +64,16 @@ self.addEventListener('activate', (event) => {
     );
 
     await self.clients.claim();
+
+    // Chrome stability boost
+    const clients = await self.clients.matchAll();
+    clients.forEach(client => client.postMessage({ type: "SW_READY" }));
+
   })());
 });
 
 // ============================
-// FETCH
+// FETCH (CHROME OPTIMIZED)
 // ============================
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
@@ -69,7 +81,7 @@ self.addEventListener('fetch', (event) => {
   const request = event.request;
 
   // ============================
-  // NAVIGATION FIX
+  // NAVIGATION (CRITICAL FOR PWA)
   // ============================
   if (request.mode === 'navigate') {
     event.respondWith((async () => {
@@ -78,13 +90,12 @@ self.addEventListener('fetch', (event) => {
 
         if (network && network.ok) {
           const cache = await caches.open(CACHE_NAME);
-
-          await cache.put('./index.html', network.clone());
-
+          cache.put('./index.html', network.clone());
           return network;
         }
 
-        throw new Error("Offline");
+        throw new Error("Offline fallback");
+
       } catch (err) {
         const cache = await caches.open(CACHE_NAME);
 
@@ -101,7 +112,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // ============================
-  // STATIC CACHE STRATEGY
+  // CACHE FIRST (SAFE)
   // ============================
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
@@ -111,11 +122,12 @@ self.addEventListener('fetch', (event) => {
       const network = await fetch(request);
 
       if (network && network.ok) {
-        await cache.put(request, network.clone());
+        cache.put(request, network.clone());
         return network;
       }
 
       return cached || network;
+
     } catch (err) {
       return cached;
     }
@@ -123,7 +135,7 @@ self.addEventListener('fetch', (event) => {
 });
 
 // ============================
-// MESSAGE CONTROL
+// UPDATE CONTROL
 // ============================
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
