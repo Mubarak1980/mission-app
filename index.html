@@ -13,7 +13,7 @@
     <!-- MANIFEST -->
     <link rel="manifest" href="./manifest.json" />
 
-    <meta name="theme-color" content="#00d4ff" />
+    <meta name="theme-color" content="#0b0f14" />
     <meta name="application-name" content="Mission App" />
 
     <meta name="mobile-web-app-capable" content="yes" />
@@ -21,7 +21,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Mission App" />
 
-    <!-- ICON (ONLY ONE SOURCE) -->
     <link rel="icon" href="./icon-192.png" />
     <link rel="apple-touch-icon" href="./icon-192.png" />
 </head>
@@ -74,7 +73,7 @@ Install App
     </div>
 </div>
 
-<!-- JS -->
+<!-- JS FILES -->
 <script src="./Sunnah-tracker.js"></script>
 <script src="./Study-tracker.js"></script>
 <script src="./weekly-timetable.js"></script>
@@ -82,6 +81,9 @@ Install App
 <script src="./top-student-mode.js"></script>
 <script src="./main.js"></script>
 
+<!-- ===============================
+     PWA FIXED CORE SYSTEM
+=============================== -->
 <script>
 let deferredPrompt = null;
 const installBtn = document.getElementById("installBtn");
@@ -92,7 +94,8 @@ window.addEventListener('beforeinstallprompt', (e) => {
     deferredPrompt = e;
 
     console.log("Install available");
-    installBtn.style.display = "block";
+
+    if (installBtn) installBtn.style.display = "block";
 });
 
 // INSTALL CLICK
@@ -100,17 +103,22 @@ installBtn?.addEventListener("click", async () => {
     if (!deferredPrompt) return;
 
     deferredPrompt.prompt();
+
     const choice = await deferredPrompt.userChoice;
 
-    if (choice.outcome === "accepted") {
-        console.log("Installed");
-    }
+    console.log("Install result:", choice.outcome);
 
     deferredPrompt = null;
     installBtn.style.display = "none";
 });
 
-// SERVICE WORKER (FIXED - NO RELOAD LOOP)
+// INSTALLED EVENT (IMPORTANT)
+window.addEventListener('appinstalled', () => {
+    console.log("PWA installed successfully");
+    deferredPrompt = null;
+});
+
+// SERVICE WORKER
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
         try {
@@ -134,22 +142,29 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// SPLASH
-window.addEventListener('load', () => {
+// SPLASH (SAFE & FAST)
+window.addEventListener('DOMContentLoaded', () => {
     const splash = document.getElementById('splash-screen');
     const app = document.getElementById('app');
 
-    setTimeout(() => {
-        splash?.classList.add('hide');
+    if (app) {
+        app.style.display = 'block';
+        app.style.opacity = '0';
+    }
 
-        setTimeout(() => {
-            splash?.remove();
-            if (app) app.style.display = 'block';
-        }, 500);
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            if (app) app.style.opacity = '1';
 
-    }, 1200);
+            setTimeout(() => {
+                splash?.classList.add('hide');
+
+                setTimeout(() => splash?.remove(), 300);
+            }, 150);
+        });
+    });
 });
 </script>
 
 </body>
-</html>
+    </html>
