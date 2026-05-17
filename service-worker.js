@@ -1,10 +1,9 @@
-const CACHE_NAME = 'mission-cache-v190';
+const CACHE_NAME = 'mission-cache-v191';
 
 // ============================
-// APP SHELL
+// APP SHELL (FIXED)
 // ============================
 const APP_SHELL = [
-  ''./index.html',',
   './index.html',
   './styles.css',
   './main.js',
@@ -24,19 +23,20 @@ self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
 
-    for (const file of APP_SHELL) {
-      try {
-        const res = await fetch(file, { cache: "reload" });
+    await Promise.allSettled(
+      APP_SHELL.map(async (file) => {
+        try {
+          const res = await fetch(file, { cache: "reload" });
 
-        if (res && res.ok) {
-          await cache.put(file, res);
+          if (res && res.ok) {
+            await cache.put(file, res.clone());
+          }
+        } catch (e) {
+          console.warn("Cache skipped:", file);
         }
-      } catch (e) {
-        console.warn("Cache skipped:", file);
-      }
-    }
+      })
+    );
 
-    // IMPORTANT: DO NOT await this
     self.skipWaiting();
   })());
 });
@@ -68,7 +68,9 @@ self.addEventListener('fetch', (event) => {
 
   const request = event.request;
 
+  // ============================
   // NAVIGATION FIX
+  // ============================
   if (request.mode === 'navigate') {
     event.respondWith((async () => {
       try {
@@ -77,18 +79,17 @@ self.addEventListener('fetch', (event) => {
         if (network && network.ok) {
           const cache = await caches.open(CACHE_NAME);
 
-          // FIX: always normalize key
-          cache.put('./index.html', network.clone());
+          await cache.put('./index.html', network.clone());
 
           return network;
         }
 
-        throw new Error("Offline fallback");
+        throw new Error("Offline");
       } catch (err) {
         const cache = await caches.open(CACHE_NAME);
 
         return (
-          await cache.match('./index.html') ||
+          (await cache.match('./index.html')) ||
           new Response("<h1>Offline</h1>", {
             headers: { "Content-Type": "text/html" }
           })
@@ -99,17 +100,18 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // STATIC CACHE
+  // ============================
+  // STATIC CACHE STRATEGY
+  // ============================
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
-
     const cached = await cache.match(request);
 
     try {
       const network = await fetch(request);
 
       if (network && network.ok) {
-        cache.put(request, network.clone());
+        await cache.put(request, network.clone());
         return network;
       }
 
