@@ -82,60 +82,51 @@ Install App
 <script src="./main.js"></script>
 
 <!-- ===============================
-     PWA FIXED CORE SYSTEM (FINAL STABLE)
+     PWA FIXED CORE SYSTEM (FINAL)
 =============================== -->
 <script>
-let deferredPrompt = null;
+(() => {
+  let deferredPrompt = null;
 
-function getInstallButton() {
-    return document.getElementById("installBtn");
-}
+  function initInstallButton() {
+    const installBtn = document.getElementById("installBtn");
+    if (!installBtn) return;
 
-/* INSTALL AVAILABLE */
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
+    // Install prompt becomes available
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
 
-    console.log("Install available");
+        console.log("PWA install available");
 
-    const btn = getInstallButton();
-    if (btn) btn.style.display = "block";
-});
+        installBtn.style.display = "block";
+    });
 
-/* INSTALL CLICK */
-window.addEventListener('load', () => {
-    const btn = getInstallButton();
+    // Install click
+    installBtn.addEventListener("click", async () => {
+        if (!deferredPrompt) return;
 
-    if (btn) {
-        btn.addEventListener('click', async () => {
-            if (!deferredPrompt) {
-                console.log("Install not available yet");
-                return;
-            }
+        deferredPrompt.prompt();
 
-            deferredPrompt.prompt();
+        const choice = await deferredPrompt.userChoice;
 
-            const choice = await deferredPrompt.userChoice;
+        console.log("Install result:", choice.outcome);
 
-            console.log("Install result:", choice?.outcome);
+        deferredPrompt = null;
+        installBtn.style.display = "none";
+    });
 
-            deferredPrompt = null;
-            btn.style.display = "none";
-        });
-    }
-});
+    // Installed event
+    window.addEventListener('appinstalled', () => {
+        console.log("PWA installed successfully");
+        deferredPrompt = null;
+        installBtn.style.display = "none";
+    });
+  }
 
-/* INSTALLED EVENT */
-window.addEventListener('appinstalled', () => {
-    console.log("PWA installed successfully");
-    deferredPrompt = null;
+  function registerSW() {
+    if (!('serviceWorker' in navigator)) return;
 
-    const btn = getInstallButton();
-    if (btn) btn.style.display = "none";
-});
-
-/* SERVICE WORKER */
-if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
         try {
             const reg = await navigator.serviceWorker.register('./service-worker.js');
@@ -156,31 +147,37 @@ if ('serviceWorker' in navigator) {
             console.error('SW ERROR:', err);
         }
     });
-}
+  }
 
-/* SPLASH (SAFE FAST BOOT) */
-window.addEventListener('DOMContentLoaded', () => {
-    const splash = document.getElementById('splash-screen');
-    const app = document.getElementById('app');
+  function splash() {
+    window.addEventListener('DOMContentLoaded', () => {
+        const splash = document.getElementById('splash-screen');
+        const app = document.getElementById('app');
 
-    if (app) {
-        app.style.display = 'block';
-        app.style.opacity = '0';
-    }
+        if (app) {
+            app.style.display = 'block';
+            app.style.opacity = '0';
+        }
 
-    requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-            if (app) app.style.opacity = '1';
+            requestAnimationFrame(() => {
+                if (app) app.style.opacity = '1';
 
-            setTimeout(() => {
-                splash?.classList.add('hide');
-
-                setTimeout(() => splash?.remove(), 300);
-            }, 150);
+                setTimeout(() => {
+                    splash?.classList.add('hide');
+                    setTimeout(() => splash?.remove(), 300);
+                }, 150);
+            });
         });
     });
-});
+  }
+
+  initInstallButton();
+  registerSW();
+  splash();
+
+})();
 </script>
 
 </body>
-    </html>
+</html>
