@@ -15,8 +15,10 @@
             background: #0b0f14;
         }
 
+        /* FIX: avoid flicker before JS runs */
         #app {
-            opacity: 1;
+            display: none;
+            opacity: 0;
             transition: opacity 0.15s ease;
         }
     </style>
@@ -26,9 +28,7 @@
     <!-- MANIFEST -->
     <link rel="manifest" href="./manifest.json">
 
-    <!-- FIXED: theme color must match manifest to avoid flash -->
     <meta name="theme-color" content="#0b0f14" />
-
     <meta name="application-name" content="Mission App" />
 
     <meta name="mobile-web-app-capable" content="yes" />
@@ -52,7 +52,7 @@
 </div>
 
 <!-- APP -->
-<div id="app" style="display:none;">
+<div id="app">
     <h1>TIME</h1>
 
     <div class="section-buttons">
@@ -72,13 +72,13 @@
     </div>
 </div>
 
-<!-- JS FILES (ONLY CHANGE: defer added) -->
-<script src="./Sunnah-tracker.js" defer></script>
-<script src="./Study-tracker.js" defer></script>
-<script src="./weekly-timetable.js" defer></script>
-<script src="./dashboard.js" defer></script>
-<script src="./top-student-mode.js" defer></script>
-<script src="./main.js" defer></script>
+<!-- JS FILES -->
+<script src="./Sunnah-tracker.js"></script>
+<script src="./Study-tracker.js"></script>
+<script src="./weekly-timetable.js"></script>
+<script src="./dashboard.js"></script>
+<script src="./top-student-mode.js"></script>
+<script src="./main.js"></script>
 
 <!-- PWA SCRIPT -->
 <script>
@@ -88,48 +88,42 @@ let deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-
-    console.log("Install available");
 });
 
 /* SERVICE WORKER */
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
         try {
-            const reg = await navigator.serviceWorker.register('./service-worker.js');
-            console.log('SW registered:', reg.scope);
+            await navigator.serviceWorker.register('./service-worker.js');
         } catch (err) {
             console.error('SW ERROR:', err);
         }
     });
 }
 
-/* SPLASH (FAST BOOT) */
+/* SPLASH CONTROL (OPTIMIZED) */
 window.addEventListener('DOMContentLoaded', () => {
     const splash = document.getElementById('splash-screen');
     const app = document.getElementById('app');
 
-    if (app) {
-        app.style.display = "block";
-        app.style.opacity = "0";
-    }
+    // IMPORTANT FIX:
+    // show app immediately so system splash blends smoothly
+    app.style.display = 'block';
 
     requestAnimationFrame(() => {
-        if (app) app.style.opacity = "1";
+        app.style.opacity = '1';
 
-        setTimeout(() => {
-            if (splash) {
-                splash.style.transition = "opacity 0.15s ease";
-                splash.style.opacity = "0";
-            }
+        if (splash) {
+            splash.style.transition = "opacity 0.15s ease";
+            splash.style.opacity = "0";
 
             setTimeout(() => {
-                splash?.remove();
-            }, 200);
-        }, 120);
+                splash.remove();
+            }, 150);
+        }
     });
 });
 </script>
 
 </body>
-    </html>
+</html>
